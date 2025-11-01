@@ -1,0 +1,23 @@
+/* ==============================
+   variables.css — Theme System
+============================== */
+
+:root {
+  /* 🎨 Color Palette */
+  --color-primary: #0f1f3d;   /* Navy Blue */
+  --color-secondary: #fa0f8c; /* Magenta */
+  --color-accent: #ffe600;    /* Yellow */
+  --color-bg: #ffffff;        /* White */
+  --color-text: #0a0a0a;      /* Black */
+  --color-muted: #6b6b6b;     /* Soft Grey */
+  --color-border: #e0e0e0;    /* Light Border */
+
+  /* 📏 Layout + Effects */
+  --radius: 12px;
+  --shadow-soft: 0 4px 10px rgba(0, 0, 0, 0.05);
+  --shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.1);
+  --transition: all 0.3s ease;
+
+  /* 💬 Typography */
+  --font-primary: 'Inter', 'Segoe UI', sans-serif;
+}

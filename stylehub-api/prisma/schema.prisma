@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(uuid()) @db.Uuid
+  email         String         @unique
+  name          String?
+  phone         String         @unique
+  password_hash String
+  role          String         @default("client")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  cart          Cart?
+  kyc           KYC?
+  notifications Notification[]
+  orders        Order[]
+  products      Product[]
+  reviews       Review[]
+}
+
+model KYC {
+  id         String    @id @default(uuid()) @db.Uuid
+  user_id    String    @unique @db.Uuid
+  doc_type   String
+  doc_url    String
+  selfie_url String
+  status     KycStatus @default(pending)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  user       User      @relation(fields: [user_id], references: [id])
+}
+
+model Product {
+  id            String     @id @default(uuid()) @db.Uuid
+  name          String     @db.VarChar(255)
+  description   String?
+  price         Decimal    @db.Decimal(10, 2)
+  stock         Int        @default(0)
+  category      String?    @db.VarChar(100)
+  imageUrl      String?    @db.VarChar(255)
+  sellerId      String?    @db.Uuid
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  averageRating Decimal    @default(0.00) @db.Decimal(3, 2)
+  reviewCount   Int        @default(0)
+  cartItems     CartItem[]
+  seller        User?      @relation(fields: [sellerId], references: [id])
+  reviews       Review[]
+
+  // 🛑 ADDED THIS BACK-RELATION 🛑
+  orderItems    OrderItem[]
+
+  @@index([sellerId])
+  @@index([category])
+}
+
+model Cart {
+  id        String     @id @default(uuid()) @db.Uuid
+  userId    String     @unique @db.Uuid
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  user      User       @relation(fields: [userId], references: [id])
+  items     CartItem[]
+}
+
+model CartItem {
+  id        String   @id @default(uuid()) @db.Uuid
+  cartId    String   @db.Uuid
+  productId String   @db.Uuid
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, productId])
+}
+
+model Order {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @db.Uuid
+  totalAmount Decimal   @db.Decimal(10, 2)
+  status      String    @default("pending")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [userId], references: [id])
+  items       OrderItem[]
+
+  // 🛑 ADDED THIS BACK-RELATION 🛑
+  notifications Notification[]
+}
+
+model OrderItem {
+  id          String   @id @default(uuid()) @db.Uuid
+  orderId     String   @db.Uuid
+  productId   String   @db.Uuid
+  productName String
+  unitPrice   Decimal  @db.Decimal(10, 2)
+  quantity    Int
+  createdAt   DateTime @default(now())
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  // 🛑 ADDED THIS RELATION (REQUIRED FOR NOTIFICATIONS) 🛑
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([productId])
+}
+
+model Review {
+  id        String   @id @default(uuid()) @db.Uuid
+  rating    Int
+  comment   String?
+  productId String   @db.Uuid
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+}
+
+model Notification {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  type      String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 🛑 ADDED THIS RELATION 🛑
+  orderId   String?  @db.Uuid // Optional: not all notifications are about orders
+  order     Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([orderId]) // 🛑 ADDED THIS INDEX 🛑
+}
+
+enum KycStatus {
+  pending
+  approved
+  rejected
+}

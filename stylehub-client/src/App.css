@@ -1,0 +1,494 @@
+/* ===========================
+   src/App.css
+   Enhanced for E-Commerce UI
+=========================== */
+
+/* --- Color Variables --- */
+:root {
+  --color-primary: #0f35df;   /* Deep Sky Blue */
+  --color-secondary: #fa0f8c; /* Magenta Pink */
+  --color-accent: #aef30f;    /* Vibrant Yellow */
+  --color-background: #faf6f6;
+  --color-text: #070707;
+  --color-muted: #6b6b6b;
+  --color-border: #e0e0e0;
+}
+
+/* --- Global Reset and Body --- */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+  scroll-behavior: smooth;
+}
+
+.App {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* --- Navigation --- */
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--color-primary);
+  color: white;
+  padding: 15px 30px;
+  border-bottom: 3px solid var(--color-accent);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+  padding: 8px 15px;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+nav a:hover {
+  background-color: var(--color-secondary);
+  color: var(--color-background);
+}
+
+nav button {
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  font-size: 1em;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+nav button:hover {
+  color: white;
+}
+
+/* --- Hero Section --- */
+.hero {
+  text-align: center;
+  padding: 80px 20px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: white;
+  border-radius: 12px;
+  margin-bottom: 40px;
+}
+
+.hero h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+.hero p {
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+/* --- Product Grid --- */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 25px;
+  margin: 40px 0;
+}
+
+.product-card {
+  background-color: white;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
+.product-card img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.product-info {
+  padding-top: 10px;
+}
+
+.product-info h3 {
+  font-size: 1.1rem;
+  margin: 5px 0;
+  color: var(--color-text);
+}
+
+.product-info p {
+  color: var(--color-muted);
+  margin: 0;
+}
+
+.price {
+  color: var(--color-secondary);
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+/* --- Buttons --- */
+button, .btn {
+  background-color: var(--color-secondary);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s, transform 0.1s;
+}
+
+button:hover, .btn:hover {
+  background-color: #d11277;
+  transform: translateY(-1px);
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* --- Inputs and Forms --- */
+input[type="text"], 
+input[type="number"], 
+input[type="password"], 
+textarea, 
+select {
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  margin: 8px 0;
+  width: 100%;
+  max-width: 400px;
+  font-size: 1rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 8px rgba(15, 53, 223, 0.3);
+  outline: none;
+}
+
+/* --- Footer --- */
+footer {
+  text-align: center;
+  padding: 30px 10px;
+  background-color: var(--color-primary);
+  color: white;
+  margin-top: 60px;
+  border-top: 3px solid var(--color-accent);
+}
+
+footer a {
+  color: var(--color-accent);
+  text-decoration: none;
+  margin: 0 10px;
+  font-weight: 500;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  nav {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .hero h1 {
+    font-size: 2rem;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}
+/* src/App.css */
+
+/* ... (your existing .App, .App-logo, etc. styles are here) ... */
+
+/* ---------------------------------- */
+/* --- Responsive Nav Bar Styles --- */
+/* ---------------------------------- */
+
+/* 1. Style the main nav bar */
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Space out items */
+  padding: 10px 20px;
+  background-color: #282c34;
+  color: white;
+  flex-wrap: wrap; /* Allow items to wrap on medium screens */
+}
+
+/* 2. Style the container for our main links */
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 15px; /* Adds spacing between links */
+}
+
+/* 3. Style the search form */
+.nav-search-form {
+  display: flex;
+  margin: 0 15px;
+}
+.nav-search-form input {
+  padding: 5px;
+}
+.nav-search-form button {
+  padding: 5px 10px;
+  margin-left: 5px;
+}
+
+/* 4. Hamburger Menu Icon (hidden on desktop) */
+.mobile-menu-icon {
+  display: none;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+}
+
+/* 5. Mobile Menu Dropdown (hidden on desktop) */
+.nav-links-mobile {
+  display: none; /* Hidden by default */
+  flex-direction: column;
+  width: 100%;
+  background-color: #333;
+  padding: 10px 0;
+}
+
+.nav-links-mobile a,
+.nav-links-mobile button {
+  color: white;
+  padding: 12px 20px;
+  text-decoration: none;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box; /* Ensures padding doesn't break layout */
+}
+.nav-links-mobile button {
+  background: none;
+  border: none;
+  font-size: 1em;
+  font-family: inherit;
+  cursor: pointer;
+}
+.nav-links-mobile a:hover,
+.nav-links-mobile button:hover {
+  background-color: #444;
+}
+
+
+/* 6. 🛑 THE MEDIA QUERY 🛑 */
+/* This applies only to screens 768px wide or less */
+@media (max-width: 768px) {
+  
+  .nav-links {
+    display: none; /* Hide the desktop links */
+  }
+
+  .mobile-menu-icon {
+    display: block; /* Show the hamburger icon */
+    order: 3; /* Move to the end */
+    margin-left: auto; /* Push to the far right */
+  }
+  
+  .nav-search-form {
+    order: 2; /* Keep search in the middle */
+    flex-grow: 1; /* Allow search to take up space */
+    margin: 0 10px 0 0;
+  }
+
+  nav {
+    justify-content: flex-start; /* Align items to the start */
+  }
+  
+  .nav-links-mobile.open {
+    display: flex; /* Show the mobile menu when it has the 'open' class */
+  }
+}
+/* -------------------------- */
+/* --- ADD THESE STYLES --- */
+/* -------------------------- */
+
+/* --- Hero Section (Guest/Client) --- */
+.hero-section {
+  padding: 60px 20px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: white;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.hero-section h1 {
+  font-size: 2.5em;
+  margin-bottom: 10px;
+}
+
+.hero-section p {
+  font-size: 1.2em;
+  opacity: 0.9;
+  margin-bottom: 25px;
+}
+
+.hero-button {
+  padding: 12px 25px;
+  font-size: 1em;
+  font-weight: bold;
+  color: #333;
+  background-color: var(--color-accent); /* Yellow button */
+  text-decoration: none;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.hero-button:hover {
+  background-color: #fff;
+  color: var(--color-secondary);
+  transform: translateY(-2px);
+}
+
+/* --- Product Grid (Guest/Client) --- */
+.home-section-title {
+  text-align: center;
+  font-size: 2em;
+  color: var(--color-primary);
+  margin-bottom: 25px;
+}
+
+.home-product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.product-card {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  overflow: hidden; /* Ensures image corners are rounded */
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.product-card-link {
+  text-decoration: none;
+  color: var(--color-text);
+}
+
+.product-card-image {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  display: block;
+}
+
+.product-card-content {
+  padding: 15px;
+}
+
+.product-card-content h3 {
+  font-size: 1.15em;
+  margin: 10px 0;
+}
+
+.product-card-content p {
+  font-size: 1.1em;
+  color: var(--color-secondary); /* Magenta price */
+  font-weight: bold;
+  margin: 0;
+}
+
+/* --- Seller Home Page --- */
+.seller-home {
+  text-align: center;
+}
+
+.seller-home h1 {
+  color: var(--color-primary);
+}
+
+.seller-dashboard-links {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 30px;
+}
+
+.seller-link-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 250px;
+  height: 150px;
+  padding: 20px;
+  background-color: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--color-primary);
+  font-size: 1.2em;
+  font-weight: 600;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+}
+
+.seller-link-card:hover {
+  background-color: var(--color-primary);
+  color: white;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  transform: translateY(-5px);
+}
+
+/* On very small screens, make search take full width */
+@media (max-width: 480px) {
+  .nav-search-form {
+    width: 100%;
+    margin: 10px 0 0 0; /* Stack search below Home link */
+    order: 4; /* Put it at the very end */
+  }
+  .mobile-menu-icon {
+    order: 3;
+  }
+}
