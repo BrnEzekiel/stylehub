@@ -34,13 +34,10 @@ export const addItemToCart = async (productId, quantity) => {
 };
 
 /**
- * 🛑 CORRECTED FUNCTION 🛑
  * Removes a specific item from the user's cart.
- * @param {string} cartItemId - The unique ID of the cart item (NOT the product ID).
  */
 export const removeItemFromCart = async (cartItemId) => {
   try {
-    // Calls DELETE /api/cart/:cartItemId
     const response = await apiClient.delete(`/cart/${cartItemId}`);
     return response.data;
   } catch (error) {
@@ -51,11 +48,11 @@ export const removeItemFromCart = async (cartItemId) => {
 };
 
 /**
- * Creates an order from the current cart (POST /api/cart/checkout).
+ * Creates an order from the current cart.
  */
-export const createOrder = async () => {
+export const createOrder = async (addressData) => {
   try {
-    const response = await apiClient.post('/cart/checkout');
+    const response = await apiClient.post('/cart/checkout', addressData);
     return response.data;
   } catch (error) {
     const errorMessage = error.response?.data?.message || 'Failed to create order.';
@@ -64,34 +61,4 @@ export const createOrder = async () => {
   }
 };
 
-/**
- * Fetches the currently logged-in user's order history (GET /api/orders).
- */
-export const fetchOrders = async () => {
-  try {
-    const response = await apiClient.get('/orders');
-    return response.data; 
-  } catch (error) {
-    const errorMessage = error.response?.data?.message || 'Failed to fetch order history.';
-    console.error('Fetch orders error:', errorMessage);
-    throw new Error(errorMessage);
-  }
-};
-
-/**
- * 🛑 UPDATED FUNCTION 🛑
- * Fetches ALL orders for the logged-in seller, PLUS a summary.
- * @returns {Promise<object>} An object { orders: [], summary: {} }
- */
-export const fetchAllOrders = async () => {
-  try {
-    // Calls GET /api/orders/all
-    const response = await apiClient.get('/orders/all');
-    // Now returns the whole object
-    return response.data; 
-  } catch (error) {
-    const errorMessage = error.response?.data?.message || 'Failed to fetch all orders for seller dashboard.';
-    console.error('Fetch all orders error:', errorMessage);
-    throw new Error(errorMessage);
-  }
-};
+// 🛑 REMOVED fetchOrders and fetchAllOrders (moved to orderService.js)

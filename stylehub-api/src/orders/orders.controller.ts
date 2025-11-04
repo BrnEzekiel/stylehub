@@ -6,27 +6,27 @@ import {
   UseGuards,
   Request,
   InternalServerErrorException,
-  Patch, // 1. Import Patch
-  Param, // 2. Import Param
-  Body, // 3. Import Body
-  ParseUUIDPipe, // 4. Import ParseUUIDPipe
+  Patch,
+  Param,
+  Body,
+  ParseUUIDPipe,
+  StreamableFile,
+  Res,
+  Delete, // 1. 🛑 Import Delete
 } from '@nestjs/common';
+import { FastifyReply } from 'fastify';
 import { OrdersService } from './orders.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Role } from '../auth/enums/role.enum';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { UpdateOrderStatusDto } from './dto/update-order-status.dto'; // 5. Import new DTO
+import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 
 @Controller('api/orders')
-@UseGuards(JwtAuthGuard) // Protect all routes in this controller
+@UseGuards(JwtAuthGuard)
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
-  /**
-   * @route   GET /api/orders
-   * @desc    Get all orders for the logged-in CLIENT
-   */
   @Get()
   @Roles(Role.Client)
   findClientOrders(@Request() req) {
@@ -36,10 +36,6 @@ export class OrdersController {
     return this.ordersService.findOrdersByUserId(req.user.sub);
   }
 
-  /**
-   * @route   GET /api/orders/all
-   * @desc    Get all orders + summary for the logged-in SELLER
-   */
   @Get('all')
   @UseGuards(RolesGuard)
   @Roles(Role.Seller)
@@ -50,10 +46,6 @@ export class OrdersController {
     return this.ordersService.findAllForSeller(req.user.sub);
   }
 
-  /**
-   * @route   GET /api/orders/admin-all
-   * @desc    Get all orders from all users
-   */
   @Get('admin-all')
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
@@ -61,11 +53,13 @@ export class OrdersController {
     return this.ordersService.findAllAdmin();
   }
 
-  /**
-   * 🛑 NEW ADMIN ROUTE 🛑
-   * @route   PATCH /api/orders/admin-all/:id/status
-   * @desc    Admin updates any order's status
-   */
+  @Get('admin-all/:id')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  findAdminOrderDetails(@Param('id', ParseUUIDPipe) id: string) {
+    return this.ordersService.findAdminOrderDetails(id);
+  }
+
   @Patch('admin-all/:id/status')
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
@@ -74,5 +68,39 @@ export class OrdersController {
     @Body() updateOrderStatusDto: UpdateOrderStatusDto,
   ) {
     return this.ordersService.updateOrderStatus(id, updateOrderStatusDto.status);
+  }
+
+  /**
+   * 2. 🛑 NEW: Admin deletes an order
+   * @route   DELETE /api/orders/admin/:id
+   */
+  @Delete('admin/:id')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  adminDeleteOrder(@Param('id', ParseUUIDPipe) id: string) {
+    return this.ordersService.adminDeleteOrder(id);
+  }
+
+  @Get(':id/receipt')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Client, Role.Seller, Role.Admin)
+  async downloadReceipt(
+    @Request() req,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Res({ passthrough: true }) res: FastifyReply,
+  ): Promise<StreamableFile> {
+    
+    const pdfBuffer = await this.ordersService.downloadReceipt(
+      id,
+      req.user.sub,
+      req.user.role,
+    );
+    res.header('Content-Type', 'application/pdf');
+    res.header(
+      'Content-Disposition',
+      `attachment; filename="StyleHub-Receipt-${id.substring(0, 8)}.pdf"`,
+    );
+    
+    return new StreamableFile(pdfBuffer);
   }
 }

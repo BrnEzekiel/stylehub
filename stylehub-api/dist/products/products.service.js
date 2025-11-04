@@ -14,6 +14,7 @@ const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const search_service_1 = require("../search/search.service");
 const storage_service_1 = require("../storage/storage.service");
+const client_1 = require("@prisma/client");
 let ProductsService = class ProductsService {
     constructor(prisma, storageService, searchService) {
         this.prisma = prisma;
@@ -75,9 +76,7 @@ let ProductsService = class ProductsService {
         if (category) {
             where.category = category;
         }
-        const orderBy = {
-            [sortBy]: sortOrder
-        };
+        const orderBy = { [sortBy]: sortOrder };
         const products = await this.prisma.product.findMany({
             where,
             orderBy,
@@ -96,7 +95,18 @@ let ProductsService = class ProductsService {
         };
     }
     async findOne(id) {
-        return this.prisma.product.findUnique({ where: { id } });
+        const product = await this.prisma.product.findUnique({
+            where: { id },
+            include: {
+                seller: {
+                    select: { id: true, name: true, email: true }
+                }
+            }
+        });
+        if (!product) {
+            throw new common_1.NotFoundException('Product not found');
+        }
+        return product;
     }
     async update(id, updateProductDto, sellerId) {
         const product = await this.prisma.product.findUnique({ where: { id } });
@@ -125,43 +135,55 @@ let ProductsService = class ProductsService {
         await this.searchService.deleteProduct(id);
         return { message: 'Product successfully deleted.' };
     }
+    async adminCreateProduct(data, file, sellerId = null) {
+        if (!file) {
+            throw new common_1.BadRequestException('Product image file is required.');
+        }
+        let imageUrl;
+        try {
+            const uploadResult = await this.storageService.upload(file.buffer, 'products');
+            if (!uploadResult?.secure_url) {
+                throw new Error('Image upload failed to return a secure URL.');
+            }
+            imageUrl = uploadResult.secure_url;
+        }
+        catch (error) {
+            console.error('Image upload failed:', error);
+            throw new common_1.InternalServerErrorException('Failed to upload product image.');
+        }
+        const newProduct = await this.prisma.product.create({
+            data: {
+                ...data,
+                price: data.price,
+                stock: data.stock,
+                sellerId: sellerId,
+                imageUrl: imageUrl,
+            },
+        });
+        await this.searchService.indexProduct(newProduct);
+        return newProduct;
+    }
     async findAllAdmin() {
         return this.prisma.product.findMany({
             include: {
                 seller: {
-                    select: {
-                        name: true,
-                        email: true,
-                    },
+                    select: { name: true, email: true },
                 },
             },
-            orderBy: {
-                createdAt: 'desc',
-            },
+            orderBy: { createdAt: 'desc' },
         });
     }
     async removeAdmin(id) {
-        const product = await this.prisma.product.findUnique({
-            where: { id },
-        });
+        const product = await this.prisma.product.findUnique({ where: { id } });
         if (!product) {
             throw new common_1.NotFoundException('Product not found');
         }
         try {
             await this.prisma.$transaction(async (tx) => {
-                await tx.orderItem.updateMany({
-                    where: { productId: id },
-                    data: { productId: null },
-                });
-                await tx.cartItem.deleteMany({
-                    where: { productId: id },
-                });
-                await tx.review.deleteMany({
-                    where: { productId: id },
-                });
-                await tx.product.delete({
-                    where: { id },
-                });
+                await tx.orderItem.updateMany({ where: { productId: id }, data: { productId: null } });
+                await tx.cartItem.deleteMany({ where: { productId: id } });
+                await tx.review.deleteMany({ where: { productId: id } });
+                await tx.product.delete({ where: { id } });
             });
             await this.searchService.deleteProduct(id);
             return { message: 'Product successfully deleted by admin.' };
@@ -170,6 +192,22 @@ let ProductsService = class ProductsService {
             console.error('Admin product delete error:', error);
             throw new common_1.InternalServerErrorException('Could not delete product.');
         }
+    }
+    async adminUpdateProduct(id, data) {
+        const product = await this.prisma.product.findUnique({ where: { id } });
+        if (!product) {
+            throw new common_1.NotFoundException(`Product with ID ${id} not found.`);
+        }
+        const updateData = { ...data };
+        if (data.price) {
+            updateData.price = new client_1.Prisma.Decimal(data.price);
+        }
+        const updatedProduct = await this.prisma.product.update({
+            where: { id },
+            data: updateData,
+        });
+        await this.searchService.indexProduct(updatedProduct);
+        return updatedProduct;
     }
 };
 exports.ProductsService = ProductsService;

@@ -1,3 +1,5 @@
+// src/prisma/schema.prisma
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -16,12 +18,36 @@ model User {
   role          String         @default("client")
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+  
   cart          Cart?
   kyc           KYC?
+  
   notifications Notification[]
   orders        Order[]
   products      Product[]
   reviews       Review[]
+  addresses     Address[]
+  
+  // 1. 🛑 NEW: Add relation to Payouts
+  payouts       Payout[]
+}
+
+model Address {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  fullName  String
+  phone     String
+  street    String
+  city      String
+  state     String
+  zipCode   String
+  country   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders    Order[]
+
+  @@index([userId])
 }
 
 model KYC {
@@ -33,7 +59,7 @@ model KYC {
   status     KycStatus @default(pending)
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
-  user       User      @relation(fields: [user_id], references: [id])
+  user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
 model Product {
@@ -50,10 +76,8 @@ model Product {
   averageRating Decimal    @default(0.00) @db.Decimal(3, 2)
   reviewCount   Int        @default(0)
   cartItems     CartItem[]
-  seller        User?      @relation(fields: [sellerId], references: [id])
+  seller        User?      @relation(fields: [sellerId], references: [id], onDelete: SetNull)
   reviews       Review[]
-
-  // 🛑 ADDED THIS BACK-RELATION 🛑
   orderItems    OrderItem[]
 
   @@index([sellerId])
@@ -65,7 +89,7 @@ model Cart {
   userId    String     @unique @db.Uuid
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-  user      User       @relation(fields: [userId], references: [id])
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   items     CartItem[]
 }
 
@@ -83,39 +107,48 @@ model CartItem {
 }
 
 model Order {
-  id          String    @id @default(uuid()) @db.Uuid
-  userId      String    @db.Uuid
-  totalAmount Decimal   @db.Decimal(10, 2)
-  status      String    @default("pending")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  user        User      @relation(fields: [userId], references: [id])
-  items       OrderItem[]
+  id                String    @id @default(uuid()) @db.Uuid
+  userId            String    @db.Uuid
+  totalAmount       Decimal   @db.Decimal(10, 2)
+  status            String    @default("pending")
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items             OrderItem[]
+  notifications     Notification[]
+  shippingAddressId String?   @db.Uuid
+  shippingAddress   Address?  @relation(fields: [shippingAddressId], references: [id], onDelete: SetNull)
 
-  // 🛑 ADDED THIS BACK-RELATION 🛑
-  notifications Notification[]
+  @@index([shippingAddressId])
 }
 
 model OrderItem {
-  id          String   @id @default(uuid()) @db.Uuid
-  orderId     String   @db.Uuid
-  productId   String   @db.Uuid
-  productName String
-  unitPrice   Decimal  @db.Decimal(10, 2)
-  quantity    Int
-  createdAt   DateTime @default(now())
-  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  id            String   @id @default(uuid()) @db.Uuid
+  orderId       String   @db.Uuid
+  productId     String?  @db.Uuid
+  productName   String
+  unitPrice     Decimal  @db.Decimal(10, 2)
+  quantity      Int
+  platformFee   Decimal  @default(0.00) @db.Decimal(10, 2)
+  sellerEarning Decimal  @default(0.00) @db.Decimal(10, 2)
+  
+  // 2. 🛑 NEW: Add relation to a Payout
+  payoutId      String?  @db.Uuid
+  payout        Payout?  @relation(fields: [payoutId], references: [id], onDelete: SetNull)
 
-  // 🛑 ADDED THIS RELATION (REQUIRED FOR NOTIFICATIONS) 🛑
-  product     Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  createdAt     DateTime @default(now())
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product       Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 
   @@index([productId])
+  @@index([payoutId]) // 3. 🛑 NEW: Add index
 }
 
 model Review {
   id        String   @id @default(uuid()) @db.Uuid
   rating    Int
   comment   String?
+  imageUrl  String?  @db.VarChar(255)
   productId String   @db.Uuid
   userId    String   @db.Uuid
   createdAt DateTime @default(now())
@@ -134,17 +167,36 @@ model Notification {
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // 🛑 ADDED THIS RELATION 🛑
-  orderId   String?  @db.Uuid // Optional: not all notifications are about orders
+  orderId   String?  @db.Uuid
   order     Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
 
   @@index([userId])
-  @@index([orderId]) // 🛑 ADDED THIS INDEX 🛑
+  @@index([orderId])
+}
+
+// 4. 🛑 NEW: Add Payout model
+model Payout {
+  id         String       @id @default(uuid()) @db.Uuid
+  sellerId   String       @db.Uuid
+  amount     Decimal      @db.Decimal(10, 2)
+  status     PayoutStatus @default(pending)
+  createdAt  DateTime     @default(now())
+  paidAt     DateTime?
+  
+  seller     User         @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[] // The items included in this payout
+  
+  @@index([sellerId])
 }
 
 enum KycStatus {
   pending
   approved
   rejected
+}
+
+// 5. 🛑 NEW: Add PayoutStatus enum
+enum PayoutStatus {
+  pending
+  paid
 }

@@ -19,9 +19,7 @@ let UsersService = class UsersService {
     }
     async findByEmail(email) {
         try {
-            const user = await this.prisma.user.findUnique({
-                where: { email },
-            });
+            const user = await this.prisma.user.findUnique({ where: { email } });
             return user;
         }
         catch (error) {
@@ -31,9 +29,7 @@ let UsersService = class UsersService {
     }
     async findByPhone(phone) {
         try {
-            const user = await this.prisma.user.findUnique({
-                where: { phone },
-            });
+            const user = await this.prisma.user.findUnique({ where: { phone } });
             return user;
         }
         catch (error) {
@@ -68,6 +64,79 @@ let UsersService = class UsersService {
                 createdAt: 'desc',
             },
         });
+    }
+    async findPublicById(id) {
+        const user = await this.prisma.user.findUnique({
+            where: { id },
+            select: {
+                id: true,
+                name: true,
+                role: true,
+            },
+        });
+        if (!user) {
+            throw new common_1.NotFoundException('User not found');
+        }
+        return user;
+    }
+    async findFullUserById(id) {
+        const user = await this.prisma.user.findUnique({
+            where: { id },
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                phone: true,
+                role: true,
+                createdAt: true,
+                _count: {
+                    select: { orders: true, products: true, reviews: true },
+                },
+            },
+        });
+        if (!user) {
+            throw new common_1.NotFoundException('User not found');
+        }
+        return user;
+    }
+    async adminUpdateUser(id, data) {
+        try {
+            return await this.prisma.user.update({
+                where: { id },
+                data: data,
+                select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                    phone: true,
+                    role: true,
+                },
+            });
+        }
+        catch (error) {
+            if (error instanceof client_1.Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+                throw new common_1.ConflictException('Email or phone number is already in use.');
+            }
+            console.error('Admin update user error:', error);
+            throw new common_1.InternalServerErrorException('Could not update user.');
+        }
+    }
+    async adminDeleteUser(id) {
+        try {
+            const user = await this.prisma.user.findUnique({ where: { id } });
+            if (!user) {
+                throw new common_1.NotFoundException('User not found');
+            }
+            await this.prisma.user.delete({ where: { id: id } });
+            return { message: 'User and all related data deleted successfully.' };
+        }
+        catch (error) {
+            console.error('Admin delete user error:', error);
+            if (error instanceof client_1.Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
+                throw new common_1.InternalServerErrorException('Database error: Could not delete user due to a foreign key constraint. Please check schema relations.');
+            }
+            throw new common_1.InternalServerErrorException('Could not delete user.');
+        }
     }
 };
 exports.UsersService = UsersService;

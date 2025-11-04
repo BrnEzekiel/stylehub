@@ -16,12 +16,14 @@ const config_1 = require("@nestjs/config");
 const passport_1 = require("@nestjs/passport");
 const jwt_strategy_1 = require("./strategies/jwt.strategy");
 const refresh_jwt_strategy_1 = require("./strategies/refresh-jwt.strategy");
+const prisma_module_1 = require("../prisma/prisma.module");
 let AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule;
 exports.AuthModule = AuthModule = __decorate([
     (0, common_1.Module)({
         imports: [
+            prisma_module_1.PrismaModule,
             users_module_1.UsersModule,
             config_1.ConfigModule,
             passport_1.PassportModule,
@@ -39,6 +41,7 @@ exports.AuthModule = AuthModule = __decorate([
             refresh_jwt_strategy_1.RefreshJwtStrategy,
         ],
         controllers: [auth_controller_1.AuthController],
+        exports: [auth_service_1.AuthService, jwt_1.JwtModule],
     })
 ], AuthModule);
 //# sourceMappingURL=auth.module.js.map

@@ -13,11 +13,13 @@ exports.ReviewsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const client_1 = require("@prisma/client");
+const storage_service_1 = require("../storage/storage.service");
 let ReviewsService = class ReviewsService {
-    constructor(prisma) {
+    constructor(prisma, storageService) {
         this.prisma = prisma;
+        this.storageService = storageService;
     }
-    async createReview(userId, dto) {
+    async createReview(userId, dto, file) {
         const { productId, rating, comment } = dto;
         try {
             const existingReview = await this.prisma.review.findUnique({
@@ -31,11 +33,26 @@ let ReviewsService = class ReviewsService {
             if (existingReview) {
                 throw new common_1.ConflictException('You have already reviewed this product.');
             }
+            let imageUrl = null;
+            if (file) {
+                try {
+                    const uploadResult = await this.storageService.upload(file.buffer, 'reviews');
+                    if (!uploadResult?.secure_url) {
+                        throw new Error('Image upload failed to return a secure URL.');
+                    }
+                    imageUrl = uploadResult.secure_url;
+                }
+                catch (error) {
+                    console.error('Review image upload failed:', error);
+                    throw new common_1.InternalServerErrorException('Failed to upload review image.');
+                }
+            }
             const [newReview] = await this.prisma.$transaction(async (tx) => {
                 const review = await tx.review.create({
                     data: {
                         rating: rating,
                         comment: comment,
+                        imageUrl: imageUrl,
                         productId: productId,
                         userId: userId,
                     },
@@ -46,12 +63,15 @@ let ReviewsService = class ReviewsService {
                 const stats = await tx.review.aggregate({
                     where: { productId: productId },
                     _avg: { rating: true },
+                    _count: { rating: true },
                 });
                 const newAverage = stats._avg.rating || 0;
+                const newReviewCount = stats._count.rating || 0;
                 await tx.product.update({
                     where: { id: productId },
                     data: {
                         averageRating: new client_1.Prisma.Decimal(newAverage),
+                        reviewCount: newReviewCount,
                     },
                 });
                 return [review];
@@ -96,6 +116,7 @@ let ReviewsService = class ReviewsService {
 exports.ReviewsService = ReviewsService;
 exports.ReviewsService = ReviewsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        storage_service_1.StorageService])
 ], ReviewsService);
 //# sourceMappingURL=reviews.service.js.map

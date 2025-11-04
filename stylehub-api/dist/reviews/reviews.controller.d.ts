@@ -3,7 +3,7 @@ import { CreateReviewDto } from './dto/create-review.dto';
 export declare class ReviewsController {
     private readonly reviewsService;
     constructor(reviewsService: ReviewsService);
-    submitReview(req: any, createReviewDto: CreateReviewDto): Promise<{
+    submitReview(req: any, createReviewDto: CreateReviewDto, file: any): Promise<{
         user: {
             name: string;
         };
@@ -11,6 +11,7 @@ export declare class ReviewsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        imageUrl: string | null;
         productId: string;
         userId: string;
         rating: number;
@@ -24,6 +25,7 @@ export declare class ReviewsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        imageUrl: string | null;
         productId: string;
         userId: string;
         rating: number;

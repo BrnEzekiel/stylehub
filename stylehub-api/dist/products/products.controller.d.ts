@@ -2,6 +2,7 @@ import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductQueryDto } from './dto/product-query.dto';
+import { AdminUpdateProductDto } from './dto/admin-update-product.dto';
 export declare class ProductsController {
     private readonly productsService;
     constructor(productsService: ProductsService);
@@ -59,6 +60,12 @@ export declare class ProductsController {
         };
     }>;
     findOne(id: string): Promise<{
+        seller: {
+            name: string;
+            email: string;
+            id: string;
+        };
+    } & {
         name: string;
         id: string;
         createdAt: Date;
@@ -91,7 +98,35 @@ export declare class ProductsController {
         averageRating: import("@prisma/client/runtime/library").Decimal;
         reviewCount: number;
     })[]>;
+    adminCreate(createProductDto: CreateProductDto, file: any): Promise<{
+        name: string;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        description: string | null;
+        price: import("@prisma/client/runtime/library").Decimal;
+        stock: number;
+        category: string | null;
+        imageUrl: string | null;
+        sellerId: string | null;
+        averageRating: import("@prisma/client/runtime/library").Decimal;
+        reviewCount: number;
+    }>;
     removeAdmin(id: string): Promise<{
         message: string;
+    }>;
+    adminUpdate(id: string, adminUpdateProductDto: AdminUpdateProductDto): Promise<{
+        name: string;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        description: string | null;
+        price: import("@prisma/client/runtime/library").Decimal;
+        stock: number;
+        category: string | null;
+        imageUrl: string | null;
+        sellerId: string | null;
+        averageRating: import("@prisma/client/runtime/library").Decimal;
+        reviewCount: number;
     }>;
 }

@@ -1,7 +1,7 @@
 // src/pages/OrdersPage.js
-
 import React, { useState, useEffect } from 'react';
-import { fetchOrders } from '../api/cartService'; 
+// 1. 🛑 Import from new orderService
+import { fetchOrders, downloadOrderReceipt } from '../api/orderService'; 
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -9,6 +9,7 @@ function OrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [downloading, setDownloading] = useState(null); // Track which receipt is downloading
   
   const { token } = useAuth();
   const navigate = useNavigate();
@@ -33,81 +34,78 @@ function OrdersPage() {
     loadOrders();
   }, [token, navigate]);
 
+  // 2. 🛑 Handler for downloading receipt
+  const handleDownload = async (orderId) => {
+    setDownloading(orderId);
+    try {
+      await downloadOrderReceipt(orderId);
+    } catch (err) {
+      alert(`Failed to download receipt: ${err.message}`);
+    } finally {
+      setDownloading(null);
+    }
+  };
+
   if (loading) return <p style={{ padding: '20px' }}>Loading your order history...</p>;
   if (error) return <p style={{ color: 'red', padding: '20px' }}>Error: {error}</p>;
-  if (orders.length === 0) return <h2 style={{ padding: '20px' }}>You have no past orders 🙁</h2>;
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="admin-content">
       <h1>Your Order History ({orders.length} Orders)</h1>
       
-      <div style={{ display: 'grid', gap: '25px', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
-        {orders.map((order) => {
-          
-          // 🛑 1. Get the first item's name for the header
-          const firstItemName = order.items?.[0]?.product?.name || 'Order';
-          const totalItems = order.items?.length || 0;
-
-          return (
-            <div 
-              key={order.id} 
-              style={{ 
-                border: '1px solid #FF149330', /* Light Magenta Pink border */
-                padding: '20px', 
-                borderRadius: '10px',
-                backgroundColor: '#FFFFFF',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-              }}
-            >
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                borderBottom: '2px solid #00BFFF50', /* Light Sky Blue separator */
-                paddingBottom: '10px', 
-                marginBottom: '15px' 
-              }}>
-                {/* 🛑 2. Update Header to show item name */}
-                <h3 style={{ margin: 0, color: '#FF1493' }}>
-                  {firstItemName}
-                  {totalItems > 1 ? ` (and ${totalItems - 1} more)` : ''}
-                </h3>
-                {/* 🛑 3. Change currency to Ksh */}
-                <p style={{ margin: 0, fontWeight: 'bold', color: '#00BFFF', fontSize: '1.3em' }}>
-                  Ksh {parseFloat(order.totalAmount).toFixed(2)}
-                </p>
-              </div>
-              
-              <p style={{ fontSize: '0.9em', color: '#777' }}>
-                **Date Placed:** {new Date(order.createdAt).toLocaleDateString()}
-              </p>
-              <p style={{ fontSize: '0.8em', color: '#aaa' }}>
-                Order ID: {order.id.substring(0, 8)}...
-              </p>
-
-              <h4 style={{ marginTop: '20px', marginBottom: '10px', color: '#333' }}>Items Purchased:</h4>
-              <ul style={{ listStyle: 'none', paddingLeft: '0', fontSize: '0.95em' }}>
-                {order.items && order.items.map((item, index) => ( 
-                  <li key={index} style={{ marginBottom: '8px', padding: '5px 0', borderLeft: '4px solid #FFD700' /* Yellow stripe */ }}>
-                    {item.product ? (
-                      <span style={{ marginLeft: '10px' }}>
-                        **{item.product.name}** &times; {item.quantity} 
-                        <span style={{ float: 'right', color: '#00BFFF' }}>
-                          {/* 🛑 4. Change currency to Ksh */}
-                          Ksh {(parseFloat(item.product.price) * item.quantity).toFixed(2)}
-                        </span>
-                      </span>
-                    ) : (
-                      <span style={{ marginLeft: '10px', color: 'red' }}>
-                        Product Not Found (ID: {item.productId.substring(0, 8)}...)
-                      </span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          );
-        })}
-      </div>
+      {orders.length === 0 ? (
+        <p>You have no past orders 🙁</p>
+      ) : (
+        <table>
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Date</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Items</th>
+              <th>Actions</th> {/* 3. 🛑 New Column */}
+            </tr>
+          </thead>
+          <tbody>
+            {orders.map((order) => (
+              <tr key={order.id}>
+                <td>
+                  <span style={{ fontSize: '0.8em', color: '#666' }}>{order.id.substring(0, 8)}...</span>
+                </td>
+                <td>{new Date(order.createdAt).toLocaleDateString()}</td>
+                <td>Ksh {parseFloat(order.totalAmount).toFixed(2)}</td>
+                <td>{order.status}</td>
+                <td>
+                  <ul style={{ listStyle: 'none', paddingLeft: 0, margin: 0 }}>
+                    {order.items.map((item, index) => ( 
+                      <li key={index}>
+                        {item.product ? (
+                          <>
+                            {item.product.name} &times; {item.quantity}
+                          </>
+                        ) : (
+                          <span style={{ color: 'red' }}>Product Not Found</span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </td>
+                {/* 4. 🛑 Download Button */}
+                <td>
+                  <button
+                    onClick={() => handleDownload(order.id)}
+                    disabled={downloading === order.id}
+                    style={{ fontSize: '0.9em', padding: '5px 10px' }}
+                  >
+                    {downloading === order.id ? '...' : 'Download'}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }

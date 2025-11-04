@@ -5,7 +5,7 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
   NotFoundException, 
-  Logger, // 1. Import Logger
+  Logger,
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { RegisterUserDto } from './dto/register-user.dto';
@@ -13,10 +13,11 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { LoginUserDto } from './dto/login-user.dto';
+import { AdminCreateUserDto } from '../users/dto/admin-create-user.dto'; // 1. 🛑 Import new DTO
+import { Role } from './enums/role.enum'; // 2. 🛑 Import Role
 
 @Injectable()
 export class AuthService {
-  // 2. Add a logger
   private readonly logger = new Logger(AuthService.name);
 
   constructor(
@@ -25,7 +26,6 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  // ... (register function is unchanged)
   async register(dto: RegisterUserDto) {
     const existingEmail = await this.usersService.findByEmail(dto.email);
     if (existingEmail) {
@@ -74,13 +74,9 @@ export class AuthService {
     }
   }
 
-
   async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.usersService.findByEmail(email);
-
-    // 3. 🛑 THIS IS THE DEBUGGING LINE 🛑
     this.logger.log(`Validating user: ${email}. User object received: ${JSON.stringify(user)}`);
-
     if (user && user.password_hash && (await bcrypt.compare(pass, user.password_hash))) {
       const { password_hash, ...result } = user;
       return result;
@@ -90,7 +86,6 @@ export class AuthService {
   }
 
   async login(dto: LoginUserDto) {
-    // ... (login function is unchanged)
     const user = await this.validateUser(dto.email, dto.password);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
@@ -117,33 +112,27 @@ export class AuthService {
     };
   }
 
-  // ... (refresh and getProfileByEmail functions are unchanged)
   async refresh(refreshToken: string) {
     try {
       const payload = await this.jwtService.verifyAsync(refreshToken, {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
       });
-
       if (!payload || !payload.email) {
         throw new UnauthorizedException('Invalid refresh token payload content');
       }
-
       const user = await this.usersService.findByEmail(payload.email);
       if (!user) {
         throw new UnauthorizedException('User associated with refresh token not found');
       }
-
       if (!user.id || !user.email || !user.role) {
         console.error('User object missing expected properties during refresh:', user);
         throw new InternalServerErrorException('User data incomplete during refresh.');
       }
-
       const newPayload = { sub: user.id, email: user.email, role: user.role };
       const accessToken = await this.jwtService.signAsync(newPayload, {
         secret: this.configService.get<string>('JWT_SECRET'),
         expiresIn: '1d',
       });
-
       return {
         access_token: accessToken,
         refresh_token: refreshToken,
@@ -161,5 +150,45 @@ export class AuthService {
     }
     const { password_hash, ...profile } = user;
     return profile;
+  }
+
+  /**
+   * 3. 🛑 NEW: Admin creates a user
+   */
+  async adminCreateUser(dto: AdminCreateUserDto) {
+    const existingEmail = await this.usersService.findByEmail(dto.email);
+    if (existingEmail) {
+      throw new ConflictException('Email already in use');
+    }
+    const existingPhone = await this.usersService.findByPhone(dto.phone);
+    if (existingPhone) {
+      throw new ConflictException('Phone number already in use');
+    }
+
+    // Hash the password
+    const saltRounds = 12;
+    const hashedPassword = await bcrypt.hash(dto.password, saltRounds);
+
+    try {
+      const user = await this.usersService.create({
+        name: dto.name,
+        email: dto.email,
+        phone: dto.phone,
+        password_hash: hashedPassword,
+        role: dto.role as Role, // Cast to Role enum
+      });
+
+      const { password_hash, ...userResult } = user;
+      return userResult; // Return the new user
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error;
+      }
+      if (error.code === 'P2002') {
+        throw new ConflictException('Email or phone already exists');
+      }
+      console.error('Error during admin user creation:', error);
+      throw new InternalServerErrorException('Could not create user');
+    }
   }
 }

@@ -1,7 +1,6 @@
 // src/pages/CartPage.js
 
 import React, { useState, useEffect } from 'react';
-// 1. Import removeItemFromCart
 import { fetchCart, createOrder, removeItemFromCart } from '../api/cartService';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -9,15 +8,29 @@ import { useNavigate } from 'react-router-dom';
 function CartPage() {
   const [cart, setCart] = useState({ items: [] });
   const [loading, setLoading] = useState(true);
-  const [checkoutLoading, setCheckoutLoading] = useState(false);
-  // 2. Add state to track which specific item is being removed
   const [removingItemId, setRemovingItemId] = useState(null); 
   const [error, setError] = useState(null);
+  
+  // 1. 🛑 New state for checkout flow
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutMessage, setCheckoutMessage] = useState('');
   
-  const { token } = useAuth();
+  const { token, user } = useAuth(); // 2. 🛑 Get user to pre-fill form
   const navigate = useNavigate();
 
+  // 3. 🛑 New state for the address form
+  const [address, setAddress] = useState({
+    fullName: user?.name || '',
+    phone: user?.phone || '',
+    street: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    country: 'Kenya', // Default to Kenya
+  });
+
+  // ... (loadCart and useEffect are unchanged) ...
   const loadCart = async () => {
     if (!token) {
       navigate('/login');
@@ -38,63 +51,74 @@ function CartPage() {
   };
 
   useEffect(() => {
+    // 4. 🛑 Pre-fill form when user loads
+    if (user) {
+      setAddress(prev => ({ ...prev, fullName: user.name, phone: user.phone }));
+    }
     loadCart();
-  }, [token, navigate]);
+  }, [token, navigate, user]);
 
-  const handleCheckout = async () => {
+  // 5. 🛑 Updated checkout handler
+  const handleCheckout = async (e) => {
+    e.preventDefault(); // Prevent form submission
     if (cart.items.length === 0) return;
+    
     setCheckoutLoading(true);
     setCheckoutMessage('');
     try {
-      const newOrder = await createOrder();
-      // 3. Change currency to Ksh
-      setCheckoutMessage(`Order #${newOrder.id.substring(0,8)} created successfully! Total: Ksh ${newOrder.totalAmount}`);
+      // 6. 🛑 Pass the address state to createOrder
+      const newOrder = await createOrder(address);
+      setCheckoutMessage(`Order #${newOrder.orderId.substring(0,8)} created! Total: Ksh ${newOrder.totalAmount}`);
       setCart({ items: [] }); 
+      setShowAddressForm(false); // Hide form on success
     } catch (err) {
-      setCheckoutMessage(err.message || 'Checkout failed. Please review cart items.');
+      setCheckoutMessage(err.message || 'Checkout failed. Please review your address and cart items.');
     } finally {
       setCheckoutLoading(false);
     }
   };
 
-  // 4. Add a handler for removing an item
-  const handleRemoveItem = async (productId) => {
-    // Note: We use productId because your backend route is /api/cart/:productId
-    setRemovingItemId(productId); 
+  // 7. 🛑 Updated remove item handler (passes cartItem.id)
+  const handleRemoveItem = async (cartItemId) => {
+    setRemovingItemId(cartItemId); 
     setError(null); 
-
     try {
-      await removeItemFromCart(productId);
-      // 5. Update state locally to remove the item instantly
+      await removeItemFromCart(cartItemId);
       setCart(prevCart => ({
         ...prevCart,
-        items: prevCart.items.filter(item => item.productId !== productId),
+        items: prevCart.items.filter(item => item.id !== cartItemId),
       }));
     } catch (err) {
       setError(err.message || 'Failed to remove item.');
     } finally {
-      setRemovingItemId(null); // Hide spinner
+      setRemovingItemId(null);
     }
   };
-
-  if (loading) return <p>Loading your cart...</p>;
   
-  if (checkoutMessage.includes('successfully')) {
+  // 8. 🛑 New handler for address form input
+  const handleAddressChange = (e) => {
+    const { name, value } = e.target;
+    setAddress(prev => ({ ...prev, [name]: value }));
+  };
+
+  if (loading) return <p className="admin-content">Loading your cart...</p>;
+  
+  if (checkoutMessage.includes('created!')) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center' }}>
+      <div className="admin-content" style={{ textAlign: 'center' }}>
         <h2>🎉 Checkout Successful! 🎉</h2>
         <p style={{ color: 'green', fontSize: '1.2em' }}>{checkoutMessage}</p>
-        <button onClick={() => navigate('/')}>
+        <button className="top-nav-logout" style={{ background: 'var(--color-primary)' }} onClick={() => navigate('/')}>
           Continue Shopping
         </button>
       </div>
     );
   }
 
-  if (error) return <p style={{ color: 'red' }}>Error: {error}</p>;
+  if (error) return <p className="admin-content" style={{ color: 'red' }}>Error: {error}</p>;
 
   if (!cart.items || cart.items.length === 0) {
-    return <h2 style={{ padding: '20px' }}>Your cart is empty 🙁</h2>;
+    return <h2 className="admin-content">Your cart is empty 🙁</h2>;
   }
 
   const cartTotal = cart.items.reduce((total, item) => {
@@ -105,82 +129,160 @@ function CartPage() {
   }, 0);
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>Your Shopping Cart</h2>
+    <div className="admin-content">
+      {/* 9. 🛑 Conditional Rendering */}
       
-      <ul style={{ listStyle: 'none', padding: 0 }}>
-        {cart.items.map((item) => {
-          const productName = item.product ? item.product.name : 'Product not found';
-          const productPrice = item.product ? parseFloat(item.product.price).toFixed(2) : '0.00';
-          const subtotal = item.product ? (parseFloat(item.product.price) * item.quantity).toFixed(2) : '0.00';
-
-          return (
-            <li 
-              key={item.id} // Use the unique cartItem.id as the key
-              style={{ 
-                border: '1px solid #ddd', 
-                margin: '10px 0', 
-                padding: '15px', 
-                display: 'flex', 
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                opacity: removingItemId === item.productId ? 0.5 : 1, // Visual feedback
-              }}
-            >
-              <div>
-                <h4>{productName}</h4>
-                <p>Quantity: {item.quantity}</p>
-                {/* 6. Change currency to Ksh */}
-                <p>Price: Ksh {productPrice} each</p> 
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                {/* 7. Change currency to Ksh */}
-                <p>Subtotal: **Ksh {subtotal}**</p>
-                {/* 8. Add the Remove button */}
-                <button 
-                  onClick={() => handleRemoveItem(item.productId)}
-                  disabled={removingItemId === item.productId}
-                  style={{ 
-                    backgroundColor: '#dc3545', // Red color
-                    color: 'white', 
-                    border: 'none', 
-                    padding: '5px 10px', 
-                    borderRadius: '4px', 
-                    cursor: 'pointer',
-                    fontSize: '0.9em',
-                    marginTop: '5px'
-                  }}
-                >
-                  {removingItemId === item.productId ? 'Removing...' : 'Remove'}
-                </button>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-      
-      <hr />
-      
-      {checkoutMessage && !checkoutMessage.includes('successfully') && (
-        <p style={{ color: 'red', marginBottom: '10px' }}>{checkoutMessage}</p>
+      {/* --- STEP 1: SHOW CART --- */}
+      {!showAddressForm && (
+        <div className="dashboard-card">
+          <h2>Your Shopping Cart</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Subtotal</th>
+                <th>Remove</th>
+              </tr>
+            </thead>
+            <tbody>
+              {cart.items.map((item) => {
+                const productName = item.product ? item.product.name : 'Product not found';
+                const productPrice = item.product ? parseFloat(item.product.price).toFixed(2) : '0.00';
+                const subtotal = item.product ? (parseFloat(item.product.price) * item.quantity).toFixed(2) : '0.00';
+                
+                return (
+                  <tr key={item.id} style={{ opacity: removingItemId === item.id ? 0.5 : 1 }}>
+                    <td>{productName}</td>
+                    <td>{item.quantity}</td>
+                    <td>Ksh {productPrice}</td>
+                    <td>Ksh {subtotal}</td>
+                    <td>
+                      <button 
+                        onClick={() => handleRemoveItem(item.id)} // 10. 🛑 Pass item.id (cartItemId)
+                        disabled={removingItemId === item.id}
+                        style={{ background: '#dc3545', color: 'white', padding: '5px 10px', fontSize: '0.9em' }}
+                      >
+                        {removingItemId === item.id ? '...' : 'Remove'}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          
+          <hr style={{ margin: '20px 0' }} />
+          
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginTop: '20px', paddingRight: '15px' }}>
+            <h3 style={{ marginRight: '20px' }}>Total:</h3>
+            <h3 style={{ color: 'var(--color-primary)' }}>Ksh {cartTotal.toFixed(2)}</h3>
+          </div>
+          
+          <button 
+            onClick={() => setShowAddressForm(true)} // 11. 🛑 Show address form
+            style={styles.button}
+          >
+            Proceed to Checkout
+          </button>
+        </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' }}>
-        <h3>Total:</h3>
-        {/* 9. Change currency to Ksh */}
-        <h3 style={{ color: 'darkgreen' }}>Ksh {cartTotal.toFixed(2)}</h3>
-      </div>
-      
-      <button 
-        onClick={handleCheckout} 
-        disabled={checkoutLoading} 
-        className="checkout-button" // Use global style
-      >
-        {checkoutLoading ? 'Processing Order...' : 'Proceed to Checkout'}
-      </button>
+      {/* --- STEP 2: SHOW ADDRESS FORM --- */}
+      {showAddressForm && (
+        <div className="dashboard-card" style={{ maxWidth: '700px', margin: '0 auto' }}>
+          <h2>Shipping Address</h2>
+          <form onSubmit={handleCheckout}>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Full Name</label>
+              <input style={styles.input} type="text" name="fullName" value={address.fullName} onChange={handleAddressChange} required />
+            </div>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Phone Number</label>
+              <input style={styles.input} type="tel" name="phone" value={address.phone} onChange={handleAddressChange} required />
+            </div>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Street Address</label>
+              <input style={styles.input} type="text" name="street" value={address.street} onChange={handleAddressChange} required />
+            </div>
+            <div style={{ display: 'flex', gap: '15px' }}>
+              <div style={{ ...styles.inputGroup, flex: 1 }}>
+                <label style={styles.label}>City</label>
+                <input style={styles.input} type="text" name="city" value={address.city} onChange={handleAddressChange} required />
+              </div>
+              <div style={{ ...styles.inputGroup, flex: 1 }}>
+                <label style={styles.label}>State / County</label>
+                <input style={styles.input} type="text" name="state" value={address.state} onChange={handleAddressChange} required />
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '15px' }}>
+              <div style={{ ...styles.inputGroup, flex: 1 }}>
+                <label style={styles.label}>ZIP / Postal Code</label>
+                <input style={styles.input} type="text" name="zipCode" value={address.zipCode} onChange={handleAddressChange} required />
+              </div>
+              <div style={{ ...styles.inputGroup, flex: 1 }}>
+                <label style={styles.label}>Country</label>
+                <input style={styles.input} type="text" name="country" value={address.country} onChange={handleAddressChange} required />
+              </div>
+            </div>
+            
+            {checkoutMessage && !checkoutMessage.includes('created!') && (
+              <p style={{ color: 'red', marginBottom: '10px' }}>{checkoutMessage}</p>
+            )}
 
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', marginTop: '20px' }}>
+              <button 
+                type="button" 
+                onClick={() => setShowAddressForm(false)}
+                style={{ ...styles.button, background: '#6c757d' }}
+              >
+                Back to Cart
+              </button>
+              <button 
+                type="submit"
+                disabled={checkoutLoading} 
+                style={styles.button}
+              >
+                {checkoutLoading ? 'Processing...' : `Pay Ksh ${cartTotal.toFixed(2)}`}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }
+
+// 12. 🛑 Styles for the new form
+const styles = {
+  inputGroup: {
+    marginBottom: '15px',
+  },
+  label: {
+    display: 'block',
+    marginBottom: '5px',
+    fontWeight: '500',
+    color: '#333',
+  },
+  input: {
+    width: '100%',
+    padding: '10px 12px',
+    border: '1px solid #ccc',
+    borderRadius: '6px',
+    fontSize: '1rem',
+  },
+  button: {
+    flex: 1,
+    padding: '12px',
+    fontSize: '1em',
+    backgroundColor: 'var(--color-primary)',
+    color: 'white',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontWeight: '600',
+  }
+};
 
 export default CartPage;

@@ -55,6 +55,12 @@ let SearchService = SearchService_1 = class SearchService {
                             mode: 'insensitive',
                         },
                     },
+                    {
+                        category: {
+                            contains: query,
+                            mode: 'insensitive',
+                        }
+                    }
                 ],
             },
         });

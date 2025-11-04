@@ -5,6 +5,7 @@ import { ProductQueryDto } from './dto/product-query.dto';
 import { SearchService } from '../search/search.service';
 import { StorageService } from '../storage/storage.service';
 import { Prisma } from '@prisma/client';
+import { AdminUpdateProductDto } from './dto/admin-update-product.dto';
 export declare class ProductsService {
     private prisma;
     private storageService;
@@ -47,6 +48,12 @@ export declare class ProductsService {
         };
     }>;
     findOne(id: string): Promise<{
+        seller: {
+            name: string;
+            email: string;
+            id: string;
+        };
+    } & {
         name: string;
         id: string;
         createdAt: Date;
@@ -77,6 +84,20 @@ export declare class ProductsService {
     remove(id: string, sellerId: string): Promise<{
         message: string;
     }>;
+    adminCreateProduct(data: CreateProductDto, file: any, sellerId?: string | null): Promise<{
+        name: string;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        description: string | null;
+        price: Prisma.Decimal;
+        stock: number;
+        category: string | null;
+        imageUrl: string | null;
+        sellerId: string | null;
+        averageRating: Prisma.Decimal;
+        reviewCount: number;
+    }>;
     findAllAdmin(): Promise<({
         seller: {
             name: string;
@@ -98,5 +119,19 @@ export declare class ProductsService {
     })[]>;
     removeAdmin(id: string): Promise<{
         message: string;
+    }>;
+    adminUpdateProduct(id: string, data: AdminUpdateProductDto): Promise<{
+        name: string;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        description: string | null;
+        price: Prisma.Decimal;
+        stock: number;
+        category: string | null;
+        imageUrl: string | null;
+        sellerId: string | null;
+        averageRating: Prisma.Decimal;
+        reviewCount: number;
     }>;
 }

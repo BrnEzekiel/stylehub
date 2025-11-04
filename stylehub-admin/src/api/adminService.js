@@ -2,9 +2,7 @@
 
 import apiClient from './axiosConfig';
 
-/**
- * Fetches all KYC submissions with a 'pending' status.
- */
+// --- KYC METHODS ---
 export const getPendingSubmissions = async () => {
   try {
     const response = await apiClient.get('/kyc/pending');
@@ -15,10 +13,6 @@ export const getPendingSubmissions = async () => {
     throw new Error(errorMessage);
   }
 };
-
-/**
- * Updates the status of a KYC submission (approve or reject).
- */
 export const updateKycStatus = async (kycId, status) => {
   try {
     const response = await apiClient.patch(`/kyc/${kycId}/status`, { status });
@@ -30,12 +24,9 @@ export const updateKycStatus = async (kycId, status) => {
   }
 };
 
-/**
- * Fetches all users from the system.
- */
+// --- USER METHODS (EXPANDED) ---
 export const getAllUsers = async () => {
   try {
-    // Calls GET /api/users
     const response = await apiClient.get('/users');
     return response.data;
   } catch (error) {
@@ -44,15 +35,64 @@ export const getAllUsers = async () => {
     throw new Error(errorMessage);
   }
 };
+export const adminCreateUser = async (data) => {
+  try {
+    const response = await apiClient.post('/users/admin/create', data);
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to create user.';
+    console.error('Create user error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+export const getAdminUserById = async (userId) => {
+  try {
+    const response = await apiClient.get(`/users/admin/${userId}`);
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to fetch user details.';
+    console.error('Fetch user error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+export const adminUpdateUser = async (userId, data) => {
+  try {
+    const response = await apiClient.patch(`/users/admin/${userId}`, data);
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to update user.';
+    console.error('Update user error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+export const adminDeleteUser = async (userId) => {
+  try {
+    const response = await apiClient.delete(`/users/admin/${userId}`);
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to delete user.';
+    console.error('Delete user error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
 
 // --- PRODUCT METHODS ---
-
-/**
- * Fetches all products from all sellers.
- */
+export const adminCreateProduct = async (formData) => {
+  try {
+    const response = await apiClient.post('/products/admin/create', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to create product.';
+    console.error('Create product error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
 export const getAllProducts = async () => {
   try {
-    // Calls GET /api/products/all-admin
     const response = await apiClient.get('/products/all-admin');
     return response.data;
   } catch (error) {
@@ -61,13 +101,28 @@ export const getAllProducts = async () => {
     throw new Error(errorMessage);
   }
 };
-
-/**
- * Admin deletes a product.
- */
+export const getAdminProductById = async (productId) => {
+  try {
+    const response = await apiClient.get(`/products/${productId}`);
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to fetch product details.';
+    console.error('Fetch product details error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+export const adminUpdateProduct = async (productId, data) => {
+  try {
+    const response = await apiClient.patch(`/products/admin/${productId}`, data);
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to update product.';
+    console.error('Update product error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
 export const deleteProduct = async (productId) => {
   try {
-    // Calls DELETE /api/products/admin/:id
     const response = await apiClient.delete(`/products/admin/${productId}`);
     return response.data;
   } catch (error) {
@@ -78,13 +133,8 @@ export const deleteProduct = async (productId) => {
 };
 
 // --- ORDER METHODS ---
-
-/**
- * Fetches all orders from all users.
- */
 export const getAllOrders = async () => {
   try {
-    // Calls GET /api/orders/admin-all
     const response = await apiClient.get('/orders/admin-all');
     return response.data;
   } catch (error) {
@@ -93,16 +143,18 @@ export const getAllOrders = async () => {
     throw new Error(errorMessage);
   }
 };
-
-/**
- * 🛑 NEW FUNCTION 🛑
- * Admin updates the status of an order.
- * @param {string} orderId - The ID of the order.
- * @param {string} status - The new status (e.g., 'shipped').
- */
+export const getRecentOrders = async () => {
+  try {
+    const response = await apiClient.get('/orders/admin-all');
+    return response.data; 
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to fetch recent orders.';
+    console.error('Fetch recent orders error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
 export const updateOrderStatus = async (orderId, status) => {
   try {
-    // Calls PATCH /api/orders/admin-all/:id/status
     const response = await apiClient.patch(`/orders/admin-all/${orderId}/status`, {
       status,
     });
@@ -111,5 +163,76 @@ export const updateOrderStatus = async (orderId, status) => {
     const errorMessage = error.response?.data?.message || 'Failed to update order status.';
     console.error('Update order status error:', errorMessage);
     throw new Error(errorMessage);
+  }
+};
+export const getAdminOrderDetails = async (orderId) => {
+  try {
+    const response = await apiClient.get(`/orders/admin-all/${orderId}`);
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to fetch order details.';
+    console.error('Fetch order details error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+/**
+ * 🛑 NEW: Admin deletes an order.
+ */
+export const adminDeleteOrder = async (orderId) => {
+  try {
+    // Calls DELETE /api/orders/admin/:id
+    const response = await apiClient.delete(`/orders/admin/${orderId}`);
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to delete order.';
+    console.error('Delete order error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
+
+// --- STATS METHOD ---
+export const getAdminStats = async () => {
+  try {
+    const response = await apiClient.get('/stats/admin-dashboard');
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to fetch admin stats.';
+    console.error('Fetch stats error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
+// --- FINANCIALS & PAYOUTS METHODS ---
+export const getFinancialSummary = async () => {
+  try {
+    const response = await apiClient.get('/payouts/summary');
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to fetch financial summary.');
+  }
+};
+export const getSellerPayoutSummaries = async () => {
+  try {
+    const response = await apiClient.get('/payouts/sellers');
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to fetch seller payout summaries.');
+  }
+};
+export const createPayout = async (sellerId) => {
+  try {
+    const response = await apiClient.post(`/payouts/create/${sellerId}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to create payout.');
+  }
+};
+export const markPayoutAsPaid = async (payoutId) => {
+  try {
+    const response = await apiClient.patch(`/payouts/${payoutId}/mark-paid`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to mark payout as paid.');
   }
 };

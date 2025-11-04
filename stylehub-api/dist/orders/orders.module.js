@@ -11,13 +11,14 @@ const common_1 = require("@nestjs/common");
 const orders_service_1 = require("./orders.service");
 const orders_controller_1 = require("./orders.controller");
 const prisma_module_1 = require("../prisma/prisma.module");
+const pdf_generator_service_1 = require("./pdf-generator.service");
 let OrdersModule = class OrdersModule {
 };
 exports.OrdersModule = OrdersModule;
 exports.OrdersModule = OrdersModule = __decorate([
     (0, common_1.Module)({
         imports: [prisma_module_1.PrismaModule],
-        providers: [orders_service_1.OrdersService],
+        providers: [orders_service_1.OrdersService, pdf_generator_service_1.PdfGeneratorService],
         controllers: [orders_controller_1.OrdersController],
     })
 ], OrdersModule);

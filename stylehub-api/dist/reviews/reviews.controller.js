@@ -14,6 +14,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ReviewsController = void 0;
 const common_1 = require("@nestjs/common");
+const fastify_multer_1 = require("@nest-lab/fastify-multer");
 const reviews_service_1 = require("./reviews.service");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
@@ -24,9 +25,9 @@ let ReviewsController = class ReviewsController {
     constructor(reviewsService) {
         this.reviewsService = reviewsService;
     }
-    async submitReview(req, createReviewDto) {
+    async submitReview(req, createReviewDto, file) {
         const userId = req.user.sub;
-        return this.reviewsService.createReview(userId, createReviewDto);
+        return this.reviewsService.createReview(userId, createReviewDto, file);
     }
     async getProductReviews(productId) {
         return this.reviewsService.findReviewsByProductId(productId);
@@ -37,10 +38,12 @@ __decorate([
     (0, common_1.Post)(),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.Client),
+    (0, common_1.UseInterceptors)((0, fastify_multer_1.FileInterceptor)('image')),
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.UploadedFile)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, create_review_dto_1.CreateReviewDto]),
+    __metadata("design:paramtypes", [Object, create_review_dto_1.CreateReviewDto, Object]),
     __metadata("design:returntype", Promise)
 ], ReviewsController.prototype, "submitReview", null);
 __decorate([

@@ -23,6 +23,7 @@ const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const role_enum_1 = require("../auth/enums/role.enum");
+const admin_update_product_dto_1 = require("./dto/admin-update-product.dto");
 let ProductsController = class ProductsController {
     constructor(productsService) {
         this.productsService = productsService;
@@ -45,8 +46,14 @@ let ProductsController = class ProductsController {
     findAllAdmin() {
         return this.productsService.findAllAdmin();
     }
+    adminCreate(createProductDto, file) {
+        return this.productsService.adminCreateProduct(createProductDto, file, null);
+    }
     removeAdmin(id) {
         return this.productsService.removeAdmin(id);
+    }
+    adminUpdate(id, adminUpdateProductDto) {
+        return this.productsService.adminUpdateProduct(id, adminUpdateProductDto);
     }
 };
 exports.ProductsController = ProductsController;
@@ -106,6 +113,17 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], ProductsController.prototype, "findAllAdmin", null);
 __decorate([
+    (0, common_1.Post)('admin/create'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin),
+    (0, common_1.UseInterceptors)((0, fastify_multer_1.FileInterceptor)('image')),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.UploadedFile)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [create_product_dto_1.CreateProductDto, Object]),
+    __metadata("design:returntype", void 0)
+], ProductsController.prototype, "adminCreate", null);
+__decorate([
     (0, common_1.Delete)('admin/:id'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin),
@@ -114,6 +132,16 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], ProductsController.prototype, "removeAdmin", null);
+__decorate([
+    (0, common_1.Patch)('admin/:id'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin),
+    __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, admin_update_product_dto_1.AdminUpdateProductDto]),
+    __metadata("design:returntype", void 0)
+], ProductsController.prototype, "adminUpdate", null);
 exports.ProductsController = ProductsController = __decorate([
     (0, common_1.Controller)('api/products'),
     __metadata("design:paramtypes", [products_service_1.ProductsService])

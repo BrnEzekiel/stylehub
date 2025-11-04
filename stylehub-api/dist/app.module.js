@@ -22,6 +22,9 @@ const reviews_module_1 = require("./reviews/reviews.module");
 const search_module_1 = require("./search/search.module");
 const event_emitter_1 = require("@nestjs/event-emitter");
 const notifications_module_1 = require("./notifications/notifications.module");
+const stats_module_1 = require("./stats/stats.module");
+const chat_module_1 = require("./chat/chat.module");
+const payouts_module_1 = require("./payouts/payouts.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -42,6 +45,9 @@ exports.AppModule = AppModule = __decorate([
             search_module_1.SearchModule,
             event_emitter_1.EventEmitterModule.forRoot(),
             notifications_module_1.NotificationsModule,
+            stats_module_1.StatsModule,
+            chat_module_1.ChatModule,
+            payouts_module_1.PayoutsModule,
         ],
         providers: [],
     })

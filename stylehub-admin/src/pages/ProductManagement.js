@@ -1,5 +1,8 @@
+// src/pages/ProductManagement.js
+
 import React, { useState, useEffect } from 'react';
 import { getAllProducts, deleteProduct } from '../api/adminService';
+import { Link } from 'react-router-dom';
 
 function ProductManagement() {
   const [products, setProducts] = useState([]);
@@ -26,7 +29,7 @@ function ProductManagement() {
   const handleDelete = async (productId) => {
     if (
       window.confirm(
-        'Are you sure you want to permanently delete this product? This will remove it from all carts and reviews. This cannot be undone.'
+        'Are you sure you want to permanently delete this product?'
       )
     ) {
       try {
@@ -43,7 +46,13 @@ function ProductManagement() {
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.title}>Product Management</h2>
+      {/* 1. 🛑 Header with Create button */}
+      <div style={styles.header}>
+        <h2 style={styles.title}>Product Management</h2>
+        <Link to="/product/create">
+          <button style={styles.buttonCreate}>+ Create New Product</button>
+        </Link>
+      </div>
 
       <div style={styles.tableWrapper}>
         <table style={styles.table}>
@@ -51,9 +60,9 @@ function ProductManagement() {
             <tr style={styles.headerRow}>
               <th style={styles.cell}>Product Name</th>
               <th style={styles.cell}>Seller</th>
-              <th style={styles.cell}>Price</th>
-              <th style={styles.cell}>Stock</th>
-              <th style={styles.cell}>Rating</th>
+              <th style={{...styles.cell, textAlign: 'right'}}>Price</th>
+              <th style={{...styles.cell, textAlign: 'center'}}>Stock</th>
+              <th style={{...styles.cell, textAlign: 'center'}}>Rating</th>
               <th style={styles.cell}>Actions</th>
             </tr>
           </thead>
@@ -61,15 +70,18 @@ function ProductManagement() {
             {products.map((product) => (
               <tr key={product.id} style={styles.row}>
                 <td style={styles.cell}>{product.name}</td>
-                <td style={styles.cell}>{product.seller?.email || 'N/A'}</td>
-                <td style={styles.cell}>
+                <td style={styles.cell}>{product.seller?.email || 'Platform-Owned'}</td>
+                <td style={{...styles.cell, textAlign: 'right'}}>
                   Ksh {parseFloat(product.price).toFixed(2)}
                 </td>
-                <td style={styles.cell}>{product.stock}</td>
-                <td style={styles.cell}>
+                <td style={{...styles.cell, textAlign: 'center'}}>{product.stock}</td>
+                <td style={{...styles.cell, textAlign: 'center'}}>
                   {parseFloat(product.averageRating).toFixed(1)} / 5
                 </td>
-                <td style={styles.cell}>
+                <td style={{...styles.cell, display: 'flex', gap: '5px'}}>
+                  <Link to={`/product/${product.id}/edit`}>
+                    <button style={styles.buttonEdit}>Edit</button>
+                  </Link>
                   <button
                     onClick={() => handleDelete(product.id)}
                     style={styles.buttonDelete}
@@ -86,7 +98,7 @@ function ProductManagement() {
   );
 }
 
-// 🎨 THEME: Blue, Yellow, Magenta, Black, White
+// 2. 🛑 Added new styles for header and create button
 const styles = {
   container: {
     padding: '20px',
@@ -95,15 +107,31 @@ const styles = {
     fontFamily: '"Poppins", sans-serif',
     color: '#000000',
   },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '20px',
+  },
   title: {
     fontSize: '1.8rem',
-    textAlign: 'center',
-    color: '#0f35df', // Blue
-    marginBottom: '20px',
+    textAlign: 'left',
+    color: '#0f35df',
     fontWeight: '600',
-    borderBottom: '3px solid #fa0f8c', // Magenta
+    borderBottom: '3px solid #fa0f8c',
     display: 'inline-block',
     paddingBottom: '5px',
+    margin: 0,
+  },
+  buttonCreate: {
+    background: '#28a745',
+    color: '#fff',
+    border: 'none',
+    padding: '10px 15px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontWeight: '600',
+    fontSize: '1em',
   },
   tableWrapper: {
     overflowX: 'auto',
@@ -126,16 +154,25 @@ const styles = {
     padding: '12px 15px',
     border: '1px solid #ddd',
     textAlign: 'left',
+    verticalAlign: 'middle',
   },
-  buttonDelete: {
-    background: '#fa0f8c', // Magenta
+  buttonEdit: {
+    background: '#0f35df',
     color: '#fff',
     border: 'none',
     padding: '8px 12px',
     borderRadius: '6px',
     cursor: 'pointer',
-    fontWeight: '600',
-    transition: 'all 0.3s ease',
+    fontWeight: '500',
+  },
+  buttonDelete: {
+    background: '#dc3545',
+    color: '#fff',
+    border: 'none',
+    padding: '8px 12px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontWeight: '500',
   },
   loading: {
     textAlign: 'center',
@@ -148,17 +185,5 @@ const styles = {
     fontWeight: '600',
   },
 };
-
-// Add hover interactions dynamically
-Object.assign(styles.row, {
-  ':hover': {
-    backgroundColor: '#f9f9f9',
-  },
-});
-Object.assign(styles.buttonDelete, {
-  ':hover': {
-    backgroundColor: '#ff4fcf',
-  },
-});
 
 export default ProductManagement;

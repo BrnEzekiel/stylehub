@@ -1,6 +1,7 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { AddItemDto } from './dto/add-item.dto';
 import { Prisma } from '@prisma/client';
+import { CheckoutDto } from './dto/checkout.dto';
 export declare class CartService {
     private prisma;
     constructor(prisma: PrismaService);
@@ -46,7 +47,7 @@ export declare class CartService {
     removeItem(userId: string, cartItemId: string): Promise<{
         message: string;
     }>;
-    checkout(userId: string): Promise<{
+    checkout(userId: string, dto: CheckoutDto): Promise<{
         message: string;
         orderId: string;
         totalAmount: Prisma.Decimal;

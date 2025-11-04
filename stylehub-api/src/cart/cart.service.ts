@@ -1,26 +1,28 @@
+// src/cart/cart.service.ts
+
 import {
   Injectable,
   NotFoundException,
   BadRequestException,
   InternalServerErrorException,
-  UnauthorizedException, // 1. Import UnauthorizedException
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AddItemDto } from './dto/add-item.dto';
 import { Prisma } from '@prisma/client';
+import { CheckoutDto } from './dto/checkout.dto';
+
+// 1. 🛑 Define your platform's commission rate (10%)
+const PLATFORM_FEE_RATE = new Prisma.Decimal(0.10);
 
 @Injectable()
 export class CartService {
   constructor(private prisma: PrismaService) {}
 
-  /**
-   * Finds a user's cart or creates one if it doesn't exist.
-   */
   private async getOrCreateCart(userId: string) {
     let cart = await this.prisma.cart.findUnique({
       where: { userId },
     });
-
     if (!cart) {
       cart = await this.prisma.cart.create({
         data: { userId },
@@ -28,15 +30,10 @@ export class CartService {
     }
     return cart;
   }
-
-  /**
-   * Adds an item to the user's cart.
-   */
+  
   async addItemToCart(userId: string, dto: AddItemDto) {
     const { productId, quantity } = dto;
-
     const cart = await this.getOrCreateCart(userId);
-
     const product = await this.prisma.product.findUnique({
       where: { id: productId },
     });
@@ -46,14 +43,12 @@ export class CartService {
     if (product.stock < quantity) {
       throw new BadRequestException('Insufficient stock');
     }
-
     const existingItem = await this.prisma.cartItem.findFirst({
       where: {
         cartId: cart.id,
         productId: productId,
       },
     });
-
     if (existingItem) {
       const newQuantity = existingItem.quantity + quantity;
       if (product.stock < newQuantity) {
@@ -74,9 +69,6 @@ export class CartService {
     }
   }
 
-  /**
-   * Gets the full details of a user's cart.
-   */
   async getCart(userId: string) {
     const cart = await this.prisma.cart.findUnique({
       where: { userId },
@@ -95,63 +87,50 @@ export class CartService {
         },
       },
     });
-
     if (!cart) {
-      // Don't throw an error, just return an empty structure
       return { cart: { items: [] }, total: new Prisma.Decimal(0) };
     }
-
     const total = cart.items.reduce((acc, item) => {
       if (item.product && item.product.price) {
         return acc + item.product.price.toNumber() * item.quantity;
       }
       return acc;
     }, 0);
-
     return {
       cart,
       total: new Prisma.Decimal(total),
     };
   }
-
-  /**
-   * 🛑 FIX: Removes an item using cartItemId (the item's unique ID)
-   */
+  
   async removeItem(userId: string, cartItemId: string) {
-    // 1. Find the cart item to ensure it exists
     const cartItem = await this.prisma.cartItem.findUnique({
       where: { id: cartItemId },
-      include: { cart: true }, // Include the parent cart
+      include: { cart: true },
     });
-
     if (!cartItem) {
       throw new NotFoundException('Cart item not found');
     }
-
-    // 2. Security Check: Ensure the item belongs to this user's cart
     if (cartItem.cart.userId !== userId) {
       throw new UnauthorizedException('This item does not belong to your cart');
     }
-
-    // 3. Delete the item
     await this.prisma.cartItem.delete({
       where: { id: cartItemId },
     });
-
     return { message: 'Item removed successfully' };
   }
 
   /**
-   * Checks out the cart and creates an order.
+   * 🛑 UPDATED: Checks out the cart, calculates commission, and creates an order.
    */
-  async checkout(userId: string) {
+  async checkout(userId: string, dto: CheckoutDto) {
     const cart = await this.prisma.cart.findUnique({
       where: { userId },
       include: {
         items: {
           include: {
             product: {
-              select: { id: true, name: true, price: true, stock: true },
+              // 2. 🛑 We MUST select sellerId to calculate commission
+              select: { id: true, name: true, price: true, stock: true, sellerId: true },
             },
           },
         },
@@ -162,44 +141,69 @@ export class CartService {
       throw new BadRequestException('Cannot checkout an empty cart.');
     }
 
-    let totalAmount = 0;
+    // 3. 🛑 Use Prisma.Decimal for all financial calculations
+    let totalAmount = new Prisma.Decimal(0);
     const orderItemsData: Prisma.OrderItemCreateManyOrderInput[] = [];
 
     for (const item of cart.items) {
       if (!item.product) {
          throw new NotFoundException(`Product data missing for item in cart. Product may have been deleted.`);
       }
-      
-      const productPrice = item.product.price;
-      const quantity = item.quantity;
-      const subtotal = productPrice.toNumber() * quantity;
-
-      if (item.product.stock < quantity) {
+      if (item.product.stock < item.quantity) {
         throw new BadRequestException(
-          `Product "${item.product.name}" is out of stock or requested quantity exceeds available stock (${item.product.stock}).`,
+          `Product "${item.product.name}" is out of stock.`,
         );
       }
+      
+      const productPrice = item.product.price; // This is a Decimal
+      const quantity = item.quantity;
+      const subtotal = productPrice.times(quantity); // Use Decimal methods
+      totalAmount = totalAmount.add(subtotal); // Use Decimal methods
 
-      totalAmount += subtotal;
+      // 4. 🛑 NEW COMMISSION LOGIC
+      let itemPlatformFee = new Prisma.Decimal(0);
+      let itemSellerEarning = new Prisma.Decimal(0);
+
+      // Check if the product has a seller.
+      if (item.product.sellerId) {
+        // Product is sold by a seller
+        itemPlatformFee = subtotal.times(PLATFORM_FEE_RATE).toDecimalPlaces(2);
+        itemSellerEarning = subtotal.minus(itemPlatformFee);
+      } else {
+        // Product is platform-owned (sellerId is null)
+        itemPlatformFee = subtotal; // Platform gets 100%
+        itemSellerEarning = new Prisma.Decimal(0); // Seller gets 0
+      }
 
       orderItemsData.push({
         productId: item.productId,
         productName: item.product.name,
         unitPrice: productPrice,
         quantity: quantity,
+        // 5. 🛑 Add the new financial data
+        platformFee: itemPlatformFee,
+        sellerEarning: itemSellerEarning,
       });
     }
 
     return this.prisma.$transaction(
       async (tx) => {
+        const newAddress = await tx.address.create({
+          data: {
+            userId: userId,
+            ...dto,
+          },
+        });
+
         const newOrder = await tx.order.create({
           data: {
             userId: userId,
-            totalAmount: new Prisma.Decimal(totalAmount),
+            totalAmount: totalAmount, // This is now a Decimal
             status: 'pending',
+            shippingAddressId: newAddress.id,
             items: {
               createMany: {
-                data: orderItemsData,
+                data: orderItemsData, // This now includes commission
               },
             },
           },
@@ -211,7 +215,6 @@ export class CartService {
             data: { stock: { decrement: item.quantity } },
           }),
         );
-
         await Promise.all(stockUpdates);
 
         await tx.cartItem.deleteMany({
@@ -219,13 +222,13 @@ export class CartService {
         });
 
         return {
-          message: 'Order placed successfully. Awaiting payment.',
+          message: 'Order created. Proceed to payment.',
           orderId: newOrder.id,
           totalAmount: newOrder.totalAmount,
         };
       },
       {
-        timeout: 30000, // 30 seconds
+        timeout: 30000,
       },
     );
   }

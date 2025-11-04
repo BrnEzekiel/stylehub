@@ -146,6 +146,39 @@ let AuthService = AuthService_1 = class AuthService {
         const { password_hash, ...profile } = user;
         return profile;
     }
+    async adminCreateUser(dto) {
+        const existingEmail = await this.usersService.findByEmail(dto.email);
+        if (existingEmail) {
+            throw new common_1.ConflictException('Email already in use');
+        }
+        const existingPhone = await this.usersService.findByPhone(dto.phone);
+        if (existingPhone) {
+            throw new common_1.ConflictException('Phone number already in use');
+        }
+        const saltRounds = 12;
+        const hashedPassword = await bcrypt.hash(dto.password, saltRounds);
+        try {
+            const user = await this.usersService.create({
+                name: dto.name,
+                email: dto.email,
+                phone: dto.phone,
+                password_hash: hashedPassword,
+                role: dto.role,
+            });
+            const { password_hash, ...userResult } = user;
+            return userResult;
+        }
+        catch (error) {
+            if (error instanceof common_1.ConflictException) {
+                throw error;
+            }
+            if (error.code === 'P2002') {
+                throw new common_1.ConflictException('Email or phone already exists');
+            }
+            console.error('Error during admin user creation:', error);
+            throw new common_1.InternalServerErrorException('Could not create user');
+        }
+    }
 };
 exports.AuthService = AuthService;
 exports.AuthService = AuthService = AuthService_1 = __decorate([

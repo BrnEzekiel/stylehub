@@ -1,14 +1,18 @@
 // src/App.js
 
 import React, { useState } from 'react';
-import { Routes, Route, Link, useNavigate } from 'react-router-dom';
-import './App.css'; // Make sure this is imported
-import { useAuth } from './context/AuthContext'; 
+import { Routes, Route, Link, useNavigate, NavLink } from 'react-router-dom';
+import './App.css'; 
+import { useAuth } from './context/AuthContext';
+import { categories } from './utils/categories'; 
+import { ChatContainer } from './components/Chat'; // 1. 🛑 Import
 
-// Import Pages
+// ... (Import Pages are unchanged)
 import Home from './pages/Home';
+import ClientDashboard from './pages/ClientDashboard';
 import Products from './pages/Products';
 import LoginPage from './pages/LoginPage';
+// ... (rest of imports)
 import Register from './pages/Register';
 import CreateProductPage from './pages/CreateProductPage';
 import ProductDetailPage from './pages/ProductDetailPage'; 
@@ -18,57 +22,67 @@ import SellerOrdersPage from './pages/SellerOrdersPage';
 import SearchPage from './pages/SearchPage';
 import KYCPage from './pages/KYCPage';
 
+
+// ... (MainLayout is unchanged)
+function MainLayout({ children }) {
+  return (
+    <div className="admin-layout"> 
+      <aside className="sidebar">
+        <h3>Categories</h3>
+        <ul className="sidebar-nav">
+          <li><NavLink to="/products">All Products</NavLink></li>
+          {categories.map((category) => (
+            <li key={category}>
+              <NavLink to={`/products?category=${category}`}>
+                {category}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+      </aside>
+      <main className="admin-content">
+        {children}
+      </main>
+    </div>
+  );
+}
+
+// --- Main App Component ---
 function App() {
   const { token, user, logout } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
-  const navigate = useNavigate();
-  
-  // 1. 🛑 Add state for mobile menu
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
+  // ... (handleSearchSubmit, handleLinkClick, NavLinks are unchanged)
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchTerm.trim()) {
       navigate(`/search?q=${searchTerm.trim()}`);
       setSearchTerm('');
-      setIsMenuOpen(false); // Close menu on search
+      setIsMenuOpen(false);
     }
   };
-  
-  // 2. 🛑 Helper function to close menu on link click
   const handleLinkClick = () => {
     setIsMenuOpen(false);
   };
-  
-  // 3. 🛑 We put all links in one component to avoid repeating
-  const NavLinks = ({ isMobile = false }) => (
+  const NavLinks = () => (
     <>
+      {token && user?.role === 'client' && <Link to="/dashboard" onClick={handleLinkClick}>Dashboard</Link>}
+      {token && user?.role === 'seller' && <Link to="/seller-dashboard" onClick={handleLinkClick}>Dashboard</Link>}
       <Link to="/products" onClick={handleLinkClick}>Products</Link>
-      
       {token ? (
         <>
-          {user && user.role === 'seller' && (
+          {user?.role === 'seller' && (
             <>
-              <Link to="/seller/orders" onClick={handleLinkClick}>📈 Dashboard</Link>
               <Link to="/create-product" onClick={handleLinkClick}>Create Product</Link>
-              <Link to="/kyc" onClick={handleLinkClick}>Submit KYC</Link>
+              <Link to="/kyc" onClick={handleLinkClick}>KYC</Link>
             </>
           )}
-          {user && user.role === 'client' && (
-            <>
-              <Link to="/orders" onClick={handleLinkClick}>Order History</Link>
-              <Link to="/cart" onClick={handleLinkClick}>🛒 Cart</Link>
-            </>
+          {user?.role === 'client' && (
+            <Link to="/orders" onClick={handleLinkClick}>My Orders</Link>
           )}
-          <button 
-            onClick={() => {
-              logout();
-              handleLinkClick();
-            }}
-            style={isMobile ? {} : { background: 'none', border: 'none', color: 'white', textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit', fontSize: '1em' }}
-          >
-            Logout
-          </button>
+          <button onClick={() => { logout(); handleLinkClick(); }}>Logout</button>
         </>
       ) : (
         <>
@@ -76,18 +90,19 @@ function App() {
           <Link to="/register" onClick={handleLinkClick}>Register</Link>
         </>
       )}
+      {user?.role !== 'seller' && (
+        <Link to="/cart" onClick={handleLinkClick} style={{ fontSize: '1.5em', color: 'var(--color-primary)' }}>🛒</Link>
+      )}
     </>
   );
 
   return (
-    <div className="App">
-      <nav>
-        {/* 4. 🛑 Home link is always visible */}
-        <Link to="/" style={{ fontSize: '1.5em', fontWeight: 'bold', textDecoration: 'none', color: 'white' }}>
-          StyleHub
+    <div className="App-Layout">
+      <nav className="top-nav">
+        {/* ... (nav bar is unchanged) ... */}
+        <Link to="/" className="top-nav-logo">
+          <img src="/logo192.png" alt="StyleHub Logo" style={{ height: '60px', verticalAlign: 'middle' }} />
         </Link>
-        
-        {/* 5. 🛑 Search Form */}
         <form onSubmit={handleSearchSubmit} className="nav-search-form">
           <input
             type="text"
@@ -97,40 +112,34 @@ function App() {
           />
           <button type="submit">Search</button>
         </form>
-
-        {/* 6. 🛑 Desktop Links (hidden on mobile) */}
-        <div className="nav-links">
+        <div className="top-nav-links">
           <NavLinks />
         </div>
-        
-        {/* 7. 🛑 Hamburger Icon (hidden on desktop) */}
-        <button className="mobile-menu-icon" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-          ☰
-        </button>
+        <button className="mobile-menu-icon" onClick={() => setIsMenuOpen(!isMenuOpen)}>☰</button>
       </nav>
-      
-      {/* 8. 🛑 Mobile Menu Dropdown (shown when 'open') */}
       <div className={`nav-links-mobile ${isMenuOpen ? 'open' : ''}`}>
-        <NavLinks isMobile={true} />
+        <NavLinks />
       </div>
 
-      <hr />
-
-      <main>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/products/:id" element={<ProductDetailPage />} />
-          <Route path="/create-product" element={<CreateProductPage />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/orders" element={<OrdersPage />} /> 
-          <Route path="/seller/orders" element={<SellerOrdersPage />} />
-          <Route path="/kyc" element={<KYCPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<Register />} />
-        </Routes>
-      </main>
+      {/* --- Page Content --- */}
+      <Routes>
+        {/* ... (all routes are unchanged) ... */}
+        <Route path="/" element={<MainLayout><Home /></MainLayout>} />
+        <Route path="/products" element={<MainLayout><Products /></MainLayout>} />
+        <Route path="/search" element={<MainLayout><SearchPage /></MainLayout>} />
+        <Route path="/products/:id" element={<MainLayout><ProductDetailPage /></MainLayout>} />
+        <Route path="/dashboard" element={<MainLayout><ClientDashboard /></MainLayout>} />
+        <Route path="/create-product" element={<CreateProductPage />} />
+        <Route path="/cart" element={<CartPage />} />
+        <Route path="/orders" element={<OrdersPage />} /> 
+        <Route path="/seller-dashboard" element={<SellerOrdersPage />} /> 
+        <Route path="/kyc" element={<KYCPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<Register />} />
+      </Routes>
+      
+      {/* 2. 🛑 RENDER THE CHAT CONTAINER */}
+      <ChatContainer />
     </div>
   );
 }

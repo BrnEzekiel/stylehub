@@ -1,16 +1,17 @@
 // src/pages/CreateProductPage.js
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createProduct } from '../api/productService';
+import { categories } from '../utils/categories'; // 1. Import the new category list
 
 const CreateProductPage = () => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [stock, setStock] = useState('');
-  const [category, setCategory] = useState('');
-  const [image, setImage] = useState(null); // State for the file
+  // 2. 🛑 Set default category
+  const [category, setCategory] = useState(categories[0]); 
+  const [image, setImage] = useState(null);
   
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,119 +28,150 @@ const CreateProductPage = () => {
     setError('');
     setLoading(true);
 
-    // 1. Create FormData
     const formData = new FormData();
     formData.append('name', name);
     formData.append('description', description);
-    
-    // 🛑 FIX 1: Parse price as a float and fix it to 2 decimal places.
-    // This prevents sending strange floating point errors and ensures correct API handling.
     formData.append('price', parseFloat(price).toFixed(2));
-    
-    // 🛑 FIX 2: PARSE STOCK AS A WHOLE INTEGER (INT).
-    // This resolves the "Unable to fit value... into a 64-bit signed integer" error.
     formData.append('stock', parseInt(stock, 10));
-    
-    formData.append('category', category);
+    formData.append('category', category); // 3. 🛑 Category is now from the dropdown
     
     if (image) {
-        formData.append('image', image); // Append the file only if it exists
+      formData.append('image', image);
     } else {
-        // Handle case where image is required but missing (though form requires it)
-        setError("Image file is required.");
-        setLoading(false);
-        return;
+      setError("Image file is required.");
+      setLoading(false);
+      return;
     }
 
     try {
-      // 2. Call the API
       const newProduct = await createProduct(formData);
-      
       console.log('Product created!', newProduct);
       alert('Product created successfully!');
-      
-      // 3. Redirect to the new product's page (or back to products)
-      navigate('/products'); 
-      
+      navigate('/products');
     } catch (err) {
-      // API error usually comes in the .message property
       setError(err.message || 'Failed to create product. Check server logs.');
     } finally {
       setLoading(false);
     }
   };
 
+  // 4. 🛑 Apply styles to match the admin theme
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>Create New Product</h2>
-      <form onSubmit={handleSubmit}>
-        {/* Name */}
-        <div style={{ marginBottom: '10px' }}>
-          <label>Name: </label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </div>
-        {/* Description */}
-        <div style={{ marginBottom: '10px' }}>
-          <label>Description: </label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </div>
-        {/* Price */}
-        <div style={{ marginBottom: '10px' }}>
-          <label>Price: </label>
-          <input
-            type="number"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            required
-          />
-        </div>
-        {/* Stock */}
-        <div style={{ marginBottom: '10px' }}>
-          <label>Stock: </label>
-          <input
-            type="number"
-            value={stock}
-            onChange={(e) => setStock(e.target.value)}
-            required
-          />
-        </div>
-        {/* Category */}
-        <div style={{ marginBottom: '10px' }}>
-          <label>Category: </label>
-          <input
-            type="text"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            required
-          />
-        </div>
-        {/* Image */}
-        <div style={{ marginBottom: '10px' }}>
-          <label>Image: </label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            required
-          />
-        </div>
+    <div className="admin-content"> {/* Use admin layout class */}
+      <h2 style={{ color: '#0f35df', marginBottom: '20px' }}>Create New Product</h2>
+      
+      {/* Use a standard card for the form */}
+      <div className="dashboard-card" style={{ maxWidth: '700px', margin: '0 auto' }}>
+        <form onSubmit={handleSubmit}>
+          {/* Name */}
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Name:</label>
+            <input
+              style={styles.input}
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </div>
+          {/* Description */}
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Description:</label>
+            <textarea
+              style={{ ...styles.input, minHeight: '100px' }}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
+          {/* Price */}
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Price:</label>
+            <input
+              style={styles.input}
+              type="number"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              required
+            />
+          </div>
+          {/* Stock */}
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Stock:</label>
+            <input
+              style={styles.input}
+              type="number"
+              value={stock}
+              onChange={(e) => setStock(e.target.value)}
+              required
+            />
+          </div>
+          {/* 5. 🛑 Category Dropdown */}
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Category:</label>
+            <select
+              style={styles.input}
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              required
+            >
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
+          {/* Image */}
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Image:</label>
+            <input
+              style={styles.input}
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              required
+            />
+          </div>
 
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        
-        <button type="submit" disabled={loading}>
-          {loading ? 'Creating...' : 'Create Product'}
-        </button>
-      </form>
+          {error && <p style={{ color: 'red' }}>{error}</p>}
+          
+          <button type="submit" disabled={loading} style={styles.button}>
+            {loading ? 'Creating...' : 'Create Product'}
+          </button>
+        </form>
+      </div>
     </div>
   );
+};
+
+// 6. 🛑 Added styles for the form
+const styles = {
+  inputGroup: {
+    marginBottom: '15px',
+  },
+  label: {
+    display: 'block',
+    marginBottom: '5px',
+    fontWeight: '500',
+    color: '#333',
+  },
+  input: {
+    width: '100%',
+    padding: '10px 12px',
+    border: '1px solid #ccc',
+    borderRadius: '6px',
+    fontSize: '1rem',
+  },
+  button: {
+    width: '100%',
+    padding: '12px',
+    fontSize: '1em',
+    backgroundColor: '#0f35df',
+    color: 'white',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontWeight: '600',
+    marginTop: '10px'
+  }
 };
 
 export default CreateProductPage;

@@ -3,6 +3,7 @@ import { RegisterUserDto } from './dto/register-user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { LoginUserDto } from './dto/login-user.dto';
+import { AdminCreateUserDto } from '../users/dto/admin-create-user.dto';
 export declare class AuthService {
     private usersService;
     private jwtService;
@@ -12,10 +13,10 @@ export declare class AuthService {
     register(dto: RegisterUserDto): Promise<{
         user: {
             name: string | null;
-            id: string;
             email: string;
             phone: string;
             role: string;
+            id: string;
             createdAt: Date;
             updatedAt: Date;
         };
@@ -34,10 +35,19 @@ export declare class AuthService {
     }>;
     getProfileByEmail(email: string): Promise<{
         name: string | null;
-        id: string;
         email: string;
         phone: string;
         role: string;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
+    adminCreateUser(dto: AdminCreateUserDto): Promise<{
+        name: string | null;
+        email: string;
+        phone: string;
+        role: string;
+        id: string;
         createdAt: Date;
         updatedAt: Date;
     }>;

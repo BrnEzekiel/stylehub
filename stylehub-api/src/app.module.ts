@@ -15,15 +15,13 @@ import { ReviewsModule } from './reviews/reviews.module';
 import { SearchModule } from './search/search.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { NotificationsModule } from './notifications/notifications.module';
-// 🛑 REMOVED: import { MulterModule } from '@nest-lab/fastify-multer'; 
+import { StatsModule } from './stats/stats.module';
+import { ChatModule } from './chat/chat.module';
+import { PayoutsModule } from './payouts/payouts.module'; // 1. 🛑 Import new module
 
 @Module({
   imports: [
-    // Load .env file globally
     ConfigModule.forRoot({ isGlobal: true }),
-    
-    // 🛑 REMOVED: MulterModule.register(...)
-
     PrismaModule,
     AuthModule,
     UsersModule,
@@ -37,6 +35,9 @@ import { NotificationsModule } from './notifications/notifications.module';
     SearchModule,
     EventEmitterModule.forRoot(),
     NotificationsModule,
+    StatsModule,
+    ChatModule,
+    PayoutsModule, // 2. 🛑 Add new module
   ],
   providers: [],
 })

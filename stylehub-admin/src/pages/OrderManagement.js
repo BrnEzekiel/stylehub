@@ -1,10 +1,9 @@
 // src/pages/OrderManagement.js
 
 import React, { useState, useEffect } from 'react';
-// 1. Import the new update function
-import { getAllOrders, updateOrderStatus } from '../api/adminService';
+import { getAllOrders, updateOrderStatus, adminDeleteOrder } from '../api/adminService'; // 1. 🛑 Import adminDeleteOrder
+import { Link } from 'react-router-dom';
 
-// 2. Define possible order statuses
 const ORDER_STATUSES = ['pending', 'paid', 'shipped', 'delivered', 'cancelled'];
 
 function OrderManagement() {
@@ -29,22 +28,31 @@ function OrderManagement() {
     }
   };
 
-  // 3. Add handler to update status
   const handleStatusChange = async (orderId, newStatus) => {
     try {
-      // Call the API
       await updateOrderStatus(orderId, newStatus);
-      
-      // Update the status in the local state
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
           order.id === orderId ? { ...order, status: newStatus } : order
         )
       );
     } catch (err) {
-      // If API call fails, show an alert and reload the data
       alert(`Failed to update status: ${err.message}`);
       fetchOrders();
+    }
+  };
+
+  // 2. 🛑 Add Delete Handler
+  const handleDelete = async (orderId) => {
+    if (window.confirm('Are you sure you want to permanently delete this order? This action cannot be undone.')) {
+      try {
+        await adminDeleteOrder(orderId);
+        // Refresh list by filtering state
+        setOrders((prevOrders) => prevOrders.filter((order) => order.id !== orderId));
+      } catch (err) {
+        alert(`Failed to delete order: ${err.message}`);
+        setError(err.message);
+      }
     }
   };
 
@@ -63,14 +71,18 @@ function OrderManagement() {
               <th style={styles.cell}>Customer</th>
               <th style={styles.cell}>Date</th>
               <th style={styles.cell}>Total</th>
-              <th style={styles.cell}>Items</th>
               <th style={styles.cell}>Status</th>
+              <th style={styles.cell}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {orders.map((order) => (
               <tr key={order.id} style={styles.row}>
-                <td style={styles.cell}>{order.id.substring(0, 8)}...</td>
+                <td style={styles.cell}>
+                  <Link to={`/order/${order.id}`} style={{ color: '#0f35df', fontWeight: '500' }}>
+                    {order.id.substring(0, 8)}...
+                  </Link>
+                </td>
                 <td style={styles.cell}>{order.user?.name || 'N/A'}</td>
                 <td style={styles.cell}>
                   {new Date(order.createdAt).toLocaleDateString()}
@@ -78,9 +90,7 @@ function OrderManagement() {
                 <td style={styles.cell}>
                   Ksh {parseFloat(order.totalAmount).toFixed(2)}
                 </td>
-                <td style={styles.cell}>{order.items.length}</td>
                 <td style={styles.cell}>
-                  {/* 4. Replace span with select dropdown */}
                   <select
                     value={order.status}
                     onChange={(e) => handleStatusChange(order.id, e.target.value)}
@@ -90,7 +100,7 @@ function OrderManagement() {
                       padding: '8px 12px', 
                       border: 'none', 
                       cursor: 'pointer',
-                      appearance: 'none' // Removes default arrow
+                      appearance: 'none'
                     }}
                   >
                     {ORDER_STATUSES.map((status) => (
@@ -99,6 +109,18 @@ function OrderManagement() {
                       </option>
                     ))}
                   </select>
+                </td>
+                {/* 3. 🛑 Add Delete Button */}
+                <td style={{...styles.cell, display: 'flex', gap: '5px'}}>
+                  <Link to={`/order/${order.id}`}>
+                    <button style={styles.buttonView}>View</button>
+                  </Link>
+                  <button 
+                    onClick={() => handleDelete(order.id)}
+                    style={styles.buttonDelete}
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
             ))}
@@ -109,7 +131,7 @@ function OrderManagement() {
   );
 }
 
-// 🎨 Your existing styles (unchanged)
+// 4. 🛑 Add buttonDelete style
 const styles = {
   container: {
     padding: '20px',
@@ -146,7 +168,7 @@ const styles = {
     padding: '12px 15px',
     border: '1px solid #ddd',
     textAlign: 'left',
-    verticalAlign: 'middle', // Added for select
+    verticalAlign: 'middle',
   },
   row: {
     transition: 'background 0.3s ease',
@@ -164,15 +186,15 @@ const styles = {
   },
   paid: {
     backgroundColor: '#0f35df',
-    color: '#fff', // Added for select
+    color: '#fff',
   },
   shipped: {
     backgroundColor: '#fa0f8c',
-    color: '#fff', // Added for select
+    color: '#fff',
   },
-  completed: {
+  delivered: {
     backgroundColor: '#28a745',
-    color: '#fff', // Added for select
+    color: '#fff',
   },
   cancelled: {
     backgroundColor: '#000000',
@@ -188,6 +210,24 @@ const styles = {
     color: '#fa0f8c',
     fontWeight: '600',
   },
+  buttonView: {
+    background: '#0f35df',
+    color: '#fff',
+    border: 'none',
+    padding: '8px 12px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontWeight: '500',
+  },
+  buttonDelete: {
+    background: '#dc3545',
+    color: '#fff',
+    border: 'none',
+    padding: '8px 12px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontWeight: '500',
+  }
 };
 
 export default OrderManagement;

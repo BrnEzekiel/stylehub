@@ -39,8 +39,20 @@ let OrdersController = class OrdersController {
     findAllAdmin() {
         return this.ordersService.findAllAdmin();
     }
+    findAdminOrderDetails(id) {
+        return this.ordersService.findAdminOrderDetails(id);
+    }
     updateOrderStatus(id, updateOrderStatusDto) {
         return this.ordersService.updateOrderStatus(id, updateOrderStatusDto.status);
+    }
+    adminDeleteOrder(id) {
+        return this.ordersService.adminDeleteOrder(id);
+    }
+    async downloadReceipt(req, id, res) {
+        const pdfBuffer = await this.ordersService.downloadReceipt(id, req.user.sub, req.user.role);
+        res.header('Content-Type', 'application/pdf');
+        res.header('Content-Disposition', `attachment; filename="StyleHub-Receipt-${id.substring(0, 8)}.pdf"`);
+        return new common_1.StreamableFile(pdfBuffer);
     }
 };
 exports.OrdersController = OrdersController;
@@ -70,6 +82,15 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], OrdersController.prototype, "findAllAdmin", null);
 __decorate([
+    (0, common_1.Get)('admin-all/:id'),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin),
+    __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], OrdersController.prototype, "findAdminOrderDetails", null);
+__decorate([
     (0, common_1.Patch)('admin-all/:id/status'),
     (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin),
@@ -79,6 +100,26 @@ __decorate([
     __metadata("design:paramtypes", [String, update_order_status_dto_1.UpdateOrderStatusDto]),
     __metadata("design:returntype", void 0)
 ], OrdersController.prototype, "updateOrderStatus", null);
+__decorate([
+    (0, common_1.Delete)('admin/:id'),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin),
+    __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], OrdersController.prototype, "adminDeleteOrder", null);
+__decorate([
+    (0, common_1.Get)(':id/receipt'),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(role_enum_1.Role.Client, role_enum_1.Role.Seller, role_enum_1.Role.Admin),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(2, (0, common_1.Res)({ passthrough: true })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, Object]),
+    __metadata("design:returntype", Promise)
+], OrdersController.prototype, "downloadReceipt", null);
 exports.OrdersController = OrdersController = __decorate([
     (0, common_1.Controller)('api/orders'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

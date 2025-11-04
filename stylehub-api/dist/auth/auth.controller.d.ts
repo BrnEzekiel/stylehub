@@ -7,10 +7,10 @@ export declare class AuthController {
     register(dto: RegisterUserDto): Promise<{
         user: {
             name: string | null;
-            id: string;
             email: string;
             phone: string;
             role: string;
+            id: string;
             createdAt: Date;
             updatedAt: Date;
         };
@@ -30,10 +30,10 @@ export declare class AuthController {
     }>;
     getProfile(req: any): Promise<{
         name: string | null;
-        id: string;
         email: string;
         phone: string;
         role: string;
+        id: string;
         createdAt: Date;
         updatedAt: Date;
     }>;

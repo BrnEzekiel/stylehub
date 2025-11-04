@@ -20,12 +20,13 @@ const add_item_dto_1 = require("./dto/add-item.dto");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const role_enum_1 = require("../auth/enums/role.enum");
 const roles_guard_1 = require("../auth/guards/roles.guard");
+const checkout_dto_1 = require("./dto/checkout.dto");
 let CartController = class CartController {
     constructor(cartService) {
         this.cartService = cartService;
     }
-    checkout(req) {
-        return this.cartService.checkout(req.user.sub);
+    checkout(req, checkoutDto) {
+        return this.cartService.checkout(req.user.sub, checkoutDto);
     }
     addItem(req, addItemDto) {
         return this.cartService.addItemToCart(req.user.sub, addItemDto);
@@ -42,8 +43,9 @@ __decorate([
     (0, common_1.Post)('checkout'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.Client),
     __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, checkout_dto_1.CheckoutDto]),
     __metadata("design:returntype", void 0)
 ], CartController.prototype, "checkout", null);
 __decorate([

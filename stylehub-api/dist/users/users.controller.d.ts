@@ -1,13 +1,54 @@
 import { UsersService } from './users.service';
+import { AdminUpdateUserDto } from './dto/admin-update-user.dto';
+import { AdminCreateUserDto } from './dto/admin-create-user.dto';
+import { AuthService } from '../auth/auth.service';
 export declare class UsersController {
     private readonly usersService;
-    constructor(usersService: UsersService);
+    private readonly authService;
+    constructor(usersService: UsersService, authService: AuthService);
     getAllUsers(): Promise<{
         name: string;
-        id: string;
         email: string;
         phone: string;
         role: string;
+        id: string;
         createdAt: Date;
     }[]>;
+    getUserById(id: string): Promise<{
+        name: string;
+        role: string;
+        id: string;
+    }>;
+    createUser(adminCreateUserDto: AdminCreateUserDto): Promise<{
+        name: string | null;
+        email: string;
+        phone: string;
+        role: string;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
+    getFullUserDetails(id: string): Promise<{
+        name: string;
+        email: string;
+        phone: string;
+        role: string;
+        id: string;
+        createdAt: Date;
+        _count: {
+            orders: number;
+            products: number;
+            reviews: number;
+        };
+    }>;
+    updateUser(id: string, adminUpdateUserDto: AdminUpdateUserDto): Promise<{
+        name: string;
+        email: string;
+        phone: string;
+        role: string;
+        id: string;
+    }>;
+    deleteUser(id: string): Promise<{
+        message: string;
+    }>;
 }

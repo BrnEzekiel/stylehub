@@ -13,6 +13,7 @@ exports.CartService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const client_1 = require("@prisma/client");
+const PLATFORM_FEE_RATE = new client_1.Prisma.Decimal(0.10);
 let CartService = class CartService {
     constructor(prisma) {
         this.prisma = prisma;
@@ -114,14 +115,14 @@ let CartService = class CartService {
         });
         return { message: 'Item removed successfully' };
     }
-    async checkout(userId) {
+    async checkout(userId, dto) {
         const cart = await this.prisma.cart.findUnique({
             where: { userId },
             include: {
                 items: {
                     include: {
                         product: {
-                            select: { id: true, name: true, price: true, stock: true },
+                            select: { id: true, name: true, price: true, stock: true, sellerId: true },
                         },
                     },
                 },
@@ -130,32 +131,51 @@ let CartService = class CartService {
         if (!cart || cart.items.length === 0) {
             throw new common_1.BadRequestException('Cannot checkout an empty cart.');
         }
-        let totalAmount = 0;
+        let totalAmount = new client_1.Prisma.Decimal(0);
         const orderItemsData = [];
         for (const item of cart.items) {
             if (!item.product) {
                 throw new common_1.NotFoundException(`Product data missing for item in cart. Product may have been deleted.`);
             }
+            if (item.product.stock < item.quantity) {
+                throw new common_1.BadRequestException(`Product "${item.product.name}" is out of stock.`);
+            }
             const productPrice = item.product.price;
             const quantity = item.quantity;
-            const subtotal = productPrice.toNumber() * quantity;
-            if (item.product.stock < quantity) {
-                throw new common_1.BadRequestException(`Product "${item.product.name}" is out of stock or requested quantity exceeds available stock (${item.product.stock}).`);
+            const subtotal = productPrice.times(quantity);
+            totalAmount = totalAmount.add(subtotal);
+            let itemPlatformFee = new client_1.Prisma.Decimal(0);
+            let itemSellerEarning = new client_1.Prisma.Decimal(0);
+            if (item.product.sellerId) {
+                itemPlatformFee = subtotal.times(PLATFORM_FEE_RATE).toDecimalPlaces(2);
+                itemSellerEarning = subtotal.minus(itemPlatformFee);
             }
-            totalAmount += subtotal;
+            else {
+                itemPlatformFee = subtotal;
+                itemSellerEarning = new client_1.Prisma.Decimal(0);
+            }
             orderItemsData.push({
                 productId: item.productId,
                 productName: item.product.name,
                 unitPrice: productPrice,
                 quantity: quantity,
+                platformFee: itemPlatformFee,
+                sellerEarning: itemSellerEarning,
             });
         }
         return this.prisma.$transaction(async (tx) => {
+            const newAddress = await tx.address.create({
+                data: {
+                    userId: userId,
+                    ...dto,
+                },
+            });
             const newOrder = await tx.order.create({
                 data: {
                     userId: userId,
-                    totalAmount: new client_1.Prisma.Decimal(totalAmount),
+                    totalAmount: totalAmount,
                     status: 'pending',
+                    shippingAddressId: newAddress.id,
                     items: {
                         createMany: {
                             data: orderItemsData,
@@ -172,7 +192,7 @@ let CartService = class CartService {
                 where: { cartId: cart.id },
             });
             return {
-                message: 'Order placed successfully. Awaiting payment.',
+                message: 'Order created. Proceed to payment.',
                 orderId: newOrder.id,
                 totalAmount: newOrder.totalAmount,
             };

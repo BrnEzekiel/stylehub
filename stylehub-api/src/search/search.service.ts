@@ -2,9 +2,8 @@
 
 import { Injectable, Logger } from '@nestjs/common';
 import { Product } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service'; // 1. Import PrismaService
+import { PrismaService } from '../prisma/prisma.service';
 
-// Define the structure of the data we want to send to the search engine
 type SearchProductDocument = {
   id: string;
   name: string;
@@ -18,12 +17,9 @@ type SearchProductDocument = {
 export class SearchService {
   private readonly logger = new Logger(SearchService.name);
 
-  // 2. Inject PrismaService
   constructor(private prisma: PrismaService) {}
 
-  // --------------------------------------------------
-  // 🛑 INDEX/UPDATE A SINGLE PRODUCT
-  // --------------------------------------------------
+  // ... (indexProduct, deleteProduct, reindexAllProducts methods are unchanged) ...
   async indexProduct(product: Product): Promise<void> {
     const document: SearchProductDocument = {
       id: product.id,
@@ -37,22 +33,16 @@ export class SearchService {
     this.logger.log(`[Search Index] Indexed/Updated product ID: ${product.id} - ${product.name}`);
   }
   
-  // --------------------------------------------------
-  // 🛑 DELETE A PRODUCT FROM THE INDEX
-  // --------------------------------------------------
   async deleteProduct(productId: string): Promise<void> {
     this.logger.log(`[Search Index] Deleted product ID: ${productId}`);
   }
 
-  // --------------------------------------------------
-  // 🛑 REINDEX ALL PRODUCTS (Admin/Maintenance function)
-  // --------------------------------------------------
   async reindexAllProducts(): Promise<void> {
     this.logger.log('Starting full product re-indexing. This is a maintenance task.');
   }
   
   // --------------------------------------------------
-  // 🛑 SEARCH FUNCTION (For ProductsController to use)
+  // 🛑 SEARCH FUNCTION (UPDATED)
   // --------------------------------------------------
   async searchProducts(query: string) {
     if (!query) {
@@ -61,16 +51,14 @@ export class SearchService {
 
     this.logger.log(`[Search Index] Executing search for: "${query}"`);
     
-    // --- 🛑 SIMULATION REMOVED - REAL QUERY ADDED 🛑 ---
-    // This now searches your actual database
     const products = await this.prisma.product.findMany({
       where: {
-        // Search in both name AND description
+        // Search in name, description, AND category
         OR: [
           {
             name: {
               contains: query,
-              mode: 'insensitive', // Makes the search case-insensitive
+              mode: 'insensitive',
             },
           },
           {
@@ -79,14 +67,20 @@ export class SearchService {
               mode: 'insensitive',
             },
           },
+          // 1. 🛑 FIX: Added category search
+          {
+            category: {
+              contains: query,
+              mode: 'insensitive',
+            }
+          }
         ],
       },
     });
 
     return {
-      results: products, // Return the REAL product objects
+      results: products,
       totalHits: products.length,
     };
-    // --- END REAL QUERY ---
   }
 }

@@ -1,3 +1,5 @@
+// src/cart/cart.controller.ts
+
 import {
   Controller,
   Get,
@@ -7,7 +9,7 @@ import {
   UseGuards,
   Request,
   Param,
-  ParseUUIDPipe, // 1. Import ParseUUIDPipe for validation
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -15,6 +17,7 @@ import { AddItemDto } from './dto/add-item.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/enums/role.enum';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { CheckoutDto } from './dto/checkout.dto';
 
 @Controller('api/cart')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -23,8 +26,11 @@ export class CartController {
 
   @Post('checkout')
   @Roles(Role.Client)
-  checkout(@Request() req) {
-    return this.cartService.checkout(req.user.sub);
+  checkout(
+    @Request() req,
+    @Body() checkoutDto: CheckoutDto,
+  ) {
+    return this.cartService.checkout(req.user.sub, checkoutDto);
   }
 
   @Post()
@@ -39,15 +45,12 @@ export class CartController {
     return this.cartService.getCart(req.user.sub);
   }
 
-  // 🛑 FIX: Changed route from :productId to :cartItemId
   @Delete(':cartItemId') 
   @Roles(Role.Client)
   removeItem(
     @Request() req, 
-    // 2. Get the cartItemId from the URL
     @Param('cartItemId', ParseUUIDPipe) cartItemId: string 
   ) {
-    // 3. Pass the specific cartItemId to the service
     return this.cartService.removeItem(req.user.sub, cartItemId);
   }
 }

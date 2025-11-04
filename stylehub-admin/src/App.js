@@ -1,22 +1,40 @@
 // src/App.js
-
 import React from 'react';
-import { Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
+import {
+  Routes,
+  Route,
+  Link,
+  Navigate,
+  useLocation,
+} from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
+import Dashboard from './pages/Dashboard';
 import KycDashboard from './pages/KycDashboard';
 import UserManagement from './pages/UserManagement';
 import ProductManagement from './pages/ProductManagement';
-import OrderManagement from './pages/OrderManagement'; // 1. Import OrderManagement
+import OrderManagement from './pages/OrderManagement';
+import AdminOrderDetail from './pages/AdminOrderDetail';
+import EditUserPage from './pages/EditUserPage';
+import EditProductPage from './pages/EditProductPage';
+import CreateUserPage from './pages/CreateUserPage';
+import AdminCreateProduct from './pages/AdminCreateProduct';
+import FinancialsPage from './pages/FinancialsPage';
 import './App.css';
 
-// Admin layout component
+// --- Admin Layout ---
 function AdminLayout({ onLogout }) {
   return (
     <div className="admin-layout">
       {/* Sidebar Navigation */}
       <aside className="sidebar">
         <ul className="sidebar-nav">
+          <li>
+            <Link to="/dashboard">Dashboard</Link>
+          </li>
+          <li>
+            <Link to="/financials">Financials</Link>
+          </li>
           <li>
             <Link to="/kyc-dashboard">KYC Management</Link>
           </li>
@@ -27,28 +45,39 @@ function AdminLayout({ onLogout }) {
             <Link to="/product-management">Product Management</Link>
           </li>
           <li>
-            {/* 2. Add new link */}
             <Link to="/order-management">Order Management</Link>
           </li>
         </ul>
       </aside>
 
-      {/* Main Content Area */}
+      {/* Main Content */}
       <main className="admin-content">
         <Routes>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/financials" element={<FinancialsPage />} />
           <Route path="/kyc-dashboard" element={<KycDashboard />} />
           <Route path="/user-management" element={<UserManagement />} />
           <Route path="/product-management" element={<ProductManagement />} />
-          {/* 3. Add new route */}
           <Route path="/order-management" element={<OrderManagement />} />
-          <Route path="/" element={<Navigate to="/kyc-dashboard" />} />
+          <Route path="/order/:id" element={<AdminOrderDetail />} />
+          
+          {/* User Routes */}
+          <Route path="/user/:id/edit" element={<EditUserPage />} />
+          <Route path="/user/create" element={<CreateUserPage />} />
+          
+          {/* Product Routes */}
+          <Route path="/product/:id/edit" element={<EditProductPage />} />
+          <Route path="/product/create" element={<AdminCreateProduct />} />
+
+          <Route path="/" element={<Navigate to="/dashboard" />} />
         </Routes>
       </main>
     </div>
   );
 }
 
-function App() {
+// --- Main Auth Logic ---
+function AppContent() {
   const { token, user, logout } = useAuth();
   const location = useLocation();
 
@@ -56,7 +85,10 @@ function App() {
     return (
       <Routes>
         <Route path="/login" element={<LoginPage />} />
-        <Route path="*" element={<Navigate to="/login" state={{ from: location }} replace />} />
+        <Route
+          path="*"
+          element={<Navigate to="/login" state={{ from: location }} replace />}
+        />
       </Routes>
     );
   }
@@ -64,15 +96,28 @@ function App() {
   return (
     <div className="App">
       <nav className="top-nav">
-        <h2>StyleHub Admin</h2>
+        <Link to="/dashboard">
+          {/* 🛑 THE FIX: Use process.env.PUBLIC_URL to get the correct path */}
+          <img 
+            src={process.env.PUBLIC_URL + '/logo192.png'} 
+            alt="StyleHub Admin" 
+            style={{ height: '80px' }} 
+          />
+        </Link>
+        
         <button onClick={logout} className="top-nav-logout">
           Logout
         </button>
       </nav>
-      
+
       <AdminLayout onLogout={logout} />
     </div>
   );
+}
+
+// --- Main App Wrapper ---
+function App() {
+  return <AppContent />;
 }
 
 export default App;

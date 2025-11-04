@@ -1,9 +1,10 @@
 import { CartService } from './cart.service';
 import { AddItemDto } from './dto/add-item.dto';
+import { CheckoutDto } from './dto/checkout.dto';
 export declare class CartController {
     private readonly cartService;
     constructor(cartService: CartService);
-    checkout(req: any): Promise<{
+    checkout(req: any, checkoutDto: CheckoutDto): Promise<{
         message: string;
         orderId: string;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
