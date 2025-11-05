@@ -12,12 +12,13 @@ const payouts_service_1 = require("./payouts.service");
 const payouts_controller_1 = require("./payouts.controller");
 const prisma_module_1 = require("../prisma/prisma.module");
 const auth_module_1 = require("../auth/auth.module");
+const wallet_module_1 = require("../wallet/wallet.module");
 let PayoutsModule = class PayoutsModule {
 };
 exports.PayoutsModule = PayoutsModule;
 exports.PayoutsModule = PayoutsModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, auth_module_1.AuthModule],
+        imports: [prisma_module_1.PrismaModule, auth_module_1.AuthModule, wallet_module_1.WalletModule],
         providers: [payouts_service_1.PayoutsService],
         controllers: [payouts_controller_1.PayoutsController],
     })

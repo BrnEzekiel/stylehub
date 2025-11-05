@@ -64,6 +64,7 @@ export declare class ProductsController {
             name: string;
             email: string;
             id: string;
+            verificationStatus: import(".prisma/client").$Enums.VerificationStatus;
         };
     } & {
         name: string;

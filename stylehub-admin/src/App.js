@@ -20,6 +20,7 @@ import EditProductPage from './pages/EditProductPage';
 import CreateUserPage from './pages/CreateUserPage';
 import AdminCreateProduct from './pages/AdminCreateProduct';
 import FinancialsPage from './pages/FinancialsPage';
+import VerificationAdminPage from './pages/VerificationAdminPage'; // 1. 🛑 Import
 import './App.css';
 
 // --- Admin Layout ---
@@ -37,6 +38,10 @@ function AdminLayout({ onLogout }) {
           </li>
           <li>
             <Link to="/kyc-dashboard">KYC Management</Link>
+          </li>
+          {/* 2. 🛑 Add new link */}
+          <li>
+            <Link to="/seller-verification">Seller Verification</Link>
           </li>
           <li>
             <Link to="/user-management">User Management</Link>
@@ -56,6 +61,7 @@ function AdminLayout({ onLogout }) {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/financials" element={<FinancialsPage />} />
           <Route path="/kyc-dashboard" element={<KycDashboard />} />
+          <Route path="/seller-verification" element={<VerificationAdminPage />} /> {/* 3. 🛑 Add new route */}
           <Route path="/user-management" element={<UserManagement />} />
           <Route path="/product-management" element={<ProductManagement />} />
           <Route path="/order-management" element={<OrderManagement />} />
@@ -97,12 +103,7 @@ function AppContent() {
     <div className="App">
       <nav className="top-nav">
         <Link to="/dashboard">
-          {/* 🛑 THE FIX: Use process.env.PUBLIC_URL to get the correct path */}
-          <img 
-            src={process.env.PUBLIC_URL + '/logo192.png'} 
-            alt="StyleHub Admin" 
-            style={{ height: '80px' }} 
-          />
+          <img src="/logo192.png" alt="StyleHub Admin" style={{ height: '60px' }} />
         </Link>
         
         <button onClick={logout} className="top-nav-logout">

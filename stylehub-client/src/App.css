@@ -1,6 +1,6 @@
 /* src/App.css */
 
-/* --- GLOBAL RESET & THEME (From Admin) --- */
+/* --- GLOBAL RESET & THEME --- */
 * {
   margin: 0;
   padding: 0;
@@ -15,16 +15,17 @@
   --color-text: #222;
   --color-white: #ffffff;
   --color-border: #eee;
+  --color-verified: #0a875a;
 }
 body {
   background-color: var(--color-background);
   color: var(--color-text);
 }
 
-/* --- LAYOUT (From Admin) --- */
+/* --- LAYOUT --- */
 .admin-layout {
   display: flex;
-  min-height: calc(100vh - 80px); /* 1. 🛑 FIX: Adjusted for nav */
+  min-height: calc(100vh - 80px);
 }
 .sidebar {
   width: 240px;
@@ -33,8 +34,8 @@ body {
   padding-top: 25px;
   box-shadow: 2px 0 6px rgba(0, 0, 0, 0.1);
   position: sticky;
-  top: 80px; /* 2. 🛑 FIX: Stick below the new top nav */
-  height: calc(100vh - 80px); /* 3. 🛑 FIX: Full height minus top nav */
+  top: 80px;
+  height: calc(100vh - 80px);
 }
 .sidebar h3 { font-size: 1.3rem; font-weight: 600; text-align: center; margin-bottom: 20px; letter-spacing: 1px; color: var(--color-white); }
 .sidebar-nav { list-style-type: none; padding: 0; margin: 0; }
@@ -47,15 +48,15 @@ body {
   overflow-y: auto;
 }
 
-/* --- TOP NAVIGATION (From Admin) --- */
+/* --- TOP NAVIGATION --- */
 .top-nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 25px; /* 4. 🛑 FIX: Adjusted padding */
+  padding: 0 25px;
   background: var(--color-white);
   color: #333;
-  height: 80px; /* 5. 🛑 FIX: Increased height as requested */
+  height: 80px;
   border-bottom: 2px solid #f0f0f0;
   position: sticky;
   top: 0;
@@ -79,7 +80,7 @@ body {
 .nav-search-form input { width: 100%; padding: 10px 14px; border: 1px solid #ccc; border-right: none; border-radius: 6px 0 0 6px; font-size: 1em; }
 .nav-search-form button { padding: 0 20px; border: none; background: var(--color-primary); color: white; border-radius: 0 6px 6px 0; cursor: pointer; font-weight: 600; }
 
-/* --- DASHBOARD STATS (From Admin) --- */
+/* --- DASHBOARD STATS (Used by ClientDashboard) --- */
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px; }
 .stat-card { display: flex; align-items: center; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); transition: all 0.3s ease; text-decoration: none; color: #222; }
 .stat-card:hover { transform: translateY(-5px); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1); }
@@ -91,7 +92,7 @@ body {
 .stat-card:nth-child(3) .stat-icon { background-color: #fef3c7; color: #d97706; }
 .stat-card.pending .stat-icon { background-color: #ffe4e6; color: #e11d48; }
 
-/* --- TABLE (From Admin) --- */
+/* --- TABLE (Used by ClientDashboard) --- */
 table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #fff; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); border-radius: 8px; overflow: hidden; }
 th, td { padding: 12px 15px; border: 1px solid #ddd; }
 th { background: #0f35df; color: white; text-align: left; }
@@ -99,13 +100,46 @@ tr:hover { background-color: #f1f1f1; }
 
 /* --- CLIENT-SPECIFIC ADD-ONS --- */
 .product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px; margin-top: 20px; }
-.product-card { background: #fff; border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); transition: all 0.3s ease; overflow: hidden; border: 1px solid #eee; }
+.product-card { 
+  background: #fff; 
+  border-radius: 10px; 
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); 
+  transition: all 0.3s ease; 
+  overflow: hidden; 
+  border: 1px solid #eee; 
+  position: relative; /* 🛑 Added for wishlist button */
+}
 .product-card:hover { transform: translateY(-5px); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1); }
 .product-card-link { text-decoration: none; color: #222; }
 .product-card-image { width: 100%; height: 220px; object-fit: cover; display: block; }
 .product-card-content { padding: 15px; }
 .product-card-content h3 { font-size: 1.15em; margin-bottom: 10px; }
 .product-card-content p { font-size: 1.2em; color: var(--color-primary); font-weight: 600; margin: 0; }
+
+/* --- 🛑 NEW: Wishlist Button --- */
+.wishlist-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 1.5em;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all 0.2s ease;
+  color: #333;
+}
+.wishlist-btn:hover {
+  background: white;
+  transform: scale(1.1);
+}
+.wishlist-btn.active {
+  color: var(--color-secondary); /* Pink heart when active */
+}
 
 /* --- PAGINATION --- */
 .pagination-controls { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 30px; }
@@ -115,7 +149,7 @@ tr:hover { background-color: #f1f1f1; }
 
 /* --- MOBILE & RESPONSIVE --- */
 .mobile-menu-icon { display: none; background: none; border: none; color: var(--color-primary); font-size: 28px; cursor: pointer; }
-.nav-links-mobile { display: none; flex-direction: column; width: 100%; background: #fff; padding: 10px 0; position: absolute; top: 80px; /* 6. 🛑 FIX: Adjusted for nav */ left: 0; z-index: 999; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+.nav-links-mobile { display: none; flex-direction: column; width: 100%; background: #fff; padding: 10px 0; position: absolute; top: 80px; left: 0; z-index: 999; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
 .nav-links-mobile a,
 .nav-links-mobile button { color: #333; padding: 12px 20px; text-decoration: none; text-align: left; width: 100%; box-sizing: border-box; background: none; border: none; font-size: 1em; font-family: inherit; cursor: pointer; }
 .nav-links-mobile a:hover,
@@ -185,6 +219,20 @@ tr:hover { background-color: #f1f1f1; }
   margin-bottom: 20px;
 }
 
+/* --- 🛑 NEW: Verified Seller Badge --- */
+.verified-seller-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--color-verified);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9em;
+  margin-bottom: 15px;
+}
+
 /* --- Action Box (Add to Cart) --- */
 .action-box {
   background: #f9f9f9;
@@ -220,6 +268,7 @@ tr:hover { background-color: #f1f1f1; }
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.2s;
+  margin-bottom: 10px; /* 🛑 Added margin */
 }
 .action-box button:hover {
   background: #0d6efd;
@@ -228,6 +277,28 @@ tr:hover { background-color: #f1f1f1; }
   background: #ccc;
   cursor: not-allowed;
 }
+/* 🛑 NEW: Wishlist button style for action box */
+.action-box .wishlist-btn-detail {
+  width: 100%;
+  padding: 12px;
+  font-size: 1.1em;
+  font-weight: 700;
+  background: var(--color-white);
+  color: var(--color-text);
+  border: 1px solid var(--color-primary);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.action-box .wishlist-btn-detail:hover {
+  background: #f0f5ff;
+}
+.action-box .wishlist-btn-detail.active {
+  background: var(--color-secondary);
+  color: white;
+  border-color: var(--color-secondary);
+}
+
 
 /* --- Reviews Section --- */
 .reviews-section {
@@ -297,15 +368,7 @@ tr:hover { background-color: #f1f1f1; }
   margin: 5px 0;
 }
 
-
-
-/* src/App.css */
-/* ... (all your existing styles) ... */
-
-/* -------------------------- */
-/* --- 🛑 NEW CHAT STYLES 🛑 --- */
-/* -------------------------- */
-
+/* --- (Chat Styles are unchanged) --- */
 .chat-bubble {
   position: fixed;
   bottom: 20px;
@@ -321,7 +384,6 @@ tr:hover { background-color: #f1f1f1; }
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   z-index: 1001;
 }
-
 .chat-container {
   position: fixed;
   bottom: 20px;
@@ -338,7 +400,6 @@ tr:hover { background-color: #f1f1f1; }
   overflow: hidden;
   z-index: 1002;
 }
-
 .chat-header {
   display: flex;
   justify-content: space-between;
@@ -348,26 +409,9 @@ tr:hover { background-color: #f1f1f1; }
   color: white;
   flex-shrink: 0;
 }
-.chat-header h3 {
-  margin: 0;
-  font-size: 1.2em;
-}
-.chat-header button {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 1.5em;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.chat-body {
-  display: flex;
-  flex-grow: 1;
-  overflow: hidden;
-}
-
-/* --- Sidebar --- */
+.chat-header h3 { margin: 0; font-size: 1.2em; }
+.chat-header button { background: none; border: none; color: white; font-size: 1.5em; font-weight: bold; cursor: pointer; }
+.chat-body { display: flex; flex-grow: 1; overflow: hidden; }
 .chat-sidebar {
   width: 150px;
   flex-shrink: 0;
@@ -385,13 +429,8 @@ tr:hover { background-color: #f1f1f1; }
   font-weight: 500;
   color: #333;
 }
-.convo-item:hover {
-  background: #f0f0f0;
-}
-.convo-item.active {
-  background: var(--color-primary);
-  color: white;
-}
+.convo-item:hover { background: #f0f0f0; }
+.convo-item.active { background: var(--color-primary); color: white; }
 .status-dot {
   width: 10px;
   height: 10px;
@@ -399,24 +438,9 @@ tr:hover { background-color: #f1f1f1; }
   background: #ccc;
   margin-right: 10px;
 }
-.status-dot.online {
-  background: #28a745;
-}
-
-/* --- Chat Window --- */
-.chat-window {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-}
-.chat-window-placeholder {
-  display: grid;
-  place-items: center;
-  height: 100%;
-  color: #888;
-  flex-grow: 1;
-}
-
+.status-dot.online { background: #28a745; }
+.chat-window { display: flex; flex-direction: column; flex-grow: 1; }
+.chat-window-placeholder { display: grid; place-items: center; height: 100%; color: #888; flex-grow: 1; }
 .message-list {
   flex-grow: 1;
   padding: 15px;
@@ -425,7 +449,6 @@ tr:hover { background-color: #f1f1f1; }
   flex-direction: column;
   gap: 10px;
 }
-
 .message-bubble {
   padding: 10px 15px;
   border-radius: 20px;
@@ -444,12 +467,7 @@ tr:hover { background-color: #f1f1f1; }
   align-self: flex-start;
   border-bottom-left-radius: 5px;
 }
-
-.chat-input-form {
-  display: flex;
-  border-top: 1px solid var(--color-border);
-  padding: 10px;
-}
+.chat-input-form { display: flex; border-top: 1px solid var(--color-border); padding: 10px; }
 .chat-input-form input {
   flex-grow: 1;
   border: 1px solid #ccc;

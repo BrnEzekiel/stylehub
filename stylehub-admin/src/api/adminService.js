@@ -24,7 +24,38 @@ export const updateKycStatus = async (kycId, status) => {
   }
 };
 
-// --- USER METHODS (EXPANDED) ---
+// --- 🛑 NEW: SELLER VERIFICATION METHODS 🛑 ---
+
+/**
+ * Fetches all Seller Verification submissions with a 'pending' status.
+ */
+export const getPendingVerifications = async () => {
+  try {
+    const response = await apiClient.get('/verification/pending');
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to fetch pending verifications.';
+    console.error('Fetch Verifications error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
+/**
+ * Updates the status of a Seller Verification submission (approve or reject).
+ */
+export const updateVerificationStatus = async (verificationId, status) => {
+  try {
+    const response = await apiClient.patch(`/verification/${verificationId}/status`, { status });
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to update verification status.';
+    console.error('Update Verification error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
+
+// --- USER METHODS ---
 export const getAllUsers = async () => {
   try {
     const response = await apiClient.get('/users');
@@ -175,12 +206,8 @@ export const getAdminOrderDetails = async (orderId) => {
     throw new Error(errorMessage);
   }
 };
-/**
- * 🛑 NEW: Admin deletes an order.
- */
 export const adminDeleteOrder = async (orderId) => {
   try {
-    // Calls DELETE /api/orders/admin/:id
     const response = await apiClient.delete(`/orders/admin/${orderId}`);
     return response.data;
   } catch (error) {
@@ -189,7 +216,6 @@ export const adminDeleteOrder = async (orderId) => {
     throw new Error(errorMessage);
   }
 };
-
 
 // --- STATS METHOD ---
 export const getAdminStats = async () => {

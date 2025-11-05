@@ -25,6 +25,9 @@ const notifications_module_1 = require("./notifications/notifications.module");
 const stats_module_1 = require("./stats/stats.module");
 const chat_module_1 = require("./chat/chat.module");
 const payouts_module_1 = require("./payouts/payouts.module");
+const verification_module_1 = require("./verification/verification.module");
+const wishlist_module_1 = require("./wishlist/wishlist.module");
+const wallet_module_1 = require("./wallet/wallet.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -48,6 +51,9 @@ exports.AppModule = AppModule = __decorate([
             stats_module_1.StatsModule,
             chat_module_1.ChatModule,
             payouts_module_1.PayoutsModule,
+            verification_module_1.VerificationModule,
+            wishlist_module_1.WishlistModule,
+            wallet_module_1.WalletModule,
         ],
         providers: [],
     })

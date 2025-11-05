@@ -13,6 +13,8 @@ export declare class AuthController {
             id: string;
             createdAt: Date;
             updatedAt: Date;
+            walletBalance: import("@prisma/client/runtime/library").Decimal;
+            verificationStatus: import(".prisma/client").$Enums.VerificationStatus;
         };
         access_token: string;
         refresh_token: string;
@@ -36,5 +38,7 @@ export declare class AuthController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        walletBalance: import("@prisma/client/runtime/library").Decimal;
+        verificationStatus: import(".prisma/client").$Enums.VerificationStatus;
     }>;
 }

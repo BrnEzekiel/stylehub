@@ -27,6 +27,8 @@ export declare class UsersController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        walletBalance: import("@prisma/client/runtime/library").Decimal;
+        verificationStatus: import(".prisma/client").$Enums.VerificationStatus;
     }>;
     getFullUserDetails(id: string): Promise<{
         name: string;

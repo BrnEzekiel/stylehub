@@ -24,21 +24,17 @@ export class ProductsService {
     private searchService: SearchService,
   ) {}
 
-  // --- Seller Create Method ---
   async create(data: CreateProductDto, sellerId: string, file: any) {
     if (!file) {
       throw new BadRequestException('Product image file is required.');
     }
-
     const kycStatus = await this.prisma.kYC.findUnique({
       where: { user_id: sellerId },
       select: { status: true },
     });
-
     if (!kycStatus || kycStatus.status !== 'approved') {
       throw new ForbiddenException('Seller KYC status must be approved to create a product.');
     }
-
     let imageUrl: string;
     try {
       const uploadResult = await this.storageService.upload(file.buffer, 'products');
@@ -50,7 +46,6 @@ export class ProductsService {
       console.error('Image upload failed:', error);
       throw new InternalServerErrorException('Failed to upload product image.');
     }
-
     const newProduct = await this.prisma.product.create({
       data: {
         ...data,
@@ -60,9 +55,7 @@ export class ProductsService {
         imageUrl: imageUrl,
       },
     });
-
     await this.searchService.indexProduct(newProduct);
-    
     return newProduct;
   }
   
@@ -77,8 +70,22 @@ export class ProductsService {
     } = query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const take = parseInt(limit);
+
+    // 1. 🛑 Define the 'include' object to get seller verification status
+    const includeSeller = {
+      seller: {
+        select: {
+          id: true,
+          name: true,
+          verificationStatus: true,
+        },
+      },
+    };
+
     if (search) {
         const searchResult = await this.searchService.searchProducts(search);
+        // We can't easily add the seller data to search, so we'll skip it for now.
+        // A more advanced solution would be to re-fetch by ID or add status to search index.
         return {
           products: searchResult.results,
           meta: {
@@ -89,17 +96,21 @@ export class ProductsService {
           }
         };
     }
+    
     const where: any = {};
     if (category) {
       where.category = category;
     }
     const orderBy: any = { [sortBy]: sortOrder };
+
     const products = await this.prisma.product.findMany({
       where,
       orderBy,
       skip,
       take,
+      include: includeSeller, // 2. 🛑 Add 'include' to the query
     });
+    
     const total = await this.prisma.product.count({ where });
     return {
       products,
@@ -117,9 +128,15 @@ export class ProductsService {
       where: { id },
       include: {
         seller: {
-          select: { id: true, name: true, email: true }
-        }
-      }
+          // 3. 🛑 Also get verificationStatus when fetching one product
+          select: { 
+            id: true, 
+            name: true, 
+            email: true, 
+            verificationStatus: true 
+          },
+        },
+      },
     });
     if (!product) {
       throw new NotFoundException('Product not found');
@@ -151,25 +168,15 @@ export class ProductsService {
     if (product.sellerId !== sellerId) {
       throw new ForbiddenException('You do not have permission to delete this product.');
     }
-    // Note: This simple delete WILL FAIL if the product is in a Cart or Order.
-    // The removeAdmin method below is safer.
     await this.prisma.product.delete({ where: { id } });
     await this.searchService.deleteProduct(id);
     return { message: 'Product successfully deleted.' };
   }
 
-  // --- 🛑 ADMIN METHODS 🛑 ---
-
-  /**
-   * 🛑 NEW: Admin creates a product
-   */
   async adminCreateProduct(data: CreateProductDto, file: any, sellerId: string | null = null) {
     if (!file) {
       throw new BadRequestException('Product image file is required.');
     }
-    
-    // Admin does not need KYC check
-
     let imageUrl: string;
     try {
       const uploadResult = await this.storageService.upload(file.buffer, 'products');
@@ -181,21 +188,16 @@ export class ProductsService {
       console.error('Image upload failed:', error);
       throw new InternalServerErrorException('Failed to upload product image.');
     }
-
     const newProduct = await this.prisma.product.create({
       data: {
         ...data,
         price: data.price,
         stock: data.stock,
-        // sellerId will be null if admin creates it for the platform
-        // or can be a specific ID if admin creates on behalf of a seller
         sellerId: sellerId,
         imageUrl: imageUrl,
       },
     });
-
     await this.searchService.indexProduct(newProduct);
-    
     return newProduct;
   }
 

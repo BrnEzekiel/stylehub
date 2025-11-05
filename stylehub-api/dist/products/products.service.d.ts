@@ -52,6 +52,7 @@ export declare class ProductsService {
             name: string;
             email: string;
             id: string;
+            verificationStatus: import(".prisma/client").$Enums.VerificationStatus;
         };
     } & {
         name: string;

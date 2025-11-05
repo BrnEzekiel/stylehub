@@ -60,6 +60,15 @@ let ProductsService = class ProductsService {
         const { search, category, sortBy = 'createdAt', sortOrder = 'desc', page = '1', limit = '10' } = query;
         const skip = (parseInt(page) - 1) * parseInt(limit);
         const take = parseInt(limit);
+        const includeSeller = {
+            seller: {
+                select: {
+                    id: true,
+                    name: true,
+                    verificationStatus: true,
+                },
+            },
+        };
         if (search) {
             const searchResult = await this.searchService.searchProducts(search);
             return {
@@ -82,6 +91,7 @@ let ProductsService = class ProductsService {
             orderBy,
             skip,
             take,
+            include: includeSeller,
         });
         const total = await this.prisma.product.count({ where });
         return {
@@ -99,9 +109,14 @@ let ProductsService = class ProductsService {
             where: { id },
             include: {
                 seller: {
-                    select: { id: true, name: true, email: true }
-                }
-            }
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        verificationStatus: true
+                    },
+                },
+            },
         });
         if (!product) {
             throw new common_1.NotFoundException('Product not found');

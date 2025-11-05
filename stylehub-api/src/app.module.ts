@@ -17,7 +17,10 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { NotificationsModule } from './notifications/notifications.module';
 import { StatsModule } from './stats/stats.module';
 import { ChatModule } from './chat/chat.module';
-import { PayoutsModule } from './payouts/payouts.module'; // 1. 🛑 Import new module
+import { PayoutsModule } from './payouts/payouts.module';
+import { VerificationModule } from './verification/verification.module';
+import { WishlistModule } from './wishlist/wishlist.module';
+import { WalletModule } from './wallet/wallet.module'; // 1. 🛑 Import
 
 @Module({
   imports: [
@@ -37,7 +40,10 @@ import { PayoutsModule } from './payouts/payouts.module'; // 1. 🛑 Import new 
     NotificationsModule,
     StatsModule,
     ChatModule,
-    PayoutsModule, // 2. 🛑 Add new module
+    PayoutsModule,
+    VerificationModule,
+    WishlistModule,
+    WalletModule, // 2. 🛑 Add
   ],
   providers: [],
 })

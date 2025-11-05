@@ -2,16 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import apiClient from '../api/axiosConfig';
+import { getProductById } from '../api/productService'; // 1. 🛑 Import from new service
 import { useAuth } from '../context/AuthContext';
 import { addItemToCart } from '../api/cartService';
 import { getProductReviews, submitReview } from '../api/reviewService';
-import { useSocket } from '../context/SocketContext'; // 1. 🛑 Import useSocket
+import { useSocket } from '../context/SocketContext';
+import { getWishlistProductIds, addWishlistItem, removeWishlistItem } from '../api/wishlistService'; // 2. 🛑 Import wishlist functions
 
 function ProductDetailPage() {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
-  // ... (all other states are unchanged)
   const [error, setError] = useState(null);
   const [cartMessage, setCartMessage] = useState('');
   const [cartLoading, setCartLoading] = useState(false);
@@ -23,23 +23,34 @@ function ProductDetailPage() {
   const [reviewLoading, setReviewLoading] = useState(false);
   const [reviewError, setReviewError] = useState('');
   
+  // 3. 🛑 Wishlist state
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+
   const { id } = useParams();
   const { token, user } = useAuth();
-  const { openChatWithUser, onlineUsers } = useSocket(); // 2. 🛑 Get chat functions
+  const { openChatWithUser, onlineUsers } = useSocket();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // ... (fetchProductAndReviews is unchanged) ...
     const fetchProductAndReviews = async () => {
+      if (!id) return;
+      
       try {
         setLoading(true);
         setError(null);
-        const [productResponse, reviewsData] = await Promise.all([
-          apiClient.get(`/products/${id}`),
-          getProductReviews(id)
+        
+        // 4. 🛑 Fetch all data in parallel
+        const [productData, reviewsData, wishlistIdSet] = await Promise.all([
+          getProductById(id),
+          getProductReviews(id),
+          token && user?.role === 'client' ? getWishlistProductIds() : new Set()
         ]);
-        setProduct(productResponse.data);
+        
+        setProduct(productData);
         setReviews(reviewsData);
+        setIsWishlisted(wishlistIdSet.has(id)); // 5. 🛑 Set initial wishlist state
+        
       } catch (err) {
         setError('Failed to fetch product details.');
         console.error(err);
@@ -47,12 +58,10 @@ function ProductDetailPage() {
         setLoading(false);
       }
     };
-    if (id) {
-      fetchProductAndReviews();
-    }
-  }, [id]);
+    
+    fetchProductAndReviews();
+  }, [id, token, user]); // 6. 🛑 Re-run if auth state changes
 
-  // ... (handleAddToCart, handleReviewImageChange, handleReviewSubmit are unchanged) ...
   const handleAddToCart = async () => {
     if (!token) {
       navigate('/login');
@@ -69,11 +78,13 @@ function ProductDetailPage() {
       setCartLoading(false);
     }
   };
+
   const handleReviewImageChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       setReviewImage(e.target.files[0]);
     }
   };
+
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     if (!reviewRating) {
@@ -107,16 +118,38 @@ function ProductDetailPage() {
   if (!product) return <p>Product not found.</p>;
 
   const stockStatus = product.stock > 0 ? 'In Stock' : 'Out of Stock';
-  const sellerId = product.sellerId;
-  // 3. 🛑 Check if seller is online
+  
+  // 7. 🛑 Get seller info safely from the product
+  const seller = product.seller;
+  const sellerId = seller?.id;
   const isSellerOnline = sellerId && onlineUsers[sellerId];
+  const isSellerVerified = seller?.verificationStatus === 'approved';
 
-  // 4. 🛑 Handle chat button click
   const handleChatClick = () => {
-    // We need the seller's name to show in the chat window.
-    // Since we don't have it, we'll pass the Product Name as a fallback.
-    // The SocketContext will fetch the real name.
-    openChatWithUser(sellerId, `Seller of ${product.name}`);
+    openChatWithUser(sellerId, seller?.name || `Seller of ${product.name}`);
+  };
+
+  // 8. 🛑 Wishlist toggle handler
+  const handleToggleWishlist = async () => {
+    if (!token || user?.role !== 'client') {
+      navigate('/login');
+      return;
+    }
+    
+    setWishlistLoading(true);
+    try {
+      if (isWishlisted) {
+        await removeWishlistItem(product.id);
+        setIsWishlisted(false);
+      } else {
+        await addWishlistItem(product.id);
+        setIsWishlisted(true);
+      }
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setWishlistLoading(false);
+    }
   };
 
   return (
@@ -129,6 +162,14 @@ function ProductDetailPage() {
 
         <div className="product-detail-info">
           <h1>{product.name}</h1>
+          
+          {/* 9. 🛑 Show Verified Seller Badge */}
+          {isSellerVerified && (
+            <div className="verified-seller-badge">
+              ✅ Verified Local Seller
+            </div>
+          )}
+          
           <p className="price">Ksh {parseFloat(product.price).toFixed(2)}</p>
           <p className="rating">
             Average Rating: <strong>{parseFloat(product.averageRating).toFixed(1)} / 5</strong>
@@ -137,7 +178,7 @@ function ProductDetailPage() {
           <p>{product.description}</p>
           <p>Category: {product.category}</p>
 
-          {/* 5. 🛑 "Chat with Seller" Button */}
+          {/* "Chat with Seller" Button */}
           {sellerId && user && user.role === 'client' && (
             <div style={{ margin: '20px 0' }}>
               <button 
@@ -159,7 +200,6 @@ function ProductDetailPage() {
           )}
           
           <div className="action-box">
-            {/* ... (add to cart box) ... */}
             <div className="quantity-selector">
               <label htmlFor="quantity">Quantity:</label>
               <input type="number" id="quantity" value={quantity} onChange={(e) => setQuantity(Math.max(1, Math.min(parseInt(e.target.value) || 1, product.stock)))} min="1" max={product.stock} />
@@ -167,13 +207,24 @@ function ProductDetailPage() {
             <button onClick={handleAddToCart} disabled={cartLoading || product.stock === 0}>
               {cartLoading ? 'Adding...' : (product.stock === 0 ? 'Out of Stock' : 'Add to Cart')}
             </button>
+            
+            {/* 10. 🛑 Add Wishlist Button */}
+            {user?.role === 'client' && (
+              <button 
+                className={`wishlist-btn-detail ${isWishlisted ? 'active' : ''}`}
+                onClick={handleToggleWishlist}
+                disabled={wishlistLoading}
+              >
+                {wishlistLoading ? '...' : (isWishlisted ? '♥ Remove from Wishlist' : '♡ Add to Wishlist')}
+              </button>
+            )}
+            
             {cartMessage && <p style={{ color: cartMessage.includes('successfully') ? 'green' : 'red', marginTop: '10px' }}>{cartMessage}</p>}
           </div>
         </div>
       </div>
 
       <div className="reviews-section">
-        {/* ... (review form and list are unchanged) ... */}
         <h2>Customer Reviews</h2>
         {token && user?.role === 'client' ? (
           <div className="review-form">

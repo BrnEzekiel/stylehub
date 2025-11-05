@@ -13,9 +13,11 @@ exports.PayoutsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const client_1 = require("@prisma/client");
+const wallet_service_1 = require("../wallet/wallet.service");
 let PayoutsService = class PayoutsService {
-    constructor(prisma) {
+    constructor(prisma, walletService) {
         this.prisma = prisma;
+        this.walletService = walletService;
     }
     async getFinancialSummary() {
         try {
@@ -152,21 +154,25 @@ let PayoutsService = class PayoutsService {
     }
     async markPayoutAsPaid(payoutId) {
         try {
-            const payout = await this.prisma.payout.findUnique({
-                where: { id: payoutId },
-            });
-            if (!payout) {
-                throw new common_1.NotFoundException('Payout not found.');
-            }
-            if (payout.status === 'paid') {
-                throw new common_1.BadRequestException('This payout has already been marked as paid.');
-            }
-            return await this.prisma.payout.update({
-                where: { id: payoutId },
-                data: {
-                    status: 'paid',
-                    paidAt: new Date(),
-                },
+            return await this.prisma.$transaction(async (tx) => {
+                const payout = await tx.payout.findUnique({
+                    where: { id: payoutId },
+                });
+                if (!payout) {
+                    throw new common_1.NotFoundException('Payout not found.');
+                }
+                if (payout.status === 'paid') {
+                    throw new common_1.BadRequestException('This payout has already been marked as paid.');
+                }
+                const updatedPayout = await tx.payout.update({
+                    where: { id: payoutId },
+                    data: {
+                        status: 'paid',
+                        paidAt: new Date(),
+                    },
+                });
+                await this.walletService.addPayoutToWallet(tx, payout.sellerId, payout.amount, payout.id);
+                return updatedPayout;
             });
         }
         catch (error) {
@@ -181,6 +187,7 @@ let PayoutsService = class PayoutsService {
 exports.PayoutsService = PayoutsService;
 exports.PayoutsService = PayoutsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        wallet_service_1.WalletService])
 ], PayoutsService);
 //# sourceMappingURL=payouts.service.js.map

@@ -18,6 +18,7 @@ export declare class PayoutsController {
             status: import(".prisma/client").$Enums.PayoutStatus;
             sellerId: string;
             amount: import("@prisma/client/runtime/library").Decimal;
+            walletTransactionId: string | null;
             paidAt: Date | null;
         }[];
     }[]>;
@@ -27,6 +28,7 @@ export declare class PayoutsController {
         status: import(".prisma/client").$Enums.PayoutStatus;
         sellerId: string;
         amount: import("@prisma/client/runtime/library").Decimal;
+        walletTransactionId: string | null;
         paidAt: Date | null;
     }>;
     markPayoutAsPaid(payoutId: string): Promise<{
@@ -35,6 +37,7 @@ export declare class PayoutsController {
         status: import(".prisma/client").$Enums.PayoutStatus;
         sellerId: string;
         amount: import("@prisma/client/runtime/library").Decimal;
+        walletTransactionId: string | null;
         paidAt: Date | null;
     }>;
 }

@@ -1,8 +1,10 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { WalletService } from '../wallet/wallet.service';
 export declare class PayoutsService {
     private prisma;
-    constructor(prisma: PrismaService);
+    private walletService;
+    constructor(prisma: PrismaService, walletService: WalletService);
     getFinancialSummary(): Promise<{
         totalOwedToSellers: number | Prisma.Decimal;
         totalPlatformRevenue: number | Prisma.Decimal;
@@ -19,6 +21,7 @@ export declare class PayoutsService {
             status: import(".prisma/client").$Enums.PayoutStatus;
             sellerId: string;
             amount: Prisma.Decimal;
+            walletTransactionId: string | null;
             paidAt: Date | null;
         }[];
     }[]>;
@@ -28,6 +31,7 @@ export declare class PayoutsService {
         status: import(".prisma/client").$Enums.PayoutStatus;
         sellerId: string;
         amount: Prisma.Decimal;
+        walletTransactionId: string | null;
         paidAt: Date | null;
     }>;
     markPayoutAsPaid(payoutId: string): Promise<{
@@ -36,6 +40,7 @@ export declare class PayoutsService {
         status: import(".prisma/client").$Enums.PayoutStatus;
         sellerId: string;
         amount: Prisma.Decimal;
+        walletTransactionId: string | null;
         paidAt: Date | null;
     }>;
 }
