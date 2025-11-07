@@ -1,5 +1,4 @@
 // src/pages/LoginPage.js
-
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
@@ -19,25 +18,23 @@ function LoginPage() {
     setLoading(true);
     
     try {
-      // 1. 🛑 The login function now returns the user
       const loggedInUser = await login(email, password); 
       
-      // 2. 🛑 Redirect based on the returned user's role
       if (loggedInUser.role === 'seller') {
-        navigate('/seller-dashboard'); // To Seller Dashboard
+        navigate('/seller-dashboard');
       } else if (loggedInUser.role === 'client') {
-        navigate('/dashboard'); // To Client Dashboard
+        navigate('/dashboard');
+      } else if (loggedInUser.role === 'service_provider') {
+        navigate('/provider-dashboard');
       } else {
-        navigate('/'); // Fallback
+        navigate('/');
       }
-
     } catch (err) {
       setError(err.message || "Login failed. Please check your credentials.");
       setLoading(false);
     }
   };
 
-  // 3. 🛑 Styled to match the admin/new theme
   return (
     <div style={styles.container}>
       <div style={styles.loginBox}>
@@ -80,7 +77,6 @@ function LoginPage() {
   );
 }
 
-// 4. Styles matching the admin theme
 const styles = {
   container: {
     display: 'flex',

@@ -1,10 +1,8 @@
 // src/pages/CreateUserPage.js
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { adminCreateUser } from '../api/adminService';
 
-// Re-use admin styles
 const styles = {
   container: {
     padding: '20px',
@@ -78,10 +76,7 @@ function CreateUserPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -98,12 +93,8 @@ function CreateUserPage() {
 
     try {
       await adminCreateUser(formData);
-      setSuccess('User created successfully! You can now close this page or create another.');
-      // Clear form for next entry
+      setSuccess('User created successfully!');
       setFormData({ name: '', email: '', phone: '', password: '', role: 'client' });
-      
-      // Optionally redirect
-      // navigate('/user-management');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -117,7 +108,6 @@ function CreateUserPage() {
         &larr; Back to User Management
       </Link>
       <h2 style={styles.title}>Create New User</h2>
-
       <div style={styles.card}>
         <form onSubmit={handleSubmit}>
           <div style={styles.inputGroup}>
@@ -157,7 +147,7 @@ function CreateUserPage() {
             />
           </div>
           <div style={styles.inputGroup}>
-            <label style={styles.label} htmlFor="password">Password (min 8 characters)</label>
+            <label style={styles.label} htmlFor="password">Password (min 8 chars)</label>
             <input
               style={styles.input}
               type="password"
@@ -180,13 +170,13 @@ function CreateUserPage() {
             >
               <option value="client">Client</option>
               <option value="seller">Seller</option>
+              <option value="service_provider">Service Provider</option>
               <option value="admin">Admin</option>
             </select>
           </div>
           
           {error && <p style={styles.error}>{error}</p>}
           {success && <p style={styles.success}>{success}</p>}
-
           <button type="submit" style={styles.button} disabled={loading}>
             {loading ? 'Creating...' : 'Create User'}
           </button>

@@ -23,5 +23,6 @@ export declare class WalletController {
         mpesaNumber: string;
         walletTransactionId: string | null;
         processedAt: Date | null;
+        adminRemarks: string | null;
     }>;
 }

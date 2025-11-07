@@ -1,5 +1,4 @@
 // src/wallet/wallet.service.ts
-
 import {
   Injectable,
   InternalServerErrorException,
@@ -11,7 +10,7 @@ import { Prisma, TransactionType, WithdrawalStatus } from '@prisma/client';
 import { WithdrawalRequestDto } from './dto/withdrawal.dto';
 
 @Injectable()
-export class WalletService { // 🛑 THE FIX: Added 'export' here.
+export class WalletService {
   constructor(private prisma: PrismaService) {}
 
   /**
@@ -25,7 +24,7 @@ export class WalletService { // 🛑 THE FIX: Added 'export' here.
   ) {
     try {
       // 1. Update the user's wallet balance
-      const updatedUser = await tx.user.update({
+      await tx.user.update({
         where: { id: sellerId },
         data: {
           walletBalance: {
@@ -51,8 +50,6 @@ export class WalletService { // 🛑 THE FIX: Added 'export' here.
           walletTransactionId: transaction.id,
         },
       });
-
-      return updatedUser;
     } catch (error) {
       console.error('Failed to add payout to wallet:', error);
       throw new InternalServerErrorException('Could not update wallet balance.');
@@ -71,7 +68,7 @@ export class WalletService { // 🛑 THE FIX: Added 'export' here.
           orderBy: {
             createdAt: 'desc',
           },
-          take: 20, // Get the last 20 transactions
+          take: 20,
         },
       },
     });
@@ -79,7 +76,6 @@ export class WalletService { // 🛑 THE FIX: Added 'export' here.
     if (!user) {
       throw new NotFoundException('User not found');
     }
-
     return user;
   }
 
@@ -90,21 +86,16 @@ export class WalletService { // 🛑 THE FIX: Added 'export' here.
     const amountToWithdraw = new Prisma.Decimal(dto.amount);
 
     return this.prisma.$transaction(async (tx) => {
-      // 1. Get the user and lock the row for update
       const user = await tx.user.findUnique({
         where: { id: userId },
       });
-
       if (!user) {
         throw new NotFoundException('User not found');
       }
-
-      // 2. Check if they have enough funds
       if (user.walletBalance.lessThan(amountToWithdraw)) {
         throw new BadRequestException('Insufficient wallet balance.');
       }
 
-      // 3. Debit the wallet balance immediately
       await tx.user.update({
         where: { id: userId },
         data: {
@@ -114,28 +105,105 @@ export class WalletService { // 🛑 THE FIX: Added 'export' here.
         },
       });
 
-      // 4. Create a "debit" transaction receipt
       const transaction = await tx.walletTransaction.create({
         data: {
           userId: userId,
           type: TransactionType.debit,
-          amount: amountToWithdraw.negated(), // Store as a negative number
+          amount: amountToWithdraw.negated(),
           description: `Withdrawal request to ${dto.mpesaNumber}`,
         },
       });
 
-      // 5. Create the withdrawal request for admin to approve
       const withdrawalRequest = await tx.withdrawalRequest.create({
         data: {
           sellerId: userId,
           amount: amountToWithdraw,
           status: WithdrawalStatus.pending,
           mpesaNumber: dto.mpesaNumber,
-          walletTransactionId: transaction.id, // Link to the debit transaction
+          walletTransactionId: transaction.id,
         },
       });
 
       return withdrawalRequest;
+    });
+  }
+  
+  // --- 🛑 NEW: BOOKING & ESCROW METHODS ---
+
+  /**
+   * (INTERNAL) Holds funds from a client's wallet for a booking.
+   */
+  async createBookingHold(
+    tx: Prisma.TransactionClient,
+    clientId: string,
+    amount: Prisma.Decimal,
+    bookingId: string,
+  ) {
+    // 1. Get user and check balance
+    const user = await tx.user.findUnique({ where: { id: clientId } });
+    if (!user) {
+      throw new NotFoundException('Client not found');
+    }
+    if (user.walletBalance.lessThan(amount)) {
+      throw new BadRequestException('Insufficient wallet balance to make booking.');
+    }
+
+    // 2. Debit the client's wallet
+    await tx.user.update({
+      where: { id: clientId },
+      data: {
+        walletBalance: {
+          decrement: amount,
+        },
+      },
+    });
+
+    // 3. Create a "debit" transaction receipt (escrow hold)
+    const transaction = await tx.walletTransaction.create({
+      data: {
+        userId: clientId,
+        type: TransactionType.debit,
+        amount: amount.negated(),
+        description: `Escrow hold for Booking ID: ${bookingId.substring(0, 8)}`,
+        booking: { connect: { id: bookingId } },
+      },
+    });
+    
+    // 4. Link the booking to this transaction
+    await tx.booking.update({
+      where: { id: bookingId },
+      data: { walletTransactionId: transaction.id },
+    });
+  }
+
+  /**
+   * (INTERNAL) Releases held funds to a provider after a booking is completed.
+   */
+  async releaseBookingHold(
+    tx: Prisma.TransactionClient,
+    bookingId: string,
+    providerId: string,
+    amount: Prisma.Decimal,
+  ) {
+    // 1. Credit the provider's wallet
+    await tx.user.update({
+      where: { id: providerId },
+      data: {
+        walletBalance: {
+          increment: amount,
+        },
+      },
+    });
+
+    // 2. Create a "credit" transaction receipt for the provider
+    await tx.walletTransaction.create({
+      data: {
+        userId: providerId,
+        type: TransactionType.credit,
+        amount: amount,
+        description: `Payment for Booking ID: ${bookingId.substring(0, 8)}`,
+        booking: { connect: { id: bookingId } },
+      },
     });
   }
 }

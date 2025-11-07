@@ -18,12 +18,7 @@ export declare class CartController {
         cartId: string;
     }>;
     getCart(req: any): Promise<{
-        cart: {
-            items: any[];
-        };
-        total: import("@prisma/client/runtime/library").Decimal;
-    } | {
-        cart: {
+        cart: ({
             items: ({
                 product: {
                     name: string;
@@ -44,7 +39,11 @@ export declare class CartController {
             createdAt: Date;
             updatedAt: Date;
             userId: string;
+        }) | {
+            items: any[];
         };
+        subtotal: import("@prisma/client/runtime/library").Decimal;
+        shippingFee: import("@prisma/client/runtime/library").Decimal;
         total: import("@prisma/client/runtime/library").Decimal;
     }>;
     removeItem(req: any, cartItemId: string): Promise<{

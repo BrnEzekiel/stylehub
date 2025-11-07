@@ -49,7 +49,7 @@ let KycController = class KycController {
 exports.KycController = KycController;
 __decorate([
     (0, common_1.Get)(),
-    (0, roles_decorator_1.Roles)(role_enum_1.Role.Seller),
+    (0, roles_decorator_1.Roles)(role_enum_1.Role.Seller, role_enum_1.Role.ServiceProvider),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -57,7 +57,7 @@ __decorate([
 ], KycController.prototype, "getKycStatus", null);
 __decorate([
     (0, common_1.Put)('submit'),
-    (0, roles_decorator_1.Roles)(role_enum_1.Role.Seller),
+    (0, roles_decorator_1.Roles)(role_enum_1.Role.Seller, role_enum_1.Role.ServiceProvider),
     (0, common_1.UseInterceptors)((0, fastify_multer_1.FileFieldsInterceptor)([
         { name: 'document', maxCount: 1 },
         { name: 'selfie', maxCount: 1 },

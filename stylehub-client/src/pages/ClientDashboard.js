@@ -1,8 +1,7 @@
 // src/pages/ClientDashboard.js
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { fetchOrders } from '../api/orderService'; 
+import { fetchClientOrders } from '../api/orderService'; // ✅ FIXED
 import { Link } from 'react-router-dom';
 
 function ClientDashboard() {
@@ -10,14 +9,11 @@ function ClientDashboard() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 1. 🛑 THE FIX: Move useEffect to the top, before any returns.
   useEffect(() => {
-    // We check for 'user' *inside* useEffect.
-    // This is the correct way to conditionally run an effect.
     if (user) {
       const loadData = async () => {
         try {
-          const ordersData = await fetchOrders();
+          const ordersData = await fetchClientOrders(); // ✅ FIXED
           setOrders(ordersData.slice(0, 3));
         } catch (error) {
           console.error("Failed to fetch recent orders:", error);
@@ -26,13 +22,10 @@ function ClientDashboard() {
       };
       loadData();
     } else {
-      // If there's no user, stop loading (e.g., after logout)
       setLoading(false);
     }
-  }, [user]); // 2. 🛑 'user' dependency is correct
+  }, [user]);
 
-  // 3. 🛑 The guard clause is now placed *after* all hooks.
-  // This is safe and follows the Rules of Hooks.
   if (!user) {
     return null; 
   }
@@ -46,6 +39,7 @@ function ClientDashboard() {
         <StatCard title="Go Shopping" icon="🛍️" linkTo="/products" />
         <StatCard title="View Your Cart" icon="🛒" linkTo="/cart" />
         <StatCard title="Order History" icon="🧾" linkTo="/orders" />
+        <StatCard title="My Bookings" icon="📅" linkTo="/my-bookings" />
       </div>
       
       <div className="dashboard-grid-large" style={{ gridTemplateColumns: '1fr' }}>

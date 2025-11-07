@@ -1,10 +1,11 @@
 // src/pages/SellerOrdersPage.js
 
 import React, { useState, useEffect } from 'react';
-import { fetchAllOrders, downloadOrderReceipt } from '../api/orderService';
+// 1. 🛑 Import from new orderService
+import { fetchSellerOrders, downloadOrderReceipt, updateSellerOrderStatus } from '../api/orderService';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { useSocket } from '../context/SocketContext'; // 1. 🛑 Import useSocket
+import { useSocket } from '../context/SocketContext';
 
 function SellerOrdersPage() {
   const [data, setData] = useState({ orders: [], summary: null });
@@ -13,28 +14,27 @@ function SellerOrdersPage() {
   const [downloading, setDownloading] = useState(null);
   
   const { token, user } = useAuth();
-  const { openChatWithUser } = useSocket(); // 2. 🛑 Get the chat function
+  const { openChatWithUser } = useSocket();
   const navigate = useNavigate();
+
+  const loadSellerData = async () => {
+    try {
+      setLoading(true);
+      const sellerData = await fetchSellerOrders(); // 2. 🛑 Use new function
+      setData(sellerData);
+      setError(null);
+    } catch (err) {
+      setError(err.message || 'Could not load seller dashboard.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!token || user?.role !== 'seller') {
       navigate('/login');
       return;
     }
-    
-    const loadSellerData = async () => {
-      try {
-        setLoading(true);
-        const sellerData = await fetchAllOrders(); 
-        setData(sellerData);
-        setError(null);
-      } catch (err) {
-        setError(err.message || 'Could not load seller dashboard.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
     loadSellerData();
   }, [token, user, navigate]);
 
@@ -49,13 +49,25 @@ function SellerOrdersPage() {
     }
   };
 
-  // 3. 🛑 Handler to start chat with a customer
   const handleChatClick = (customer) => {
     if (!customer || !customer.id) {
       alert("Cannot chat: Customer ID is missing.");
       return;
     }
     openChatWithUser(customer.id, customer.name);
+  };
+
+  // 3. 🛑 NEW: Handler for seller to update status
+  const handleUpdateStatus = async (orderId, newStatus) => {
+    if (newStatus === "") return; // Ignore default
+    
+    try {
+      await updateSellerOrderStatus(orderId, newStatus);
+      // Refresh the list to show the change
+      loadSellerData();
+    } catch (err) {
+      alert(`Error: ${err.message}`);
+    }
   };
 
   if (loading) return <p style={{ padding: '20px' }}>Loading your dashboard...</p>;
@@ -69,9 +81,8 @@ function SellerOrdersPage() {
       
       {summary && (
         <div className="stats-grid">
-          {/* ... (StatCards are unchanged) ... */}
           <StatCard 
-            title="Total Revenue" 
+            title="Total Revenue (from delivered orders)" 
             value={`Ksh ${parseFloat(summary.totalRevenue).toFixed(2)}`}
             icon="💰"
           />
@@ -81,7 +92,7 @@ function SellerOrdersPage() {
             icon="📦"
           />
           <StatCard 
-            title="Pending Orders" 
+            title="Pending Orders (paid, not shipped)" 
             value={summary.pendingOrders}
             icon="⏳"
             className="pending"
@@ -103,44 +114,55 @@ function SellerOrdersPage() {
               <th>Date</th>
               <th>Status</th>
               <th>Your Items</th>
-              <th>Subtotal</th>
+              <th>Your Earning</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {orders.map((order) => (
-              <tr key={order.id}>
-                <td>{order.id.substring(0, 8)}...</td>
-                {/* 4. 🛑 Make sure order.user is not null */}
-                <td>{order.user?.name || 'N/A'}</td>
-                <td>{new Date(order.createdAt).toLocaleDateString()}</td>
-                <td>{order.status}</td>
-                <td>{order.items.length}</td>
-                <td>
-                  Ksh {order.items.reduce((acc, item) => 
-                    acc + (parseFloat(item.unitPrice) * item.quantity), 0).toFixed(2)
-                  }
-                </td>
-                <td style={{ display: 'flex', gap: '5px' }}>
-                  {/* --- Download Button --- */}
-                  <button
-                    onClick={() => handleDownload(order.id)}
-                    disabled={downloading === order.id}
-                    style={{ fontSize: '0.9em', padding: '5px 10px', background: 'var(--color-primary)' }}
-                  >
-                    {downloading === order.id ? '...' : 'Receipt'}
-                  </button>
-                  {/* 5. 🛑 New Chat Button */}
-                  <button
-                    onClick={() => handleChatClick(order.user)}
-                    disabled={!order.user}
-                    style={{ fontSize: '0.9em', padding: '5px 10px', background: '#28a745' }}
-                  >
-                    Chat
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {orders.map((order) => {
+              // 4. 🛑 Calculate seller's earning for this order
+              const sellerEarning = order.items.reduce((acc, item) => 
+                acc + (parseFloat(item.sellerEarning) * item.quantity), 0).toFixed(2);
+              
+              // 5. 🛑 Determine what actions are available
+              const canBeShipped = order.status === 'paid';
+              
+              return (
+                <tr key={order.id}>
+                  <td>{order.id.substring(0, 8)}...</td>
+                  <td>{order.user?.name || 'N/A'}</td>
+                  <td>{new Date(order.createdAt).toLocaleDateString()}</td>
+                  <td>{order.status}</td>
+                  <td>{order.items.length}</td>
+                  <td>Ksh {sellerEarning}</td>
+                  <td style={{ display: 'flex', gap: '5px' }}>
+                    <button
+                      onClick={() => handleDownload(order.id)}
+                      disabled={downloading === order.id}
+                      style={{ fontSize: '0.9em', padding: '5px 10px', background: 'var(--color-primary)' }}
+                    >
+                      {downloading === order.id ? '...' : 'Receipt'}
+                    </button>
+                    <button
+                      onClick={() => handleChatClick(order.user)}
+                      disabled={!order.user}
+                      style={{ fontSize: '0.9em', padding: '5px 10px', background: '#28a745' }}
+                    >
+                      Chat
+                    </button>
+                    {/* 6. 🛑 NEW: Mark as Shipped Button */}
+                    {canBeShipped && (
+                      <button
+                        onClick={() => handleUpdateStatus(order.id, 'shipped')}
+                        style={{ fontSize: '0.9em', padding: '5px 10px', background: 'var(--color-accent)', color: '#333' }}
+                      >
+                        Mark as Shipped
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       )}
@@ -148,7 +170,6 @@ function SellerOrdersPage() {
   );
 }
 
-// ... (StatCard component is unchanged) ...
 function StatCard({ title, value, icon, className = '' }) {
   return (
     <div className={`stat-card ${className}`}>

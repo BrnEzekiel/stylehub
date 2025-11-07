@@ -12,8 +12,8 @@ import { AddItemDto } from './dto/add-item.dto';
 import { Prisma } from '@prisma/client';
 import { CheckoutDto } from './dto/checkout.dto';
 
-// 1. 🛑 Define your platform's commission rate (10%)
 const PLATFORM_FEE_RATE = new Prisma.Decimal(0.10);
+const SHIPPING_FEE = new Prisma.Decimal(200.00); // 1. 🛑 NEW: Standard KES 200 shipping fee
 
 @Injectable()
 export class CartService {
@@ -87,17 +87,21 @@ export class CartService {
         },
       },
     });
-    if (!cart) {
-      return { cart: { items: [] }, total: new Prisma.Decimal(0) };
-    }
-    const total = cart.items.reduce((acc, item) => {
+    
+    // 2. 🛑 Calculate subtotal
+    const subtotal = cart?.items.reduce((acc, item) => {
       if (item.product && item.product.price) {
         return acc + item.product.price.toNumber() * item.quantity;
       }
       return acc;
-    }, 0);
+    }, 0) || 0;
+
+    const total = subtotal > 0 ? subtotal + SHIPPING_FEE.toNumber() : 0;
+    
     return {
-      cart,
+      cart: cart || { items: [] },
+      subtotal: new Prisma.Decimal(subtotal),
+      shippingFee: SHIPPING_FEE,
       total: new Prisma.Decimal(total),
     };
   }
@@ -120,7 +124,7 @@ export class CartService {
   }
 
   /**
-   * 🛑 UPDATED: Checks out the cart, calculates commission, and creates an order.
+   * 🛑 UPDATED: Adds shipping fee to the order.
    */
   async checkout(userId: string, dto: CheckoutDto) {
     const cart = await this.prisma.cart.findUnique({
@@ -129,7 +133,6 @@ export class CartService {
         items: {
           include: {
             product: {
-              // 2. 🛑 We MUST select sellerId to calculate commission
               select: { id: true, name: true, price: true, stock: true, sellerId: true },
             },
           },
@@ -141,8 +144,7 @@ export class CartService {
       throw new BadRequestException('Cannot checkout an empty cart.');
     }
 
-    // 3. 🛑 Use Prisma.Decimal for all financial calculations
-    let totalAmount = new Prisma.Decimal(0);
+    let subtotal = new Prisma.Decimal(0); // 3. 🛑 Changed to subtotal
     const orderItemsData: Prisma.OrderItemCreateManyOrderInput[] = [];
 
     for (const item of cart.items) {
@@ -155,24 +157,20 @@ export class CartService {
         );
       }
       
-      const productPrice = item.product.price; // This is a Decimal
+      const productPrice = item.product.price;
       const quantity = item.quantity;
-      const subtotal = productPrice.times(quantity); // Use Decimal methods
-      totalAmount = totalAmount.add(subtotal); // Use Decimal methods
+      const itemSubtotal = productPrice.times(quantity);
+      subtotal = subtotal.add(itemSubtotal); // 4. 🛑 Add to subtotal
 
-      // 4. 🛑 NEW COMMISSION LOGIC
       let itemPlatformFee = new Prisma.Decimal(0);
       let itemSellerEarning = new Prisma.Decimal(0);
 
-      // Check if the product has a seller.
       if (item.product.sellerId) {
-        // Product is sold by a seller
-        itemPlatformFee = subtotal.times(PLATFORM_FEE_RATE).toDecimalPlaces(2);
-        itemSellerEarning = subtotal.minus(itemPlatformFee);
+        itemPlatformFee = itemSubtotal.times(PLATFORM_FEE_RATE).toDecimalPlaces(2);
+        itemSellerEarning = itemSubtotal.minus(itemPlatformFee);
       } else {
-        // Product is platform-owned (sellerId is null)
-        itemPlatformFee = subtotal; // Platform gets 100%
-        itemSellerEarning = new Prisma.Decimal(0); // Seller gets 0
+        itemPlatformFee = itemSubtotal;
+        itemSellerEarning = new Prisma.Decimal(0);
       }
 
       orderItemsData.push({
@@ -180,11 +178,13 @@ export class CartService {
         productName: item.product.name,
         unitPrice: productPrice,
         quantity: quantity,
-        // 5. 🛑 Add the new financial data
         platformFee: itemPlatformFee,
         sellerEarning: itemSellerEarning,
       });
     }
+
+    // 5. 🛑 Calculate Grand Total
+    const totalAmount = subtotal.add(SHIPPING_FEE);
 
     return this.prisma.$transaction(
       async (tx) => {
@@ -198,12 +198,14 @@ export class CartService {
         const newOrder = await tx.order.create({
           data: {
             userId: userId,
-            totalAmount: totalAmount, // This is now a Decimal
+            subtotal: subtotal, // 6. 🛑 Save subtotal
+            shippingFee: SHIPPING_FEE, // 7. 🛑 Save shippingFee
+            totalAmount: totalAmount, // 8. 🛑 Save grand total
             status: 'pending',
             shippingAddressId: newAddress.id,
             items: {
               createMany: {
-                data: orderItemsData, // This now includes commission
+                data: orderItemsData,
               },
             },
           },
@@ -224,7 +226,7 @@ export class CartService {
         return {
           message: 'Order created. Proceed to payment.',
           orderId: newOrder.id,
-          totalAmount: newOrder.totalAmount,
+          totalAmount: newOrder.totalAmount, // Return the grand total
         };
       },
       {

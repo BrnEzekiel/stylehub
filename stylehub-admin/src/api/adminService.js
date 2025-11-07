@@ -24,11 +24,7 @@ export const updateKycStatus = async (kycId, status) => {
   }
 };
 
-// --- 🛑 NEW: SELLER VERIFICATION METHODS 🛑 ---
-
-/**
- * Fetches all Seller Verification submissions with a 'pending' status.
- */
+// --- SELLER VERIFICATION METHODS ---
 export const getPendingVerifications = async () => {
   try {
     const response = await apiClient.get('/verification/pending');
@@ -39,10 +35,6 @@ export const getPendingVerifications = async () => {
     throw new Error(errorMessage);
   }
 };
-
-/**
- * Updates the status of a Seller Verification submission (approve or reject).
- */
 export const updateVerificationStatus = async (verificationId, status) => {
   try {
     const response = await apiClient.patch(`/verification/${verificationId}/status`, { status });
@@ -53,6 +45,37 @@ export const updateVerificationStatus = async (verificationId, status) => {
     throw new Error(errorMessage);
   }
 };
+
+
+// --- 🛑 NEW: PROVIDER PORTFOLIO METHODS 🛑 ---
+/**
+ * Fetches all pending provider portfolio submissions.
+ */
+export const getPendingProviderPortfolios = async () => {
+  try {
+    const response = await apiClient.get('/provider-portfolio/pending');
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to fetch pending portfolios.';
+    console.error('Fetch Portfolios error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
+/**
+ * Updates the status of a provider portfolio submission.
+ */
+export const updatePortfolioStatus = async (portfolioId, status) => {
+  try {
+    const response = await apiClient.patch(`/provider-portfolio/${portfolioId}/status`, { status });
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to update portfolio status.';
+    console.error('Update Portfolio error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
 
 
 // --- USER METHODS ---
@@ -260,5 +283,37 @@ export const markPayoutAsPaid = async (payoutId) => {
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.message || 'Failed to mark payout as paid.');
+  }
+};
+
+// --- 🛑 NEW: WITHDRAWAL ADMIN METHODS 🛑 ---
+
+/**
+ * Fetches all withdrawal requests for the admin.
+ */
+export const getWithdrawalRequests = async () => {
+  try {
+    const response = await apiClient.get('/admin/withdrawals');
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to fetch withdrawal requests.');
+  }
+};
+
+/**
+ * Approves or rejects a withdrawal request.
+ * @param {string} requestId - The ID of the withdrawal request
+ * @param {string} status - 'approved' or 'rejected'
+ * @param {string} adminRemarks - Reason for rejection
+ */
+export const updateWithdrawalStatus = async (requestId, status, adminRemarks = '') => {
+  try {
+    const response = await apiClient.patch(`/admin/withdrawals/${requestId}/status`, {
+      status,
+      adminRemarks,
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to update withdrawal status.');
   }
 };

@@ -1,56 +1,63 @@
 // src/api/orderService.js
 
 import apiClient from './axiosConfig';
-import { saveAs } from 'file-saver';
 
 /**
- * Fetches the currently logged-in user's order history (GET /api/orders).
+ * Fetches all orders for the logged-in client.
  */
-export const fetchOrders = async () => {
+export const fetchClientOrders = async () => {
   try {
     const response = await apiClient.get('/orders');
-    return response.data; 
+    return response.data;
   } catch (error) {
-    const errorMessage = error.response?.data?.message || 'Failed to fetch order history.';
-    console.error('Fetch orders error:', errorMessage);
-    throw new Error(errorMessage);
+    throw new Error(error.response?.data?.message || 'Failed to fetch orders.');
   }
 };
 
 /**
- * Fetches ALL orders for the logged-in seller, PLUS a summary.
- * @returns {Promise<object>} An object { orders: [], summary: {} }
+ * Fetches all orders for the logged-in seller.
  */
-export const fetchAllOrders = async () => {
+export const fetchSellerOrders = async () => {
   try {
     const response = await apiClient.get('/orders/all');
-    return response.data; 
+    return response.data;
   } catch (error) {
-    const errorMessage = error.response?.data?.message || 'Failed to fetch all orders for seller dashboard.';
-    console.error('Fetch all orders error:', errorMessage);
-    throw new Error(errorMessage);
+    throw new Error(error.response?.data?.message || 'Failed to fetch seller orders.');
   }
 };
 
 /**
- * 🛑 NEW: Downloads a PDF receipt for a specific order.
+ * Seller updates the status of an order (e.g., to "shipped").
+ */
+export const updateSellerOrderStatus = async (orderId, status) => {
+  try {
+    const response = await apiClient.patch(`/orders/${orderId}/seller-status`, { status });
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to update order status.');
+  }
+};
+
+/**
+ * Downloads a PDF receipt for an order.
  */
 export const downloadOrderReceipt = async (orderId) => {
   try {
-    const response = await apiClient.get(
-      `/orders/${orderId}/receipt`, 
-      {
-        responseType: 'blob', // Important: tells axios to expect binary data
-      }
-    );
+    const response = await apiClient.get(`/orders/${orderId}/receipt`, {
+      responseType: 'blob', // Important for file downloads
+    });
     
-    // Use file-saver to trigger a download
-    const blob = new Blob([response.data], { type: 'application/pdf' });
-    saveAs(blob, `StyleHub-Receipt-${orderId.substring(0, 8)}.pdf`);
-    
+    // Create a link and click it to trigger download
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    const filename = `StyleHub-Receipt-${orderId.substring(0, 8)}.pdf`;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
   } catch (error) {
-    const errorMessage = error.response?.data?.message || 'Failed to download receipt.';
-    console.error('Download receipt error:', errorMessage);
-    throw new Error(errorMessage);
+    throw new Error(error.response?.data?.message || 'Failed to download receipt.');
   }
 };

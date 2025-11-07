@@ -36,6 +36,14 @@ let OrdersController = class OrdersController {
         }
         return this.ordersService.findAllForSeller(req.user.sub);
     }
+    updateSellerOrderStatus(req, id, updateOrderStatusDto) {
+        const sellerId = req.user.sub;
+        const newStatus = updateOrderStatusDto.status;
+        if (newStatus !== 'shipped' && newStatus !== 'cancelled') {
+            throw new common_1.BadRequestException('Sellers can only update status to "shipped" or "cancelled".');
+        }
+        return this.ordersService.sellerUpdateOrderStatus(id, sellerId, newStatus);
+    }
     findAllAdmin() {
         return this.ordersService.findAllAdmin();
     }
@@ -73,6 +81,17 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], OrdersController.prototype, "findSellerOrders", null);
+__decorate([
+    (0, common_1.Patch)(':id/seller-status'),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(role_enum_1.Role.Seller),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, update_order_status_dto_1.UpdateOrderStatusDto]),
+    __metadata("design:returntype", void 0)
+], OrdersController.prototype, "updateSellerOrderStatus", null);
 __decorate([
     (0, common_1.Get)('admin-all'),
     (0, common_1.UseGuards)(roles_guard_1.RolesGuard),

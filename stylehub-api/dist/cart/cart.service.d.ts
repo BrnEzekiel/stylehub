@@ -15,12 +15,7 @@ export declare class CartService {
         cartId: string;
     }>;
     getCart(userId: string): Promise<{
-        cart: {
-            items: any[];
-        };
-        total: Prisma.Decimal;
-    } | {
-        cart: {
+        cart: ({
             items: ({
                 product: {
                     name: string;
@@ -41,7 +36,11 @@ export declare class CartService {
             createdAt: Date;
             updatedAt: Date;
             userId: string;
+        }) | {
+            items: any[];
         };
+        subtotal: Prisma.Decimal;
+        shippingFee: Prisma.Decimal;
         total: Prisma.Decimal;
     }>;
     removeItem(userId: string, cartItemId: string): Promise<{

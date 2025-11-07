@@ -1,7 +1,6 @@
 // src/pages/OrdersPage.js
 import React, { useState, useEffect } from 'react';
-// 1. 🛑 Import from new orderService
-import { fetchOrders, downloadOrderReceipt } from '../api/orderService'; 
+import { fetchClientOrders, downloadOrderReceipt } from '../api/orderService'; // ✅ FIXED
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -9,7 +8,7 @@ function OrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [downloading, setDownloading] = useState(null); // Track which receipt is downloading
+  const [downloading, setDownloading] = useState(null);
   
   const { token } = useAuth();
   const navigate = useNavigate();
@@ -22,7 +21,7 @@ function OrdersPage() {
     const loadOrders = async () => {
       try {
         setLoading(true);
-        const ordersData = await fetchOrders(); 
+        const ordersData = await fetchClientOrders(); // ✅ FIXED
         setOrders(ordersData);
         setError(null);
       } catch (err) {
@@ -34,7 +33,6 @@ function OrdersPage() {
     loadOrders();
   }, [token, navigate]);
 
-  // 2. 🛑 Handler for downloading receipt
   const handleDownload = async (orderId) => {
     setDownloading(orderId);
     try {
@@ -64,7 +62,7 @@ function OrdersPage() {
               <th>Total</th>
               <th>Status</th>
               <th>Items</th>
-              <th>Actions</th> {/* 3. 🛑 New Column */}
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -91,7 +89,6 @@ function OrdersPage() {
                     ))}
                   </ul>
                 </td>
-                {/* 4. 🛑 Download Button */}
                 <td>
                   <button
                     onClick={() => handleDownload(order.id)}

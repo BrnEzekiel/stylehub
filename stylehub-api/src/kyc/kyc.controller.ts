@@ -29,13 +29,13 @@ export class KycController {
   // --- Seller Routes ---
 
   @Get()
-  @Roles(Role.Seller)
+  @Roles(Role.Seller, Role.ServiceProvider)
   async getKycStatus(@Request() req) {
     return this.kycService.getStatus(req.user.sub);
   }
 
   @Put('submit')
-  @Roles(Role.Seller)
+  @Roles(Role.Seller, Role.ServiceProvider)
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'document', maxCount: 1 },

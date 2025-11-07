@@ -61,11 +61,11 @@ let OrdersService = class OrdersService {
         let pendingOrders = 0;
         const totalOrders = orders.length;
         for (const order of orders) {
-            if (order.status === 'pending') {
+            if (order.status === 'pending' || order.status === 'paid') {
                 pendingOrders++;
             }
             const sellerRevenueForThisOrder = order.items.reduce((acc, item) => {
-                return acc.add(item.unitPrice.times(item.quantity));
+                return acc.add(item.sellerEarning);
             }, new client_1.Prisma.Decimal(0));
             totalRevenue = totalRevenue.add(sellerRevenueForThisOrder);
         }
@@ -73,6 +73,37 @@ let OrdersService = class OrdersService {
             orders,
             summary: { totalOrders, pendingOrders, totalRevenue },
         };
+    }
+    async sellerUpdateOrderStatus(orderId, sellerId, status) {
+        try {
+            const order = await this.prisma.order.findFirst({
+                where: {
+                    id: orderId,
+                    items: {
+                        some: {
+                            product: {
+                                sellerId: sellerId,
+                            },
+                        },
+                    },
+                },
+            });
+            if (!order) {
+                throw new common_1.NotFoundException(`Order with ID ${orderId} not found or you are not the seller.`);
+            }
+            const updatedOrder = await this.prisma.order.update({
+                where: { id: orderId },
+                data: { status: status },
+            });
+            return updatedOrder;
+        }
+        catch (error) {
+            if (error instanceof common_1.NotFoundException) {
+                throw error;
+            }
+            console.error('Error updating order status by seller:', error);
+            throw new common_1.InternalServerErrorException('Could not update order status.');
+        }
     }
     async findAllAdmin() {
         try {

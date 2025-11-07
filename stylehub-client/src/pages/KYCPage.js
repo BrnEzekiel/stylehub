@@ -1,5 +1,4 @@
 // src/pages/KYCPage.js
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -7,10 +6,9 @@ import { getKYCStatus, submitKYC } from '../api/kycService';
 
 function KYCPage() {
   const [kycStatus, setKycStatus] = useState(null);
-  const [docType, setDocType] = useState('national_id'); // Default doc type
+  const [docType, setDocType] = useState('national_id');
   const [documentFile, setDocumentFile] = useState(null);
   const [selfieFile, setSelfieFile] = useState(null);
-  
   const [loading, setLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [error, setError] = useState('');
@@ -19,10 +17,10 @@ function KYCPage() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
 
-  // 1. Check for authorization and fetch current status
   useEffect(() => {
-    if (!token || user?.role !== 'seller') {
-      navigate('/login'); // Redirect non-sellers
+    // 🔥 FIXED: Allow both 'seller' and 'service_provider'
+    if (!token || (user?.role !== 'seller' && user?.role !== 'service_provider')) {
+      navigate('/login');
       return;
     }
 
@@ -33,7 +31,6 @@ function KYCPage() {
         setKycStatus(statusData);
         setError('');
       } catch (err) {
-        // If status is 404 (not_submitted), API returns null, no error
         if (err.message.includes('404')) {
           setKycStatus(null);
         } else {
@@ -58,7 +55,6 @@ function KYCPage() {
     }
   };
 
-  // 3. Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!documentFile || !selfieFile) {
@@ -72,12 +68,12 @@ function KYCPage() {
 
     const formData = new FormData();
     formData.append('doc_type', docType);
-    formData.append('document', documentFile); // This name must match the controller
-    formData.append('selfie', selfieFile);     // This name must match the controller
+    formData.append('document', documentFile);
+    formData.append('selfie', selfieFile);
 
     try {
       const newKyc = await submitKYC(formData);
-      setKycStatus(newKyc); // Update status on success
+      setKycStatus(newKyc);
       setSuccessMessage('Your KYC has been submitted! It is now pending approval.');
     } catch (err) {
       setError(err.message);
@@ -86,20 +82,17 @@ function KYCPage() {
     }
   };
 
-  // 4. Render UI based on status
   if (loading) return <p>Loading KYC Status...</p>;
 
-  // If already submitted and approved
   if (kycStatus?.status === 'approved') {
     return (
       <div style={{ padding: '20px', color: 'green' }}>
         <h2>KYC Status: Approved</h2>
-        <p>Your KYC is approved! You can now create products.</p>
+        <p>Your KYC is approved! You can now create products or services.</p>
       </div>
     );
   }
 
-  // If already submitted and pending
   if (kycStatus?.status === 'pending') {
     return (
       <div style={{ padding: '20px', color: 'orange' }}>
@@ -109,17 +102,15 @@ function KYCPage() {
     );
   }
   
-  // If rejected, show form again (upsert will update it)
   if (kycStatus?.status === 'rejected') {
-     setError("Your previous submission was rejected. Please re-submit.");
-     setKycStatus(null); // Clear status to re-show the form
+    setError("Your previous submission was rejected. Please re-submit.");
+    setKycStatus(null);
   }
 
-  // If not submitted yet, show the form
   return (
     <div style={{ padding: '20px', maxWidth: '500px', margin: '0 auto' }}>
-      <h2>Seller KYC Submission</h2>
-      <p>You must submit your KYC for approval before you can create products.</p>
+      <h2>KYC Submission</h2>
+      <p>You must submit your KYC for approval before you can create products or services.</p>
       
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: '10px' }}>

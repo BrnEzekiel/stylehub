@@ -12,6 +12,8 @@ export declare class OrdersController {
         status: string;
         userId: string;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
+        subtotal: import("@prisma/client/runtime/library").Decimal;
+        shippingFee: import("@prisma/client/runtime/library").Decimal;
         shippingAddressId: string | null;
     }[]>;
     findSellerOrders(req: any): Promise<{
@@ -45,6 +47,8 @@ export declare class OrdersController {
             status: string;
             userId: string;
             totalAmount: import("@prisma/client/runtime/library").Decimal;
+            subtotal: import("@prisma/client/runtime/library").Decimal;
+            shippingFee: import("@prisma/client/runtime/library").Decimal;
             shippingAddressId: string | null;
         })[];
         summary: {
@@ -52,6 +56,17 @@ export declare class OrdersController {
             pendingOrders: number;
             totalRevenue: import("@prisma/client/runtime/library").Decimal;
         };
+    }>;
+    updateSellerOrderStatus(req: any, id: string, updateOrderStatusDto: UpdateOrderStatusDto): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        status: string;
+        userId: string;
+        totalAmount: import("@prisma/client/runtime/library").Decimal;
+        subtotal: import("@prisma/client/runtime/library").Decimal;
+        shippingFee: import("@prisma/client/runtime/library").Decimal;
+        shippingAddressId: string | null;
     }>;
     findAllAdmin(): Promise<({
         user: {
@@ -81,6 +96,8 @@ export declare class OrdersController {
         status: string;
         userId: string;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
+        subtotal: import("@prisma/client/runtime/library").Decimal;
+        shippingFee: import("@prisma/client/runtime/library").Decimal;
         shippingAddressId: string | null;
     })[]>;
     findAdminOrderDetails(id: string): Promise<{
@@ -126,6 +143,8 @@ export declare class OrdersController {
         status: string;
         userId: string;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
+        subtotal: import("@prisma/client/runtime/library").Decimal;
+        shippingFee: import("@prisma/client/runtime/library").Decimal;
         shippingAddressId: string | null;
     }>;
     updateOrderStatus(id: string, updateOrderStatusDto: UpdateOrderStatusDto): Promise<{
@@ -135,6 +154,8 @@ export declare class OrdersController {
         status: string;
         userId: string;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
+        subtotal: import("@prisma/client/runtime/library").Decimal;
+        shippingFee: import("@prisma/client/runtime/library").Decimal;
         shippingAddressId: string | null;
     }>;
     adminDeleteOrder(id: string): Promise<{

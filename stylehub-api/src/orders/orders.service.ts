@@ -59,19 +59,63 @@ export class OrdersService {
     let totalRevenue = new Prisma.Decimal(0);
     let pendingOrders = 0;
     const totalOrders = orders.length;
+    
     for (const order of orders) {
-      if (order.status === 'pending') {
+      if (order.status === 'pending' || order.status === 'paid') {
         pendingOrders++;
       }
+      // Calculate revenue based on *sellerEarning* not unitPrice
       const sellerRevenueForThisOrder = order.items.reduce((acc, item) => {
-        return acc.add(item.unitPrice.times(item.quantity));
+        return acc.add(item.sellerEarning); // 🛑 Use sellerEarning
       }, new Prisma.Decimal(0));
       totalRevenue = totalRevenue.add(sellerRevenueForThisOrder);
     }
+    
     return {
       orders,
       summary: { totalOrders, pendingOrders, totalRevenue },
     };
+  }
+  
+  /**
+   * 🛑 NEW: Seller updates status of an order
+   */
+  async sellerUpdateOrderStatus(orderId: string, sellerId: string, status: string) {
+    try {
+      // 1. Verify the order exists and this seller is part of it
+      const order = await this.prisma.order.findFirst({
+        where: {
+          id: orderId,
+          items: {
+            some: {
+              product: {
+                sellerId: sellerId,
+              },
+            },
+          },
+        },
+      });
+
+      if (!order) {
+        throw new NotFoundException(`Order with ID ${orderId} not found or you are not the seller.`);
+      }
+
+      // 2. Update the order status
+      const updatedOrder = await this.prisma.order.update({
+        where: { id: orderId },
+        data: { status: status },
+      });
+      
+      // 3. (In real app, send notification to client)
+      
+      return updatedOrder;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      console.error('Error updating order status by seller:', error);
+      throw new InternalServerErrorException('Could not update order status.');
+    }
   }
 
   async findAllAdmin() {
@@ -191,12 +235,8 @@ export class OrdersService {
     return order;
   }
 
-  /**
-   * 🛑 NEW: Admin deletes an order
-   */
   async adminDeleteOrder(orderId: string) {
     try {
-      // 1. Check if the order exists
       const order = await this.prisma.order.findUnique({
         where: { id: orderId },
       });
@@ -204,12 +244,6 @@ export class OrdersService {
       if (!order) {
         throw new NotFoundException(`Order with ID ${orderId} not found.`);
       }
-
-      // 2. Delete the order.
-      // Because our schema has 'onDelete: Cascade' from Order to OrderItem,
-      // and 'onDelete: SetNull' from Order to Notification/ShippingAddress,
-      // this single delete command will safely delete the order and its items,
-      // and detach notifications and addresses.
       await this.prisma.order.delete({
         where: { id: orderId },
       });

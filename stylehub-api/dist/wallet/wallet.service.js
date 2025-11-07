@@ -19,7 +19,7 @@ let WalletService = class WalletService {
     }
     async addPayoutToWallet(tx, sellerId, amount, payoutId) {
         try {
-            const updatedUser = await tx.user.update({
+            await tx.user.update({
                 where: { id: sellerId },
                 data: {
                     walletBalance: {
@@ -41,7 +41,6 @@ let WalletService = class WalletService {
                     walletTransactionId: transaction.id,
                 },
             });
-            return updatedUser;
         }
         catch (error) {
             console.error('Failed to add payout to wallet:', error);
@@ -104,6 +103,55 @@ let WalletService = class WalletService {
                 },
             });
             return withdrawalRequest;
+        });
+    }
+    async createBookingHold(tx, clientId, amount, bookingId) {
+        const user = await tx.user.findUnique({ where: { id: clientId } });
+        if (!user) {
+            throw new common_1.NotFoundException('Client not found');
+        }
+        if (user.walletBalance.lessThan(amount)) {
+            throw new common_1.BadRequestException('Insufficient wallet balance to make booking.');
+        }
+        await tx.user.update({
+            where: { id: clientId },
+            data: {
+                walletBalance: {
+                    decrement: amount,
+                },
+            },
+        });
+        const transaction = await tx.walletTransaction.create({
+            data: {
+                userId: clientId,
+                type: client_1.TransactionType.debit,
+                amount: amount.negated(),
+                description: `Escrow hold for Booking ID: ${bookingId.substring(0, 8)}`,
+                booking: { connect: { id: bookingId } },
+            },
+        });
+        await tx.booking.update({
+            where: { id: bookingId },
+            data: { walletTransactionId: transaction.id },
+        });
+    }
+    async releaseBookingHold(tx, bookingId, providerId, amount) {
+        await tx.user.update({
+            where: { id: providerId },
+            data: {
+                walletBalance: {
+                    increment: amount,
+                },
+            },
+        });
+        await tx.walletTransaction.create({
+            data: {
+                userId: providerId,
+                type: client_1.TransactionType.credit,
+                amount: amount,
+                description: `Payment for Booking ID: ${bookingId.substring(0, 8)}`,
+                booking: { connect: { id: bookingId } },
+            },
         });
     }
 };

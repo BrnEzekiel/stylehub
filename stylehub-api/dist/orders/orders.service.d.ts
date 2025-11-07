@@ -37,6 +37,8 @@ export declare class OrdersService {
             status: string;
             userId: string;
             totalAmount: Prisma.Decimal;
+            subtotal: Prisma.Decimal;
+            shippingFee: Prisma.Decimal;
             shippingAddressId: string | null;
         })[];
         summary: {
@@ -44,6 +46,17 @@ export declare class OrdersService {
             pendingOrders: number;
             totalRevenue: Prisma.Decimal;
         };
+    }>;
+    sellerUpdateOrderStatus(orderId: string, sellerId: string, status: string): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        status: string;
+        userId: string;
+        totalAmount: Prisma.Decimal;
+        subtotal: Prisma.Decimal;
+        shippingFee: Prisma.Decimal;
+        shippingAddressId: string | null;
     }>;
     findAllAdmin(): Promise<({
         user: {
@@ -73,6 +86,8 @@ export declare class OrdersService {
         status: string;
         userId: string;
         totalAmount: Prisma.Decimal;
+        subtotal: Prisma.Decimal;
+        shippingFee: Prisma.Decimal;
         shippingAddressId: string | null;
     })[]>;
     updateOrderStatus(orderId: string, status: string): Promise<{
@@ -82,6 +97,8 @@ export declare class OrdersService {
         status: string;
         userId: string;
         totalAmount: Prisma.Decimal;
+        subtotal: Prisma.Decimal;
+        shippingFee: Prisma.Decimal;
         shippingAddressId: string | null;
     }>;
     private findOrderForReceipt;
@@ -129,6 +146,8 @@ export declare class OrdersService {
         status: string;
         userId: string;
         totalAmount: Prisma.Decimal;
+        subtotal: Prisma.Decimal;
+        shippingFee: Prisma.Decimal;
         shippingAddressId: string | null;
     }>;
     adminDeleteOrder(orderId: string): Promise<{

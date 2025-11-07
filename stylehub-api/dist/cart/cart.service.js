@@ -14,6 +14,7 @@ const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const client_1 = require("@prisma/client");
 const PLATFORM_FEE_RATE = new client_1.Prisma.Decimal(0.10);
+const SHIPPING_FEE = new client_1.Prisma.Decimal(200.00);
 let CartService = class CartService {
     constructor(prisma) {
         this.prisma = prisma;
@@ -85,17 +86,17 @@ let CartService = class CartService {
                 },
             },
         });
-        if (!cart) {
-            return { cart: { items: [] }, total: new client_1.Prisma.Decimal(0) };
-        }
-        const total = cart.items.reduce((acc, item) => {
+        const subtotal = cart?.items.reduce((acc, item) => {
             if (item.product && item.product.price) {
                 return acc + item.product.price.toNumber() * item.quantity;
             }
             return acc;
-        }, 0);
+        }, 0) || 0;
+        const total = subtotal > 0 ? subtotal + SHIPPING_FEE.toNumber() : 0;
         return {
-            cart,
+            cart: cart || { items: [] },
+            subtotal: new client_1.Prisma.Decimal(subtotal),
+            shippingFee: SHIPPING_FEE,
             total: new client_1.Prisma.Decimal(total),
         };
     }
@@ -131,7 +132,7 @@ let CartService = class CartService {
         if (!cart || cart.items.length === 0) {
             throw new common_1.BadRequestException('Cannot checkout an empty cart.');
         }
-        let totalAmount = new client_1.Prisma.Decimal(0);
+        let subtotal = new client_1.Prisma.Decimal(0);
         const orderItemsData = [];
         for (const item of cart.items) {
             if (!item.product) {
@@ -142,16 +143,16 @@ let CartService = class CartService {
             }
             const productPrice = item.product.price;
             const quantity = item.quantity;
-            const subtotal = productPrice.times(quantity);
-            totalAmount = totalAmount.add(subtotal);
+            const itemSubtotal = productPrice.times(quantity);
+            subtotal = subtotal.add(itemSubtotal);
             let itemPlatformFee = new client_1.Prisma.Decimal(0);
             let itemSellerEarning = new client_1.Prisma.Decimal(0);
             if (item.product.sellerId) {
-                itemPlatformFee = subtotal.times(PLATFORM_FEE_RATE).toDecimalPlaces(2);
-                itemSellerEarning = subtotal.minus(itemPlatformFee);
+                itemPlatformFee = itemSubtotal.times(PLATFORM_FEE_RATE).toDecimalPlaces(2);
+                itemSellerEarning = itemSubtotal.minus(itemPlatformFee);
             }
             else {
-                itemPlatformFee = subtotal;
+                itemPlatformFee = itemSubtotal;
                 itemSellerEarning = new client_1.Prisma.Decimal(0);
             }
             orderItemsData.push({
@@ -163,6 +164,7 @@ let CartService = class CartService {
                 sellerEarning: itemSellerEarning,
             });
         }
+        const totalAmount = subtotal.add(SHIPPING_FEE);
         return this.prisma.$transaction(async (tx) => {
             const newAddress = await tx.address.create({
                 data: {
@@ -173,6 +175,8 @@ let CartService = class CartService {
             const newOrder = await tx.order.create({
                 data: {
                     userId: userId,
+                    subtotal: subtotal,
+                    shippingFee: SHIPPING_FEE,
                     totalAmount: totalAmount,
                     status: 'pending',
                     shippingAddressId: newAddress.id,

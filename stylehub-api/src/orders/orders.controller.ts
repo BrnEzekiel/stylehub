@@ -12,7 +12,8 @@ import {
   ParseUUIDPipe,
   StreamableFile,
   Res,
-  Delete, // 1. 🛑 Import Delete
+  Delete,
+  BadRequestException, // 1. 🛑 Import
 } from '@nestjs/common';
 import { FastifyReply } from 'fastify';
 import { OrdersService } from './orders.service';
@@ -27,6 +28,7 @@ import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
+  // --- Client Routes ---
   @Get()
   @Roles(Role.Client)
   findClientOrders(@Request() req) {
@@ -36,6 +38,7 @@ export class OrdersController {
     return this.ordersService.findOrdersByUserId(req.user.sub);
   }
 
+  // --- Seller Routes ---
   @Get('all')
   @UseGuards(RolesGuard)
   @Roles(Role.Seller)
@@ -45,7 +48,31 @@ export class OrdersController {
     }
     return this.ordersService.findAllForSeller(req.user.sub);
   }
+  
+  /**
+   * 2. 🛑 NEW: Seller updates an order status (e.g., to 'shipped')
+   * @route   PATCH /api/orders/:id/seller-status
+   */
+  @Patch(':id/seller-status')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Seller)
+  updateSellerOrderStatus(
+    @Request() req,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateOrderStatusDto: UpdateOrderStatusDto,
+  ) {
+    const sellerId = req.user.sub;
+    const newStatus = updateOrderStatusDto.status;
+    
+    // Sellers can only mark as 'shipped' or 'cancelled'
+    if (newStatus !== 'shipped' && newStatus !== 'cancelled') {
+      throw new BadRequestException('Sellers can only update status to "shipped" or "cancelled".');
+    }
+    
+    return this.ordersService.sellerUpdateOrderStatus(id, sellerId, newStatus);
+  }
 
+  // --- Admin Routes ---
   @Get('admin-all')
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
@@ -67,13 +94,10 @@ export class OrdersController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateOrderStatusDto: UpdateOrderStatusDto,
   ) {
+    // Admin can set any status
     return this.ordersService.updateOrderStatus(id, updateOrderStatusDto.status);
   }
 
-  /**
-   * 2. 🛑 NEW: Admin deletes an order
-   * @route   DELETE /api/orders/admin/:id
-   */
   @Delete('admin/:id')
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
@@ -81,6 +105,7 @@ export class OrdersController {
     return this.ordersService.adminDeleteOrder(id);
   }
 
+  // --- Shared Route ---
   @Get(':id/receipt')
   @UseGuards(RolesGuard)
   @Roles(Role.Client, Role.Seller, Role.Admin)

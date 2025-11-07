@@ -17,7 +17,7 @@ import { WithdrawalRequestDto } from './dto/withdrawal.dto';
 
 @Controller('api/wallet')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.Seller) // These routes are for sellers
+@Roles(Role.Seller, Role.Client, Role.ServiceProvider) // These routes are for sellers
 export class WalletController {
   constructor(private readonly walletService: WalletService) {}
 

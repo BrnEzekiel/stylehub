@@ -7,19 +7,20 @@ import { useNavigate } from 'react-router-dom';
 
 function CartPage() {
   const [cart, setCart] = useState({ items: [] });
+  const [subtotal, setSubtotal] = useState(0);
+  const [shippingFee, setShippingFee] = useState(0);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [removingItemId, setRemovingItemId] = useState(null); 
   const [error, setError] = useState(null);
   
-  // 1. 🛑 New state for checkout flow
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutMessage, setCheckoutMessage] = useState('');
   
-  const { token, user } = useAuth(); // 2. 🛑 Get user to pre-fill form
+  const { token, user } = useAuth();
   const navigate = useNavigate();
 
-  // 3. 🛑 New state for the address form
   const [address, setAddress] = useState({
     fullName: user?.name || '',
     phone: user?.phone || '',
@@ -27,10 +28,9 @@ function CartPage() {
     city: '',
     state: '',
     zipCode: '',
-    country: 'Kenya', // Default to Kenya
+    country: 'Kenya',
   });
 
-  // ... (loadCart and useEffect are unchanged) ...
   const loadCart = async () => {
     if (!token) {
       navigate('/login');
@@ -39,8 +39,11 @@ function CartPage() {
     try {
       setLoading(true);
       const apiResponse = await fetchCart(); 
-      const cartObject = apiResponse.cart || apiResponse; 
-      setCart(cartObject.items ? cartObject : { items: [] });
+      setCart(apiResponse.cart || { items: [] });
+      // 1. 🛑 Set all new totals
+      setSubtotal(parseFloat(apiResponse.subtotal));
+      setShippingFee(parseFloat(apiResponse.shippingFee));
+      setTotal(parseFloat(apiResponse.total));
       setError(null);
     } catch (err) {
       setError(err.message || 'Could not load cart. Please try again.');
@@ -51,26 +54,25 @@ function CartPage() {
   };
 
   useEffect(() => {
-    // 4. 🛑 Pre-fill form when user loads
     if (user) {
       setAddress(prev => ({ ...prev, fullName: user.name, phone: user.phone }));
     }
     loadCart();
   }, [token, navigate, user]);
 
-  // 5. 🛑 Updated checkout handler
   const handleCheckout = async (e) => {
-    e.preventDefault(); // Prevent form submission
+    e.preventDefault();
     if (cart.items.length === 0) return;
     
     setCheckoutLoading(true);
     setCheckoutMessage('');
     try {
-      // 6. 🛑 Pass the address state to createOrder
       const newOrder = await createOrder(address);
       setCheckoutMessage(`Order #${newOrder.orderId.substring(0,8)} created! Total: Ksh ${newOrder.totalAmount}`);
       setCart({ items: [] }); 
-      setShowAddressForm(false); // Hide form on success
+      setSubtotal(0);
+      setTotal(0);
+      setShowAddressForm(false);
     } catch (err) {
       setCheckoutMessage(err.message || 'Checkout failed. Please review your address and cart items.');
     } finally {
@@ -78,16 +80,12 @@ function CartPage() {
     }
   };
 
-  // 7. 🛑 Updated remove item handler (passes cartItem.id)
   const handleRemoveItem = async (cartItemId) => {
     setRemovingItemId(cartItemId); 
     setError(null); 
     try {
       await removeItemFromCart(cartItemId);
-      setCart(prevCart => ({
-        ...prevCart,
-        items: prevCart.items.filter(item => item.id !== cartItemId),
-      }));
+      loadCart(); // 2. 🛑 Reload the cart to recalculate totals
     } catch (err) {
       setError(err.message || 'Failed to remove item.');
     } finally {
@@ -95,7 +93,6 @@ function CartPage() {
     }
   };
   
-  // 8. 🛑 New handler for address form input
   const handleAddressChange = (e) => {
     const { name, value } = e.target;
     setAddress(prev => ({ ...prev, [name]: value }));
@@ -121,16 +118,8 @@ function CartPage() {
     return <h2 className="admin-content">Your cart is empty 🙁</h2>;
   }
 
-  const cartTotal = cart.items.reduce((total, item) => {
-    if (item.product && item.product.price) {
-      return total + (parseFloat(item.product.price) * item.quantity); 
-    }
-    return total;
-  }, 0);
-
   return (
     <div className="admin-content">
-      {/* 9. 🛑 Conditional Rendering */}
       
       {/* --- STEP 1: SHOW CART --- */}
       {!showAddressForm && (
@@ -160,7 +149,7 @@ function CartPage() {
                     <td>Ksh {subtotal}</td>
                     <td>
                       <button 
-                        onClick={() => handleRemoveItem(item.id)} // 10. 🛑 Pass item.id (cartItemId)
+                        onClick={() => handleRemoveItem(item.id)}
                         disabled={removingItemId === item.id}
                         style={{ background: '#dc3545', color: 'white', padding: '5px 10px', fontSize: '0.9em' }}
                       >
@@ -175,14 +164,25 @@ function CartPage() {
           
           <hr style={{ margin: '20px 0' }} />
           
-          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginTop: '20px', paddingRight: '15px' }}>
-            <h3 style={{ marginRight: '20px' }}>Total:</h3>
-            <h3 style={{ color: 'var(--color-primary)' }}>Ksh {cartTotal.toFixed(2)}</h3>
+          {/* 3. 🛑 NEW: Updated totals section */}
+          <div style={{ padding: '0 15px', maxWidth: '400px', marginLeft: 'auto' }}>
+            <div style={styles.totalRow}>
+              <span>Subtotal:</span>
+              <span>Ksh {subtotal.toFixed(2)}</span>
+            </div>
+            <div style={styles.totalRow}>
+              <span>Shipping Fee:</span>
+              <span>Ksh {shippingFee.toFixed(2)}</span>
+            </div>
+            <div style={{...styles.totalRow, ...styles.grandTotal}}>
+              <span>Grand Total:</span>
+              <span>Ksh {total.toFixed(2)}</span>
+            </div>
           </div>
           
           <button 
-            onClick={() => setShowAddressForm(true)} // 11. 🛑 Show address form
-            style={styles.button}
+            onClick={() => setShowAddressForm(true)}
+            style={{...styles.button, width: '100%', marginTop: '20px'}}
           >
             Proceed to Checkout
           </button>
@@ -231,6 +231,22 @@ function CartPage() {
               <p style={{ color: 'red', marginBottom: '10px' }}>{checkoutMessage}</p>
             )}
 
+            {/* 4. 🛑 Show new totals on checkout page */}
+            <hr style={{ margin: '20px 0' }} />
+            <div style={styles.totalRow}>
+              <span>Subtotal:</span>
+              <span>Ksh {subtotal.toFixed(2)}</span>
+            </div>
+            <div style={styles.totalRow}>
+              <span>Shipping Fee:</span>
+              <span>Ksh {shippingFee.toFixed(2)}</span>
+            </div>
+            <div style={{...styles.totalRow, ...styles.grandTotal}}>
+              <span>Grand Total:</span>
+              <span>Ksh {total.toFixed(2)}</span>
+            </div>
+            <hr style={{ margin: '20px 0' }} />
+
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', marginTop: '20px' }}>
               <button 
                 type="button" 
@@ -244,7 +260,7 @@ function CartPage() {
                 disabled={checkoutLoading} 
                 style={styles.button}
               >
-                {checkoutLoading ? 'Processing...' : `Pay Ksh ${cartTotal.toFixed(2)}`}
+                {checkoutLoading ? 'Processing...' : `Pay Ksh ${total.toFixed(2)}`}
               </button>
             </div>
           </form>
@@ -254,7 +270,6 @@ function CartPage() {
   );
 }
 
-// 12. 🛑 Styles for the new form
 const styles = {
   inputGroup: {
     marginBottom: '15px',
@@ -282,6 +297,20 @@ const styles = {
     borderRadius: '6px',
     cursor: 'pointer',
     fontWeight: '600',
+  },
+  // 5. 🛑 New styles for totals
+  totalRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    padding: '8px 0',
+    fontSize: '1.1em',
+  },
+  grandTotal: {
+    paddingTop: '10px',
+    borderTop: '1px solid #eee',
+    fontWeight: '600',
+    fontSize: '1.3em',
+    color: 'var(--color-primary)',
   }
 };
 

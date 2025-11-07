@@ -1,11 +1,10 @@
 // src/components/Chat.js
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useSocket } from '../context/SocketContext';
 import { useAuth } from '../context/AuthContext';
 
 // --- Main Chat Container (Floating Window) ---
-export const ChatContainer = () => {
+const ChatContainer = () => {
   const { 
     conversations, 
     activeChatId, 
@@ -16,15 +15,19 @@ export const ChatContainer = () => {
   } = useSocket();
   const { user } = useAuth();
   
-  // 1. 🛑 THE FIX: Show bubble if logged in, not just if messages exist
+  // If not logged in, show nothing
   if (!user) {
-    return null; // Not logged in, show nothing
+    return null;
   }
   
+  // Show chat bubble if window is closed
   if (!isChatOpen) {
-    // Logged in, but window is closed. Show the bubble.
     return (
-      <button onClick={() => setIsChatOpen(true)} className="chat-bubble">
+      <button 
+        onClick={() => setIsChatOpen(true)} 
+        className="chat-bubble"
+        aria-label="Open chat"
+      >
         💬 Chat
       </button>
     );
@@ -37,7 +40,12 @@ export const ChatContainer = () => {
     <div className="chat-container">
       <div className="chat-header">
         <h3>{activeConversation ? activeConversation.user.name : "Conversations"}</h3>
-        <button onClick={() => setIsChatOpen(false)}>✕</button>
+        <button 
+          onClick={() => setIsChatOpen(false)} 
+          aria-label="Close chat"
+        >
+          ✕
+        </button>
       </div>
 
       <div className="chat-body">
@@ -62,18 +70,22 @@ const ConversationSidebar = () => {
   
   return (
     <div className="chat-sidebar">
-      {Object.keys(conversations).length === 0 && <p style={{padding: '10px', fontSize: '0.9em', color: '#666'}}>No conversations.</p>}
-      
-      {Object.values(conversations).map(convo => (
-        <div 
-          key={convo.user.id} 
-          className={`convo-item ${convo.user.id === activeChatId ? 'active' : ''}`}
-          onClick={() => setActiveChatId(convo.user.id)}
-        >
-          <span className={`status-dot ${onlineUsers[convo.user.id] ? 'online' : ''}`}></span>
-          {convo.user.name || '...'}
-        </div>
-      ))}
+      {Object.keys(conversations).length === 0 ? (
+        <p style={{ padding: '10px', fontSize: '0.9em', color: '#666' }}>No conversations.</p>
+      ) : (
+        Object.values(conversations).map(convo => (
+          <div 
+            key={convo.user.id} 
+            className={`convo-item ${convo.user.id === activeChatId ? 'active' : ''}`}
+            onClick={() => setActiveChatId(convo.user.id)}
+            role="button"
+            tabIndex={0}
+          >
+            <span className={`status-dot ${onlineUsers[convo.user.id] ? 'online' : ''}`}></span>
+            {convo.user.name || '...'}
+          </div>
+        ))
+      )}
     </div>
   );
 };
@@ -117,9 +129,13 @@ const ChatWindow = ({ conversation }) => {
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Type a message..."
+          aria-label="Type message"
         />
-        <button type="submit">Send</button>
+        <button type="submit" aria-label="Send message">Send</button>
       </form>
     </div>
   );
 };
+
+// ✅ EXPORT AS DEFAULT — THIS IS THE FIX
+export default ChatContainer;

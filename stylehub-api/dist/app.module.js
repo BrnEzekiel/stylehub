@@ -28,6 +28,10 @@ const payouts_module_1 = require("./payouts/payouts.module");
 const verification_module_1 = require("./verification/verification.module");
 const wishlist_module_1 = require("./wishlist/wishlist.module");
 const wallet_module_1 = require("./wallet/wallet.module");
+const provider_portfolio_module_1 = require("./provider-portfolio/provider-portfolio.module");
+const services_module_1 = require("./services/services.module");
+const bookings_module_1 = require("./bookings/bookings.module");
+const withdrawal_admin_module_1 = require("./withdrawal-admin/withdrawal-admin.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -54,6 +58,10 @@ exports.AppModule = AppModule = __decorate([
             verification_module_1.VerificationModule,
             wishlist_module_1.WishlistModule,
             wallet_module_1.WalletModule,
+            provider_portfolio_module_1.ProviderPortfolioModule,
+            services_module_1.ServicesModule,
+            bookings_module_1.BookingsModule,
+            withdrawal_admin_module_1.WithdrawalAdminModule,
         ],
         providers: [],
     })
