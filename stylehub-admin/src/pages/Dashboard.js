@@ -3,27 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getAdminStats, getRecentOrders, getPendingSubmissions, getAllUsers } from '../api/adminService';
-import { Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
 
 // --- 1. 🛑 NEW: Helper function to format currency (Ksh 1.3M) ---
 function formatCurrency(num) {
@@ -125,14 +104,8 @@ function Dashboard() {
         />
       </div>
 
-      {/* --- Main Content Grid (Charts & Lists) --- */}
+      {/* --- Main Content Grid (Lists) --- */}
       <div className="dashboard-grid-large">
-        <div className="dashboard-card chart">
-          <h3>Sales Overview (Mock Data)</h3>
-          <p>This chart shows revenue over the last 7 days. (This is a mock-up. The API needs a new endpoint for real data).</p>
-          <SalesChart />
-        </div>
-
         <div className="dashboard-card">
           <h3>Recent Activity</h3>
           <div className="activity-feed">
@@ -191,32 +164,6 @@ function StatCard({ title, value, icon, className = '', linkTo = null }) {
   );
   
   return linkTo ? <Link to={linkTo} style={{ textDecoration: 'none' }}>{content}</Link> : content;
-}
-
-
-// --- Mock Sales Chart Component ---
-
-function SalesChart() {
-  const data = {
-    labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
-    datasets: [
-      {
-        label: 'Revenue (Ksh)',
-        data: [12000, 19000, 15000, 25000, 22000, 31000, 45000], // Mock data
-        fill: true,
-        backgroundColor: 'rgba(75,192,192,0.2)',
-        borderColor: 'rgba(75,192,192,1)',
-        tension: 0.3,
-      },
-    ],
-  };
-
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-  };
-
-  return <div style={{ height: '300px' }}><Line data={data} options={options} /></div>;
 }
 
 export default Dashboard;

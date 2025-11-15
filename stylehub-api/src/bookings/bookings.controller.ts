@@ -10,6 +10,7 @@ import {
   Request,
   ParseUUIDPipe,
   BadRequestException,
+  Res,
 } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -18,7 +19,9 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/enums/role.enum';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { BookingStatus } from '@prisma/client';
-
+// Add this import
+import { UnauthorizedException, StreamableFile } from '@nestjs/common';
+import { FastifyReply } from 'fastify';
 @Controller('api/bookings')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class BookingsController {
@@ -28,12 +31,16 @@ export class BookingsController {
    * @route   POST /api/bookings
    * @desc    Create a new booking (Client)
    */
-  @Post()
-  @Roles(Role.Client)
-  createBooking(@Request() req, @Body() dto: CreateBookingDto) {
-    return this.bookingsService.createBooking(req.user.sub, dto);
+  // src/bookings/bookings.controller.ts
+@Post()
+@Roles(Role.Client)
+createBooking(@Request() req, @Body() dto: CreateBookingDto) {
+  // 🔥 Ensure user ID is present
+  if (!req.user?.sub) {
+    throw new UnauthorizedException('User ID not found in token');
   }
-
+  return this.bookingsService.createBooking(req.user.sub, dto);
+}
   /**
    * @route   GET /api/bookings/my-bookings
    * @desc    Get all bookings for the logged-in client
@@ -70,6 +77,16 @@ export class BookingsController {
   }
 
   /**
+   * @route   PATCH /api/bookings/:id/cancel
+   * @desc    Cancel a booking (Client only)
+   */
+  @Patch(':id/cancel')
+  @Roles(Role.Client)
+  cancelBooking(@Request() req, @Param('id', ParseUUIDPipe) id: string) {
+    return this.bookingsService.cancelBooking(id, req.user.sub);
+  }
+
+  /**
    * @route   GET /api/bookings/admin-all
    * @desc    Get all bookings (Admin)
    */
@@ -77,5 +94,27 @@ export class BookingsController {
   @Roles(Role.Admin)
   getAllBookingsAdmin() {
     return this.bookingsService.getAllBookingsAdmin();
+  }
+
+  /**
+   * @route   GET /api/bookings/:id/confirmation
+   * @desc    Download booking confirmation PDF
+   */
+  @Get(':id/confirmation')
+  async downloadConfirmation(
+    @Request() req,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Res({ passthrough: true }) res: FastifyReply,
+  ): Promise<StreamableFile> {
+    const pdfBuffer = await this.bookingsService.downloadConfirmation(
+      id,
+      req.user.sub,
+    );
+    res.header('Content-Type', 'application/pdf');
+    res.header(
+      'Content-Disposition',
+      `attachment; filename="BookingConfirmation-${id.substring(0, 8)}.pdf"`,
+    );
+    return new StreamableFile(pdfBuffer);
   }
 }

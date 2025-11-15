@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StyleHub Project Manual</title>
+    
+    <!-- We are using the Poppins font, just like in your apps -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- This is your logo, which we'll use for the favicon -->
+    <link rel="icon" href="logo192.png" />
+    
+    <style>
+        /* --- 1. Global Setup & Colors --- */
+        :root {
+            --color-primary: #0f35df;
+            --color-secondary: #fa0f8c;
+            --color-accent: #f4d40f;
+            --color-background: #f9f9f9;
+            --color-card-bg: #ffffff;
+            --color-text: #222;
+            --color-text-light: #555;
+            --color-border: #e0e0e0;
+            --color-code-bg: #f4f4f7; /* Light code background */
+            --color-success: #16a34a;
+            --color-danger: #dc3545;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--color-background);
+            color: var(--color-text);
+            line-height: 1.7;
+        }
+
+        /* --- 2. Sidebar Layout --- */
+        .sidebar {
+            width: 300px;
+            background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+            color: #fff;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            overflow-y: auto;
+            padding-top: 20px;
+            z-index: 1000;
+            transition: left 0.3s ease-in-out;
+        }
+
+        .sidebar-header {
+            padding: 0 25px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+        }
+
+        .sidebar-header img {
+            height: 80px;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-header h2 {
+            color: var(--color-white);
+            font-size: 1.5rem;
+        }
+
+        .sidebar-nav {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-nav li a {
+            display: block;
+            padding: 12px 25px;
+            text-decoration: none;
+            color: #f1f1f1;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            border-right: 4px solid transparent;
+            font-size: 0.95em;
+        }
+
+        .sidebar-nav li a:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+            border-right-color: var(--color-accent);
+        }
+
+        .sidebar-nav li h3 {
+            font-size: 0.9em;
+            font-weight: 700;
+            color: var(--color-accent);
+            text-transform: uppercase;
+            padding: 20px 25px 5px;
+            letter-spacing: 0.5px;
+        }
+
+        /* --- 3. Main Content Area --- */
+        .main-content {
+            margin-left: 300px;
+            padding: 40px;
+        }
+
+        h1, h2, h3, h4 {
+            color: var(--color-primary);
+            font-weight: 700;
+        }
+
+        h1 { font-size: 2.5rem; margin-bottom: 10px; line-height: 1.2; }
+        h2 { font-size: 1.8rem; margin-top: 40px; margin-bottom: 15px; padding-bottom: 5px; border-bottom: 2px solid var(--color-border); }
+        h3 { font-size: 1.4rem; margin-top: 25px; margin-bottom: 10px; font-weight: 600; color: var(--color-secondary); }
+        h4 { font-size: 1.1rem; font-weight: 600; color: #444; margin-top: 15px; }
+        
+        p, li { font-size: 1rem; line-height: 1.7; color: var(--color-text-light); }
+        ul { list-style-type: disc; padding-left: 25px; margin-bottom: 15px; }
+        ol { list-style-type: decimal; padding-left: 25px; margin-bottom: 15px; }
+        li { margin-bottom: 8px; }
+
+        /* --- 4. Special Elements (Light Theme) --- */
+        
+        /* Inline code */
+        code {
+            background: #f0f5ff; /* Light blue */
+            border: 1px solid #c9ddff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+            color: var(--color-primary);
+            font-weight: 600;
+        }
+
+        /* Code blocks */
+        pre {
+            background: var(--color-code-bg);
+            border: 1px solid #ddd;
+            color: #333; /* No more black! */
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        
+        /* Emphasis quote block */
+        blockquote {
+            border-left: 4px solid var(--color-primary);
+            background: #f0f5ff; /* Light blue */
+            padding: 15px 20px;
+            margin: 20px 0;
+            font-size: 1em;
+            font-style: italic;
+            color: #000;
+        }
+        blockquote p {
+            color: #000;
+            margin: 0;
+        }
+        
+        /* A simple card for high-level concepts */
+        .card {
+            background: var(--color-white);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+        }
+
+        /* Status badges */
+        .badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge-success { background-color: var(--color-success); color: white; }
+        .badge-danger { background-color: var(--color-danger); color: white; }
+        .badge-warning { background-color: var(--color-accent); color: #333; }
+        .badge-primary { background-color: var(--color-primary); color: white; }
+        .badge-secondary { background-color: var(--color-secondary); color: white; }
+
+        /* --- 5. Mobile & Responsive --- */
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 1001;
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.5em;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        @media (max-width: 1024px) {
+            .menu-toggle { display: block; }
+            .sidebar {
+                left: -300px; /* Hidden by default */
+            }
+            .sidebar.open {
+                left: 0;
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+                padding-top: 80px; /* Space for the button */
+            }
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.5rem; }
+            h3 { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <button id="menu-toggle" class="menu-toggle">☰</button>
+
+    <!-- --- Sidebar Navigation --- -->
+    <nav id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <!-- We assume logo192.png is in the same folder as this html file -->
+            <img src="logo192.png" alt="StyleHub Logo">
+            <h2>Project Manual</h2>
+        </div>
+        <ul class="sidebar-nav">
+            <li><h3>Introduction</h3></li>
+            <li><a href="#vision">Our Vision (The Spec)</a></li>
+            <li><a href="#architecture">Our Architecture (The 3 Apps)</a></li>
+
+            <li><h3>Part 1: The Backend (API)</h3></li>
+            <li><a href="#api-setup">Tech Stack</a></li>
+            <li><a href="#api-database">Database (The "Brain")</a></li>
+            <li><a href="#api-auth">Auth & Security (The "Bouncer")</a></li>
+
+            <li><h3>Part 2: The Client App</h3></li>
+            <li><a href="#client-setup">Setup & Styling</a></li>
+            <li><a href="#client-auth">User Login & Dashboards</a></li>
+            <li><a href="#client-seller-flow">Seller Onboarding (KYC/Verification)</a></li>
+            <li><a href="#client-products">The Marketplace (Products & Search)</a></li>
+            <li><a href="#client-wishlist">Feature: The Wishlist</a></li>
+            <li><a href="#client-reviews">Feature: Product Reviews (w/ Photos)</a></li>
+            <li><a href="#client-checkout">Feature: Cart & Shipping</a></li>
+            <li><a href="#client-wallet">Feature: Seller Wallet & Withdrawals</a></li>
+
+            <li><h3>Part 3: The Admin App</h3></li>
+            <li><a href="#admin-setup">Setup & Auth</a></li>
+            <li><a href="#admin-dashboard">The Dashboard (Mission Control)</a></li>
+            <li><a href="#admin-crud">Full CRUD (Users, Products, Orders)</a></li>
+            <li><a href="#admin-approval">Approval Queues (KYC & Verification)</a></li>
+            <li><a href="#admin-financials">Financials & Payouts</a></li>
+
+            <li><h3>Part 4: Core Services</h3></li>
+            <li><a href="#service-chat">Real-Time Chat (Socket.io)</a></li>
+            <li><a href="#service-receipts">PDF Receipts (pdfkit)</a></li>
+            
+            <!-- 🛑 NEWLY ADDED SECTION 🛑 -->
+            <li><h3>Part 5: Service & Bookings</h3></li>
+            <li><a href="#booking-intro">The Booking Platform</a></li>
+            <li><a href="#booking-database">Booking Database Models</a></li>
+            <li><a href="#booking-api">Booking API (Controller & DTO)</a></li>
+            
+            <li><h3>Part 6: Our "War Stories"</h3></li>
+            <li><a href="#lesson-bcrypt">The `bcrypt` Login Bug</a></li>
+            <li><a href="#lesson-prisma">The `onDelete` Database Bug</a></li>
+            <li><a href="#lesson-nestjs">The NestJS Dependency Bug</a></li>
+            <li><a href="#lesson-caching">The `sim-1` Caching Bug</a></li>
+            <li><a href="#lesson-export">The `is not a module` Bug</a></li>
+            
+            <li><h3>Part 7: The Future</h3></li>
+            <li><a href="#roadmap">Next Steps</a></li>
+        </ul>
+    </nav>
+
+    <!-- --- Main Content --- -->
+    <main class="main-content">
+        
+        <section id="vision" class="card">
+            <h1>StyleHub Project Manual</h1>
+            <p>This document is the complete story of our project. You had a specific vision, and we built it. This is a guide for you, the founder, to understand every single part of the complex system we created together. It will explain what we built, why we built it, and how we fixed it when it broke.</p>
+            
+            <h2>Our Vision (From The Original Spec)</h2>
+            <p>Our project started with your specification document. You identified a core problem:</p>
+            <blockquote>
+                <p>"The beauty industry in Kenya... is fragmented: discovery, booking, payments, trust (KYC/verification), and product commerce live across WhatsApp, shady marketplaces, and offline cash."</p>
+            </blockquote>
+            <p>Our goal was to build a single, professional, and secure platform to solve this. We didn't just build a simple website. We built a full ecosystem.</p>
+        </section>
+
+        <section id="architecture">
+            <h2>Our Architecture (The 3 Apps)</h2>
+            <p>To understand StyleHub, it's easiest to think of it like a restaurant:</p>
+            <ul>
+                <li><strong>1. The Backend API (<code>stylehub-api</code>):</strong> This is the <strong>Kitchen</strong>. It's hidden from everyone, but it's the most important part. It handles all the logic: processing orders, managing users, calculating payments, and talking to the database (the "pantry").</li>
+                <li><strong>2. The Client App (<code>stylehub-client</code>):</strong> This is the <strong>Dining Room & Menu</strong>. It's the public website where Guests, Clients, and Sellers interact. It shows the products and sends orders to the "kitchen" (the API).</li>
+                <li><strong>3. The Admin App (<code>stylehub-admin</code>):</strong> This is the <strong>Manager's Office</strong>. It's a separate, secure website just for you. From here, you can see <em>everything</em>: who is ordering, which sellers need approval, and all the money the platform is making.</li>
+            </ul>
+        </section>
+
+        <!-- ============================================= -->
+        <!-- PART 1: THE BACKEND (API) -->
+        <!-- ============================================= -->
+        <section id="api-setup">
+            <h1>Part 1: The Backend API (The Kitchen)</h1>
+            <p>This is the engine of our platform, built with NestJS (TypeScript). It's responsible for all the "thinking."</p>
+            
+            <h3 id="api-tech-stack">Key Technologies Used</h3>
+            <ul>
+                <li><strong>NestJS:</strong> A framework for Node.js. It gives us a strong, modular structure, so our code for <code>Users</code> is separate from our code for <code>Products</code>.</li>
+                <li><strong>Prisma:</strong> Our "translator" to the database. We write simple commands in our code (like <code>prisma.user.findMany()</code>), and Prisma writes the complex SQL to talk to our PostgreSQL database.</li>
+                <li><strong>PostgreSQL (on Neon):</strong> Our powerful, cloud-based database. This is the "pantry" that stores all our information.</li>
+                <li><strong>Fastify:</strong> The high-speed web server that NestJS runs on.</li>
+                <li><strong>Cloudinary:</strong> A file storage service. All our images (Product photos, KYC documents, Review photos) are uploaded here, and we just save the URL in our database.</li>
+                <li><strong>Socket.io:</strong> A library for real-time communication, which we use to power the live chat.</li>
+                <li><strong>PDFKit:</strong> A library for creating PDF documents, which we use for order receipts.</li>
+            </ul>
+        </section>
+        
+        <section id="api-database">
+            <h2>Database (The "Brain")</h2>
+            <p>Our entire business is built on the <code>schema.prisma</code> file. It's the blueprint for our database. Here are the most important models we created:</p>
+            
+            <h3>The `User` Model</h3>
+            <p>This is the most central model. It controls everything. Its most important field is <code>role</code> (which can be <code>client</code>, <code>seller</code>, or <code>admin</code>). We also added <code>walletBalance</code> to store a seller's earnings.</p>
+            <pre><code>
+model User {
+  id                 String             @id @default(uuid())
+  email              String             @unique
+  role               String             @default("client")
+  walletBalance      Decimal            @default(0.00)
+  
+  // Relations (links to other tables)
+  cart               Cart?
+  kyc                KYC?
+  verification       Verification?
+  orders             Order[]
+  products           Product[]
+  payouts            Payout[]
+  // ... and more
+}
+            </code></pre>
+
+            <h3>The `Product` & `Order` Models</h3>
+            <p>These two models run the marketplace. When a <code>Product</code> is sold, an <code>Order</code> is created, which contains <code>OrderItems</code>.</p>
+            <p>The most important part of this is the <strong>Commission Logic</strong>. We added two fields to the <code>OrderItem</code> to track the money:</p>
+            <ul>
+                <li><code>platformFee</code>: The 10% cut our platform takes.</li>
+                <li><code>sellerEarning</code>: The 90% that the seller gets.</li>
+            </ul>
+            <pre><code>
+model OrderItem {
+  id            String   @id @default(uuid())
+  orderId       String
+  productId     String?
+  unitPrice     Decimal
+  quantity      Int
+  
+  // This is the core of our business model
+  platformFee   Decimal  @default(0.00)
+  sellerEarning Decimal  @default(0.00)
+  
+  payoutId      String?  // Has this item been paid out?
+  // ...
+}
+            </code></pre>
+            
+            <h3>The `Payout` & `Wallet` Models</h3>
+            <p>This is how sellers get their money.</p>
+            <ol>
+                <li>When an item is delivered, its <code>sellerEarning</code> is ready.</li>
+                <li>The Admin goes to the "Financials" page and clicks "Create Payout" for a seller.</li>
+                <li>This groups all unpaid <code>OrderItems</code> into one <code>Payout</code> record (with <code>status: pending</code>).</li>
+                <li>The Admin sends the money (e.g., via M-Pesa) and clicks "Mark as Paid".</li>
+                <li>This fires an API call that:
+                    <ol type="a">
+                        <li>Updates the <code>Payout</code> to <code>status: paid</code>.</li>
+                        <li><strong>Credits</strong> the <code>sellerEarning</code> amount to the seller's <code>walletBalance</code> on the <code>User</code> model.</li>
+                        <li>Creates a <code>WalletTransaction</code> (type: <code>credit</code>) as a "receipt" for the seller.</li>
+                    </ol>
+                </li>
+                <li>The seller can then log in, see their <code>walletBalance</code>, and request a <code>WithdrawalRequest</code>, which the Admin approves.</li>
+            </ol>
+        </section>
+        
+        <section id="api-auth">
+            <h2>Auth & Security (The "Bouncer")</h2>
+            <p>We secure our API using <strong>JSON Web Tokens (JWT)</strong>. This is like a temporary ID badge.</p>
+            <ol>
+                <li>A user logs in with their email and password.</li>
+                <li>The <code>AuthService</code> checks their password. If it's correct, it gives them a JWT.</li>
+                <li>For every future request (like fetching their cart), the user's app sends this JWT in the <code>Authorization</code> header.</li>
+                <li>Our <code>JwtAuthGuard</code> acts like a "bouncer" at the door of every endpoint. It checks the token. If it's valid, it lets the user in. If not, it sends back a <code>401 Unauthorized</code> error.</li>
+            </ol>
+            <p>We also use a <code>RolesGuard</code> to check the user's <code>role</code> (from the token) to make sure a <code>client</code> can't access an <code>admin</code> page. This is our "VIP list."</p>
+        </section>
+
+        <!-- ============================================= -->
+        <!-- PART 2: THE CLIENT APP -->
+        <!-- ============================================= -->
+        <section id="client-setup">
+            <h1>Part 2: The Client App (The Storefront)</h1>
+            <p>This is the <code>stylehub-client</code> project, built with React on <code>localhost:3000</code>. This is the app everyone sees. We made the critical decision to <strong>use the same visual theme as your Admin App</strong> (the blue/magenta/white style) to create a single, professional brand identity.</p>
+            
+            <h3 id="client-layout">The Layout: `App.js`</h3>
+            <p>The entire client app is wrapped in a main layout. We re-used the admin's CSS classes (<code>.top-nav</code>, <code>.sidebar</code>, <code>.admin-content</code>) to make it look uniform.</p>
+            <ul>
+                <li>A permanent <strong>Top Nav</strong> with your logo, the search bar, and user links.</li>
+                <li>A <strong>Main Layout</strong> that has a <code>Sidebar</code> for categories and a <code>Main Content</code> area for the pages.</li>
+                <li>We have routes (like <code>/cart</code> or <code>/login</code>) that <em>don't</em> use this layout, for a full-screen experience.</li>
+            </ul>
+        </section>
+
+        <section id="client-auth">
+            <h2>User Login & Dashboards</h2>
+            <p>This was a critical feature. The app must feel different for each user role.</p>
+            <ol>
+                <li>A user logs in on the <code>LoginPage.js</code>.</li>
+                <li>The <code>login</code> function in <code>AuthContext.js</code> calls the API and gets the user object.</li>
+                <li><strong>The Login Bug Fix:</strong> We had a major bug where <code>loggedInUser.role</code> was "undefined". We fixed this by adding <code>return data.user;</code> to the <code>login</code> function in <code>AuthContext.js</code>.</li>
+                <li>The <code>LoginPage.js</code> then <strong>redirects based on role</strong>:
+                    <ul>
+                        <li>If <code>role</code> is "client", they go to <code>/dashboard</code> (the <code>ClientDashboard.js</code> page).</li>
+                        <li>If <code>role</code> is "seller", they go to <code>/seller-dashboard</code> (the <code>SellerOrdersPage.js</code> page).</li>
+                    </ul>
+                </li>
+            </ol>
+            <p>We also created a brand new <code>ClientDashboard.js</code> page, which shows a welcome message, links to shop, and a list of their 3 most recent orders.</p>
+        </section>
+
+        <section id="client-seller-flow">
+            <h2>Seller Onboarding (KYC & Verification)</h2>
+            <p>A seller's journey is: <strong>Register -> Submit KYC -> Submit Verification -> Get Approved -> Create Products.</strong></p>
+            <ul>
+                <li><strong>KYC (<code>/kyc</code>):</strong> The <code>KYCPage.js</code> has a form to upload two images (ID & selfie). This sends <code>FormData</code> to the <code>KycController</code>, which uploads them to Cloudinary and sets the status to <code>pending</code>.</li>
+                <li><strong>Verification (<code>/verification</code>):</strong> The <code>VerificationPage.js</code> has a form to upload a business license. This hits the <code>VerificationController</code> and also sets the status to <code>pending</code>. A seller cannot create products until *both* of these are approved by an admin.</li>
+            </ul>
+        </section>
+
+        <section id="client-products">
+            <h2>The Marketplace (Products, Search, & Categories)</h2>
+            <p>This is the core of the store. We fixed two major bugs here.</p>
+            <ol>
+                <li><strong>The Category Bug:</strong> You noticed that clicking a category in the sidebar (e.g., "Fashion") showed no products. This was because the <code>findAll</code> function in <code>products.service.ts</code> was not checking the <code>category</code> query parameter. We fixed it by adding <code>if (category) { where.category = category; }</code> to the backend.</li>
+                <li><strong>The Search Bug:</strong> Search only looked at <code>name</code> and <code>description</code>. We fixed this by updating `search.service.ts` to also search the <code>category</code> field, so a search for "Electronics" now works.</li>
+            </ol>
+            <h3>The "Verified Seller" Badge</h3>
+            <p>To show the "Local Authenticity Badge" you wanted, we updated <code>products.service.ts</code> to include the seller's <code>verificationStatus</code> with every product. In <code>ProductDetailPage.js</code>, we added this check:</p>
+            <pre><code>
+{isSellerVerified && (
+  &lt;div className="verified-seller-badge"&gt;
+    ✅ Verified Local Seller
+  &lt;/div&gt;
+)}
+            </code></pre>
+        </section>
+
+        <section id="client-wishlist">
+            <h2>Feature: The Wishlist</h2>
+            <p>We built a full wishlist feature. We added <code>Wishlist</code> and <code>WishlistItem</code> tables to the database.</p>
+            <ul>
+                <li>A <code>wishlistService.js</code> was created to handle all API calls.</li>
+                <li>On the <code>Products.js</code> and <code>ProductDetailPage.js</code>, we now have a <strong>Wishlist Button (♡)</strong>.</li>
+                <li>When the page loads, it calls <code>getWishlistProductIds()</code> to get a list of all product IDs the user has already liked.</li>
+                <li>Clicking the button calls <code>addWishlistItem(id)</code> or <code>removeWishlistItem(id)</code> to toggle the item.</li>
+                <li>A new "My Wishlist" page (<code>/wishlist</code>) shows all the user's saved items in a grid.</li>
+            </ul>
+        </section>
+        
+        <section id="client-reviews">
+            <h2>Feature: Product Reviews (w/ Photos)</h2>
+            <p>Clients can leave reviews on the <code>ProductDetailPage</code>. This feature was upgraded to support photo uploads.</p>
+            <ol>
+                <li>The <code>Review</code> model in <code>schema.prisma</code> was updated with an <code>imageUrl: String?</code> field.</li>
+                <li>The <code>ReviewsController</code> was updated to use <code>FileInterceptor('image')</code> to accept <code>FormData</code>.</li>
+                <li>The <code>ReviewsService</code> was updated to inject the <code>StorageService</code>. When a review is submitted, it uploads the image to Cloudinary and saves the URL.</li>
+                <li>The <code>handleReviewSubmit</code> function in <code>ProductDetailPage.js</code> was changed to build a <code>FormData</code> object to send the text (comment, rating) and the image file.</li>
+                <li>The review list now displays the <code>review.imageUrl</code> if it exists.</li>
+            </ol>
+        </section>
+
+        <section id="client-checkout">
+            <h2>Feature: Cart & Checkout (with Shipping)</h2>
+            <p>We built a full-featured, two-step checkout process in <code>CartPage.js</code>.</p>
+            <ol>
+                <li><strong>Step 1: Cart Review.</strong> The page calls <code>GET /api/cart</code>. The API calculates the <code>subtotal</code>, <code>shippingFee</code> (a flat rate of Ksh 500 we set in <code>cart.service.ts</code>), and the <code>total</code>.</li>
+                <li><strong>Step 2: Address Form.</strong> When the user clicks "Proceed to Checkout", the cart is hidden, and the address form appears.</li>
+                <li><strong>Step 3: Checkout.</strong> The user submits the address. The <code>createOrder</code> function sends the <code>address</code> object to <code>POST /api/cart/checkout</code>.</li>
+                <li>The backend <code>cart.service.ts</code> then performs a large transaction:
+                    <ol type="a">
+                        <li>It creates the <code>Address</code> record.</li>
+                        <li>It calculates all <code>platformFee</code> and <code>sellerEarning</code> for each item.</li>
+                        <li>It creates the <code>Order</code> and <code>OrderItem</code> records, saving the fees and linking the new address.</li>
+                        <li>It decrements the <code>stock</code> for each product.</li>
+                        <li>It deletes all items from the user's cart.</li>
+                    </ol>
+                </li>
+            </ol>
+        </section>
+
+        <section id="client-wallet">
+            <h2>Feature: Seller Wallet & Withdrawals</h2>
+            <p>This is the seller's "bank." We created a new <code>SellerWalletPage.js</code> at <code>/wallet</code>.</p>
+            <ul>
+                <li><strong>Receiving Money:</strong> When an admin pays a seller, the <code>PayoutsService</code> (backend) calls the <code>WalletService</code> to add money to the seller's <code>walletBalance</code> and creates a "credit" transaction.</li>
+                <li><strong>Viewing:</strong> The page calls <code>GET /api/wallet</code> to show the current balance and a list of all "receipts" (<code>WalletTransaction</code>s).</li>
+                <li><strong>Withdrawing:</strong> The seller fills out a form with an M-Pesa number and amount. This calls <code>POST /api/wallet/withdraw</code>. The API <strong>immediately</strong> debits the wallet and creates a <code>WithdrawalRequest</code> for the admin to approve.</li>
+            </ul>
+        </section>
+
+        <!-- ============================================= -->
+        <!-- PART 3: THE ADMIN APP -->
+        <!-- ============================================= -->
+        <section id="admin-setup">
+            <h1>Part 3: The Admin App (The Command Center)</h1>
+            <p>This is the <code>stylehub-admin</code> project, built in React on <code>localhost:3002</code>. This is your private "manager's office" to control the entire platform.</p>
+            <h3>Branding & Layout</h3>
+            <p>We built this app with a light theme and your color palette. It features a main <code>top-nav</code> and a <code>sidebar</code> for navigation. We fixed all branding by:</p>
+            <ol>
+                <li>Updating <code>public/index.html</code> to use your <code>logo192.png</code> as the <strong>favicon</strong>.</li>
+                <li>Updating <code>App.js</code> to use your logo in the <code>top-nav</code> with the correct <code>process.env.PUBLIC_URL</code> path.</li>
+                <li>Updating <code>App.css</code> to make the <code>top-nav</code> <strong>80px high</strong> to fit the logo properly.</li>
+            </ol>
+        </section>
+
+        <section id="admin-dashboard">
+            <h2>The Dashboard (Mission Control)</h2>
+            <p>This is the landing page (<code>/dashboard</code>). It gives you a complete overview of the platform's health by fetching data from multiple API endpoints in parallel.</p>
+            <ul>
+                <li><strong>Stat Cards:</strong> Shows "Total Revenue," "Total Users," "Total Products," and "Pending KYC."</li>
+                <li><strong>Number Formatting:</strong> We added a <code>formatCurrency</code> helper function to this page to show big numbers like <code>Ksh 1.3M</code> instead of <code>Ksh 1,300,000</code>.</li>
+                <li><strong>Activity Feed:</strong> Shows the 5 newest orders and the 5 newest users, with links to view their details.</li>
+            </ul>
+        </section>
+
+        <section id="admin-crud">
+            <h2>Full CRUD Management</h2>
+            <p>You have full "Create, Read, Update, Delete" (CRUD) powers over the most important models.</p>
+            <ul>
+                <li><strong>User Management:</strong> You can <span class="badge badge-success">Create</span> new users (of any role), <span class="badge badge-primary">Read</span> the user list, <span class="badge badge-warning">Update</span> any user's details (name, email, role) on the <code>EditUserPage</code>, and <span class="badge badge-danger">Delete</span> any user.</li>
+                <li><strong>Product Management:</strong> You can <span class="badge badge-success">Create</span> new platform-owned products, <span class="badge badge-primary">Read</span> all products, <span class="badge badge-warning">Update</span> any product's details, and <span class="badge badge-danger">Delete</span> any product.</li>
+                <li><strong>Order Management:</strong> You can <span class="badge badge-primary">Read</span> all orders, <span class="badge badge-primary">Read</span> the full details of a single order, <span class="badge badge-warning">Update</span> an order's status (e.g., to "shipped" or "delivered"), and <span class="badge badge-danger">Delete</span> an order.</li>
+            </ul>
+        </section>
+        
+        <section id="admin-approval">
+            <h2>Approval Queues</h2>
+            <p>To keep the platform safe, you have multiple approval queues. These are the "To-Do" lists for you as the admin.</p>
+            <ol>
+                <li><strong>KYC Management (<code>/kyc-dashboard</code>):</strong> Lists all sellers with a <code>pending</code> KYC status. You can view their ID and selfie, then "Approve" or "Reject".</li>
+                <li><strong>Seller Verification (<code>/seller-verification</code>):</strong> Lists all sellers with a <code>pending</code> verification status. You can view their business license and "Approve" or "Reject".</li>
+                <li><strong>Withdrawal Requests (<code>/withdrawal-requests</code>):</strong> Lists all <code>pending</code> M-Pesa withdrawal requests from sellers. You can "Approve" (confirming you've sent the money) or "Reject" (which refunds the money to the seller's wallet).</li>
+            </ol>
+        </section>
+
+        <section id="admin-financials">
+            <h2>Financials & Payouts</h2>
+            <p>This is where you control the money. The <code>/financials</code> page shows the platform's overall revenue and a list of all sellers with their unpaid earnings. The <code>/withdrawal-requests</code> page shows all pending M-Pesa requests.</p>
+            <h3>The Complete Money Flow:</h3>
+            <ol>
+                <li>A Client buys a product. An <code>OrderItem</code> is created with a <code>sellerEarning</code> (90%) and <code>platformFee</code> (10%).</li>
+                <li>The Seller marks the order as "shipped" (in their dashboard).</li>
+                <li>The Admin marks the order as "delivered" (in Order Management).</li>
+                <li>The Admin goes to "Financials", sees the seller's unpaid earnings, and clicks <strong>"Create Payout"</strong>.</li>
+                <li>The API calculates the total unpaid earnings and creates a new <code>Payout</code> record with <code>status: pending</code>.</li>
+                <li>The Admin (you) manually sends the money (e.g., M-Pesa B2C).</li>
+                <li>The Admin clicks <strong>"Mark as Paid"</strong>. This calls <code>PATCH /api/payouts/:payoutId/mark-paid</code>.</li>
+                <li>The API updates the <code>Payout</code> status to "paid" and, in the same transaction, <strong>credits the seller's internal wallet</strong> by calling <code>walletService.addPayoutToWallet</code>.</li>
+                <li>The Seller sees the money in their "My Wallet" page.</li>
+                <li>The Seller requests a withdrawal by entering their M-Pesa number and an amount.</li>
+                <li>The Admin goes to the "Withdrawals" page, sees the new request, and clicks <strong>"Approve"</strong>.</li>
+                <li>The Admin (you) manually sends the real money. The cycle is complete.</li>
+            </ol>
+        </section>
+
+        <!-- ============================================= -->
+        <!-- PART 4: CORE SERVICES -->
+        <!-- ============================================= -->
+        <section id="service-chat">
+            <h1>Part 4: Core Services</h1>
+            
+            <h2>Real-Time Chat (Socket.io)</h2>
+            <p>We built a full real-time chat system using <code>socket.io</code>.</p>
+            <ul>
+                <li><strong>Backend:</strong> A <code>ChatGateway</code> acts as a "phone operator." When a user connects, their JWT is verified. The server maps their <code>userId</code> to their unique <code>socket.id</code>.</li>
+                <li><strong>Frontend:</strong> A <code>SocketContext</code> wraps the entire app, managing the connection.</li>
+                <li><strong>Sending:</strong> When a Client on <code>ProductDetailPage</code> clicks "Chat with Seller," it calls <code>openChatWithUser(sellerId)</code>. When they send a message, the server finds the seller's socket in its map and forwards the message instantly. The seller can then reply from their "Chat" bubble on the <code>SellerOrdersPage</code>.</li>
+            </ul>
+        </section>
+        
+        <section id="service-receipts">
+            <h2>PDF Receipts (pdfkit)</h2>
+            <p>Both Clients and Sellers can download PDF receipts from their order pages. This is handled by the <code>PdfGeneratorService</code> in the API.</p>
+            <p>When a user clicks "Download," their browser calls <code>GET /api/orders/:id/receipt</code>. The API first runs a security check (is this your order, are you a seller for this order, or are you an admin?). If they pass, the service fetches the order data, uses <code>pdfkit</code> to draw the StyleHub logo, tables, and totals into a PDF, and streams the file back to the browser for download.</p>
+        </section>
+
+        <!-- ============================================= -->
+        <!-- PART 5: "WAR STORIES" (KEY BUGS) -->
+        <!-- ============================================= -->
+        <section id="lesson-bcrypt">
+            <h1>Part 5: Our "War Stories" (Key Bug Fixes)</h1>
+            <p>No project is smooth. We hit major bugs and fixed them. These are the most important ones we solved together.</p>
+            
+            <h2>The `bcrypt` Login Bug</h2>
+            <blockquote>
+                <p><strong>The Bug:</strong> You were trying to log in as the admin (<code>admin@root.com</code>) and kept getting a <code>401 Unauthorized</code> error, even though the password was correct.</p>
+                <p><strong>The Problem:</strong> The <code>password_hash</code> we created in Prisma Studio was not compatible with the <code>bcrypt.compare</code> function being used by our API. This was likely due to a library mismatch.</p>
+                <p><strong>The Fix:</strong> We bypassed Prisma Studio entirely. We used Insomnia to call our own <code>POST /api/auth/register</code> endpoint to create a new admin. This ensured the <strong>same library</strong> that <strong>hashes</strong> the password was also the one that <strong>compares</strong> it. This fixed the bug instantly.</p>
+            </blockquote>
+        </section>
+
+        <section id="lesson-prisma">
+            <h2>The `onDelete` Database Bug</h2>
+            <blockquote>
+                <p><strong>The Bug:</strong> You tried to delete a User or Product from the admin dashboard, and the server crashed with a database error (<code>P2003</code> or <code>P2028</code>). The error was "Could not delete user."</p>
+                <p><strong>The Problem:</strong> Our database schema was protecting our data (as it should!). The default rule (<code>onDelete: Restrict</code>) prevented us from deleting a <code>User</code> if any <code>Order</code> still pointed to it. Our 50-line <code>adminDeleteUser</code> function was a complex and failing attempt to manually delete all related items first.</p>
+                <p><strong>The Fix:</strong> We re-wrote the <code>schema.prisma</code> file and added the correct <code>onDelete</code> rules. For example, on the <code>Order</code> model, we wrote <code>user User @relation(fields: [userId], references: [id], onDelete: Cascade)</code>. This tells the database: "When a user is deleted, <strong>automatically</strong> delete all their orders too." This allowed us to simplify our <code>adminDeleteUser</code> function to a single line: <code>prisma.user.delete(...)</code>. We let the database do the work.</p>
+            </blockquote>
+        </section>
+        
+        <section id="lesson-nestjs">
+            <h2>The NestJS Dependency Bug</h2>
+            <blockquote>
+                <p><strong>The Bug:</strong> The API server failed to start. The console said <code>UnknownDependenciesException</code> and that it couldn't find <code>JwtService</code> for our <code>ChatGateway</code>.</p>
+                <p><strong>The Problem:</strong> In NestJS, modules are "private" by default. The <code>AuthModule</code> *created* the <code>JwtService</code>, but the <code>ChatModule</code> couldn't *see* it. It was like a toolbox with the lid closed.</p>
+                <p><strong>The Fix:</strong> We had to edit <code>auth.module.ts</code> and add an <code>exports</code> array. By adding <code>exports: [AuthService, JwtModule]</code>, we "opened the lid" and made the <code>JwtService</code> (and the whole `JwtModule`) available for other modules, like <code>ChatModule</code>, to import and use.</p>
+            </blockquote>
+        </section>
+        
+        <section id="lesson-caching">
+            <h2>The `sim-1` Caching Bug</h2>
+            <blockquote>
+                <p><strong>The Bug:</strong> The <code>ProductDetailPage</code> kept crashing with a <code>400 Bad Request</code> because it was trying to fetch <code>/api/products/sim-1</code>, even though we had fixed the code in <code>Products.js</code> to use the real product ID.</p>
+                <p><strong>The Problem:</strong> Your browser was "remembering" an old, broken version of the website code (this is called <strong>caching</strong>).</p>
+                <p><strong>The Fix:</strong> We had to force a complete reset. We <strong>stopped the React server</strong>, **deleted the <code>node_modules/.cache</code> folder**, and used the browser's <strong>"Empty Cache and Hard Reload"</strong> function. This forced the browser to ask the server for all the new, fixed files.</p>
+            </blockquote>
+        </section>
+        
+        <section id="lesson-export">
+            <h2>The `is not a module` Bug</h2>
+            <blockquote>
+                <p><strong>The Bug:</strong> The API server failed to build. The console said <code>File '...' is not a module</code> for <code>WalletModule</code>, <code>VerificationModule</code>, etc.</p>
+                <p><strong>The Problem:</strong> This was a simple, but very annoying, human error. In TypeScript, to make a file usable by *other* files, you must add the <code>export</code> keyword to its class.</p>
+                <p><strong>The Fix:</strong> We had to open the new files (e.g., <code>wallet.module.ts</code>) and change <code>class WalletModule {}</code> to <code>export class WalletModule {}</code>. This made the class "public" and allowed <code>app.module.ts</code> to import it, fixing the build.</p>
+            </blockquote>
+        </section>
+
+        <!-- ============================================= -->
+        <!-- 🛑 NEW SECTION (FROM YOUR UPLOAD) 🛑 -->
+        <!-- ============================================= -->
+        <section id="booking-intro">
+            <h1>Part 7: Service & Booking Platform</h1>
+            <p>As you've noted, the project has now expanded to include the full **Service & Booking** vertical from your original spec. This transforms StyleHub from just a marketplace into a complete service platform.</p>
+            <p>This system allows users to register as <code>ServiceProviders</code>, create services (like haircuts or salon appointments), set their available times, and accept bookings from clients.</p>
+        
+            <h3 id="booking-database">Booking Database Models</h3>
+            <p>To support this, we added several new models to the <code>schema.prisma</code> file:</p>
+            <ul>
+                <li><code>User</code>: We added a new role, <code>service_provider</code>, and a relation to <code>ProviderPortfolio</code>.</li>
+                <li><code>ProviderPortfolio</code>: A new model (like KYC) for providers to submit their "provider_test" (work photos, certificates) for admin approval.</li>
+                <li><code>Service</code>: The "product" a provider sells (e.g., "Men's Haircut"). It includes details like <code>name</code>, <code>price</code>, <code>duration</code>, and <code>locationType</code> (<code>at_home</code> or <code>at_salon</code>).</li>
+                <li><code>ProviderTimeslot</code>: A model for providers to define their availability (e.g., "Monday 9:00-17:00").</li>
+                <li><code>Booking</code>: The "order" for a service. It links a <code>User</code> to a <code>Service</code> at a specific <code>bookingTime</code> and holds the payment in escrow.</li>
+            </ul>
+            <p>We also added a new <code>BookingStatus</code> enum with states like <code>pending_payment</code>, <code>confirmed</code>, <code>completed</code>, and <code>cancelled</code>.</p>
+        
+            <h3 id="booking-api">Booking API (Controller & DTO)</h3>
+            <p>We created a new <code>BookingsModule</code> on the backend. The core of this module is the <code>BookingsController</code>, which handles all the logic.</p>
+            
+            <h4>Creating a Booking (<code>CreateBookingDto</code>)</h4>
+            <p>When a client books a service, the frontend sends a <code>CreateBookingDto</code>. This object tells the API all the critical information for the appointment.</p>
+            <pre><code>
+// src/bookings/dto/create-booking.dto.ts
+import { IsBoolean, IsISO8601, IsNotEmpty, IsUUID } from 'class-validator';
+import { PaymentMethod } from '@prisma/client';
+
+export class CreateBookingDto {
+  @IsUUID()
+  serviceId: string;
+
+  @IsISO8601() // Ensures the date is in the correct format
+  bookingTime: string;
+
+  @IsBoolean()
+  atHome: boolean; // Did the user request at-home service?
+  
+  @IsNotEmpty()
+  paymentMethod: PaymentMethod; // e.g., 'wallet' or 'mpesa'
+}
+            </code></pre>
+
+            <h4>Booking Controller (<code>BookingsController</code>)</h4>
+            <p>This controller manages the entire booking lifecycle for all user roles (Client, Provider, and Admin).</p>
+            <pre><code>
+// src/bookings/bookings.controller.ts
+@Controller('api/bookings')
+@UseGuards(JwtAuthGuard, RolesGuard)
+export class BookingsController {
+  constructor(private readonly bookingsService: BookingsService) {}
+
+  // 1. Client creates a booking
+  @Post()
+  @Roles(Role.Client)
+  createBooking(@Request() req, @Body() dto: CreateBookingDto) {
+    return this.bookingsService.createBooking(req.user.sub, dto);
+  }
+
+  // 2. Client views their own past bookings
+  @Get('my-client-bookings')
+  @Roles(Role.Client)
+  getClientBookings(@Request() req) {
+    return this.bookingsService.getClientBookings(req.user.sub);
+  }
+
+  // 3. Provider views their incoming bookings
+  @Get('my-provider-bookings')
+  @Roles(Role.ServiceProvider)
+  getProviderBookings(@Request() req) {
+    return this.bookingsService.getProviderBookings(req.user.sub);
+  }
+
+  // 4. Provider or Admin updates the booking status
+  @Patch(':id/status')
+  @Roles(Role.ServiceProvider, Role.Admin)
+  updateBookingStatus(
+    @Request() req,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body('status') status: BookingStatus,
+  ) {
+    return this.bookingsService.updateBookingStatus(id, status, req.user.sub, req.user.role);
+  }
+
+  // 5. Admin sees ALL bookings
+  @Get('admin-all')
+  @Roles(Role.Admin)
+  getAllBookingsAdmin() {
+    return this.bookingsService.getAllBookingsAdmin();
+  }
+}
+            </code></pre>
+        </section>
+
+        <!-- ============================================= -->
+        <!-- PART 8: THE FUTURE -->
+        <!-- ============================================= -->
+        <section id="roadmap">
+            <h1>Part 8: The Future</h1>
+            <h2>Next Steps</h2>
+            <p>We have successfully built the two main pillars of your platform: the **Product Marketplace** and the **Service Booking** system. The platform is now feature-complete and supports all four user roles (Client, Seller, Provider, Admin).</p>
+            <p>The next logical steps, based on your long-term vision, will be to enhance these systems with features like:</p>
+            <ul>
+                <li><strong>M-Pesa Instant Checkout:</strong> Integrating the M-Pesa STK push for seamless payments.</li>
+                <li><strong>Advanced Notifications:</strong> Sending real-time notifications to users when their order is shipped or their booking is confirmed.</li>
+                <li><strong>Local Returns Hubs:</strong> Building the system for managing physical return drop-off points.</li>
+            </ul>
+        </section>
+        
+    </main>
+
+    <script>
+        // Simple script to toggle the mobile menu
+        const toggleBtn = document.getElementById('menu-toggle');
+        const sidebar = document.getElementById('sidebar');
+        const main = document.querySelector('.main-content');
+
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+
+        // 🛑 THE FIX: This now correctly closes the menu
+        // when you click on the main content area.
+        main.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+        });
+        
+        // Close menu if user clicks a nav link
+        document.querySelectorAll('.sidebar-nav a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                sidebar.classList.remove('open');
+                
+                // Smooth scroll to anchor
+                const href = link.getAttribute('href');
+                if (href.startsWith('#')) {
+                    e.preventDefault(); // Prevent default link jump
+                    const targetId = href.substring(1);
+                    // Check if element exists before scrolling
+                    const targetElement = document.getElementById(targetId);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

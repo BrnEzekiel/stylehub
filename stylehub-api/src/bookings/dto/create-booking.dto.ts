@@ -1,7 +1,7 @@
 // src/bookings/dto/create-booking.dto.ts
-
-import { IsBoolean, IsISO8601, IsNotEmpty, IsUUID } from 'class-validator';
+import { IsBoolean, IsISO8601, IsNotEmpty, IsUUID, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
+import { PaymentMethod } from '@prisma/client';
 
 export class CreateBookingDto {
   @IsUUID()
@@ -13,4 +13,7 @@ export class CreateBookingDto {
   @IsBoolean()
   @Type(() => Boolean)
   isHomeService: boolean;
+
+  @IsEnum(PaymentMethod) // ✅ Use enum
+  paymentMethod: PaymentMethod;
 }

@@ -14,6 +14,7 @@ export declare class BookingsController {
         startTime: Date;
         endTime: Date;
         isHomeService: boolean;
+        paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
         serviceId: string;
         clientId: string;
         providerId: string;
@@ -36,6 +37,7 @@ export declare class BookingsController {
         startTime: Date;
         endTime: Date;
         isHomeService: boolean;
+        paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
         serviceId: string;
         clientId: string;
         providerId: string;
@@ -58,6 +60,7 @@ export declare class BookingsController {
         startTime: Date;
         endTime: Date;
         isHomeService: boolean;
+        paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
         serviceId: string;
         clientId: string;
         providerId: string;
@@ -72,6 +75,22 @@ export declare class BookingsController {
         startTime: Date;
         endTime: Date;
         isHomeService: boolean;
+        paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
+        serviceId: string;
+        clientId: string;
+        providerId: string;
+    }>;
+    cancelBooking(req: any, id: string): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        status: import(".prisma/client").$Enums.BookingStatus;
+        price: import("@prisma/client/runtime/library").Decimal;
+        walletTransactionId: string | null;
+        startTime: Date;
+        endTime: Date;
+        isHomeService: boolean;
+        paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
         serviceId: string;
         clientId: string;
         providerId: string;
@@ -98,6 +117,7 @@ export declare class BookingsController {
         startTime: Date;
         endTime: Date;
         isHomeService: boolean;
+        paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
         serviceId: string;
         clientId: string;
         providerId: string;

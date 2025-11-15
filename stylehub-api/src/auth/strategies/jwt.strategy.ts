@@ -15,7 +15,11 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 
   // This runs after the token is successfully verified
   async validate(payload: any) {
-    // The payload is the decrypted object we signed
-    // We return it, and NestJS attaches it to req.user
-return { sub: payload.sub, email: payload.email, role: payload.role };  }
+    // Return 'sub' to match the payload and standard JWT practices
+    return { 
+      sub: payload.sub, // <-- This is the key fix
+      email: payload.email, 
+      role: payload.role 
+    };
+  }
 }

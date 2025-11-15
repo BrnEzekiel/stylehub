@@ -4,20 +4,21 @@ import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UsersModule } from '../users/users.module';
-import { JwtModule } from '@nestjs/jwt'; // 1. JwtModule is imported
+// 1. 🛑 REMOVED: JwtService import is no longer needed here
+import { JwtModule } from '@nestjs/jwt'; 
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { RefreshJwtStrategy } from './strategies/refresh-jwt.strategy';
-import { PrismaModule } from '../prisma/prisma.module'; // 2. We also need PrismaModule
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
   imports: [
-    PrismaModule, // 3. Add PrismaModule here
+    PrismaModule, 
     UsersModule,
     ConfigModule,
     PassportModule,
-    JwtModule.registerAsync({ // 4. JwtModule is registered
+    JwtModule.registerAsync({ // 2. JwtModule is imported here
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
@@ -31,7 +32,7 @@ import { PrismaModule } from '../prisma/prisma.module'; // 2. We also need Prism
     RefreshJwtStrategy,
   ],
   controllers: [AuthController],
-  // 5. 🛑 THE FIX: Export the entire JwtModule, not just the service
+  // 3. 🛑 THE FIX: Export the whole JwtModule, not just the service
   exports: [AuthService, JwtModule], 
 })
 export class AuthModule {}

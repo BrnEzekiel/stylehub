@@ -2,7 +2,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createProduct } from '../api/productService';
-import { categories } from '../utils/categories'; // 1. Import the new category list
+import { categories } from '../utils/categories';
+import Container from '../components/Container';
+import Card from '../components/Card';
 
 const CreateProductPage = () => {
   const [name, setName] = useState('');
@@ -57,11 +59,13 @@ const CreateProductPage = () => {
 
   // 4. 🛑 Apply styles to match the admin theme
   return (
-    <div className="admin-content"> {/* Use admin layout class */}
+    <div className="page-transition" style={{ paddingBottom: '80px' }}>
+      <Container>
+      <div className="page-section">
       <h2 style={{ color: '#0f35df', marginBottom: '20px' }}>Create New Product</h2>
       
       {/* Use a standard card for the form */}
-      <div className="dashboard-card" style={{ maxWidth: '700px', margin: '0 auto' }}>
+      <Card className="mb-8" style={{ maxWidth: '700px', margin: '0 auto' }}>
         <form onSubmit={handleSubmit}>
           {/* Name */}
           <div style={styles.inputGroup}>
@@ -137,7 +141,9 @@ const CreateProductPage = () => {
             {loading ? 'Creating...' : 'Create Product'}
           </button>
         </form>
+      </Card>
       </div>
+      </Container>
     </div>
   );
 };

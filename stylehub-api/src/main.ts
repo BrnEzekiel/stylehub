@@ -32,7 +32,7 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      forbidNonWhitelisted: true,
+      forbidNonWhitelisted: false, // Allow extra fields from FormData (like image, video fields)
       transform: true,
       transformOptions: {
         enableImplicitConversion: true,

@@ -1,6 +1,8 @@
 // src/pages/VerificationPage.js
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import Container from '../components/Container';
+import Card from '../components/Card';
 import { useAuth } from '../context/AuthContext';
 import { getVerificationStatus, submitVerification } from '../api/verificationService';
 

@@ -7,7 +7,9 @@ import { useAuth } from '../context/AuthContext';
 import { addItemToCart } from '../api/cartService';
 import { getProductReviews, submitReview } from '../api/reviewService';
 import { useSocket } from '../context/SocketContext';
-import { getWishlistProductIds, addWishlistItem, removeWishlistItem } from '../api/wishlistService'; // 2. 🛑 Import wishlist functions
+import { getWishlistProductIds, addWishlistItem, removeWishlistItem } from '../api/wishlistService';
+import Container from '../components/Container';
+import Card from '../components/Card';
 
 function ProductDetailPage() {
   const [product, setProduct] = useState(null);
@@ -153,7 +155,9 @@ function ProductDetailPage() {
   };
 
   return (
-    <div className="product-detail-container">
+    <div className="page-transition" style={{ paddingBottom: '80px' }}>
+      <Container>
+      <div className="product-detail-container">
       <div className="product-detail-layout">
         
         <div>
@@ -274,6 +278,8 @@ function ProductDetailPage() {
           )}
         </div>
       </div>
+      </div>
+      </Container>
     </div>
   );
 }

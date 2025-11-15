@@ -21,11 +21,15 @@ const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const role_enum_1 = require("../auth/enums/role.enum");
 const create_booking_dto_1 = require("./dto/create-booking.dto");
 const client_1 = require("@prisma/client");
+const common_2 = require("@nestjs/common");
 let BookingsController = class BookingsController {
     constructor(bookingsService) {
         this.bookingsService = bookingsService;
     }
     createBooking(req, dto) {
+        if (!req.user?.sub) {
+            throw new common_2.UnauthorizedException('User ID not found in token');
+        }
         return this.bookingsService.createBooking(req.user.sub, dto);
     }
     getClientBookings(req) {
@@ -38,6 +42,9 @@ let BookingsController = class BookingsController {
         if (!status)
             throw new common_1.BadRequestException('Status is required.');
         return this.bookingsService.updateBookingStatus(id, status, req.user.sub, req.user.role);
+    }
+    cancelBooking(req, id) {
+        return this.bookingsService.cancelBooking(id, req.user.sub);
     }
     getAllBookingsAdmin() {
         return this.bookingsService.getAllBookingsAdmin();
@@ -79,6 +86,15 @@ __decorate([
     __metadata("design:paramtypes", [Object, String, String]),
     __metadata("design:returntype", void 0)
 ], BookingsController.prototype, "updateBookingStatus", null);
+__decorate([
+    (0, common_1.Patch)(':id/cancel'),
+    (0, roles_decorator_1.Roles)(role_enum_1.Role.Client),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", void 0)
+], BookingsController.prototype, "cancelBooking", null);
 __decorate([
     (0, common_1.Get)('admin-all'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin),

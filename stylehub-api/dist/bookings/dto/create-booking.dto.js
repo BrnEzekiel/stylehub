@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateBookingDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
+const client_1 = require("@prisma/client");
 class CreateBookingDto {
 }
 exports.CreateBookingDto = CreateBookingDto;
@@ -28,4 +29,8 @@ __decorate([
     (0, class_transformer_1.Type)(() => Boolean),
     __metadata("design:type", Boolean)
 ], CreateBookingDto.prototype, "isHomeService", void 0);
+__decorate([
+    (0, class_validator_1.IsEnum)(client_1.PaymentMethod),
+    __metadata("design:type", String)
+], CreateBookingDto.prototype, "paymentMethod", void 0);
 //# sourceMappingURL=create-booking.dto.js.map

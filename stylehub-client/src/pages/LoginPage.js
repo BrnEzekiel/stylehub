@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
+import Container from '../components/Container';
+import Card from '../components/Card';
 
 function LoginPage() {
   const [email, setEmail] = useState('');

@@ -4,7 +4,9 @@ import React, { useState, useEffect } from 'react';
 // 1. 🛑 Import from new orderService
 import { fetchSellerOrders, downloadOrderReceipt, updateSellerOrderStatus } from '../api/orderService';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import Container from '../components/Container';
+import Card from '../components/Card';
 import { useSocket } from '../context/SocketContext';
 
 function SellerOrdersPage() {

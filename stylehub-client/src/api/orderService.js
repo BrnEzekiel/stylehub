@@ -47,6 +47,13 @@ export const downloadOrderReceipt = async (orderId) => {
       responseType: 'blob', // Important for file downloads
     });
     
+    // Check if response is actually a blob (PDF) or an error response
+    if (response.data.type !== 'application/pdf' && response.data.type === 'application/json') {
+      const errorText = await response.data.text();
+      const errorData = JSON.parse(errorText);
+      throw new Error(errorData.message || 'Failed to download receipt.');
+    }
+
     // Create a link and click it to trigger download
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement('a');
@@ -56,8 +63,10 @@ export const downloadOrderReceipt = async (orderId) => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
 
   } catch (error) {
-    throw new Error(error.response?.data?.message || 'Failed to download receipt.');
+    console.error('Download receipt error:', error);
+    throw new Error(error.response?.data?.message || error.message || 'Failed to download receipt.');
   }
 };

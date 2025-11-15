@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { register as apiRegister } from '../api/authService';
+import Container from '../components/Container';
+import Card from '../components/Card';
 
 function Register() {
   const [name, setName] = useState('');

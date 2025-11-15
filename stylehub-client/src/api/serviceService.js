@@ -58,6 +58,7 @@ export const getMyServices = async () => {
  */
 export const createBooking = async (bookingData) => {
   try {
+    // Make sure bookingData includes `paymentMethod`
     const response = await apiClient.post('/bookings', bookingData);
     return response.data;
   } catch (error) {
@@ -98,5 +99,17 @@ export const updateBookingStatus = async (bookingId, status) => {
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.message || 'Failed to update booking status.');
+  }
+};
+
+/**
+ * Cancel a booking (client only)
+ */
+export const cancelBooking = async (bookingId) => {
+  try {
+    const response = await apiClient.patch(`/bookings/${bookingId}/cancel`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to cancel booking.');
   }
 };

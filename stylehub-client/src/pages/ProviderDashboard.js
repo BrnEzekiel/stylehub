@@ -1,10 +1,14 @@
 // src/pages/ProviderDashboard.js
 import React from 'react';
 import { Link } from 'react-router-dom';
+import Container from '../components/Container';
+import Card from '../components/Card';
 
 function ProviderDashboard() {
   return (
-    <div className="dashboard-container">
+    <div className="page-transition" style={{ paddingBottom: '80px' }}>
+      <Container>
+      <div className="page-section">
       <h1>Service Provider Dashboard</h1>
       <div className="stats-grid">
         <StatCard title="My Services" icon="💇‍♀️" linkTo="/my-services" />
@@ -14,6 +18,8 @@ function ProviderDashboard() {
       <p style={{ marginTop: '30px', textAlign: 'center', color: '#555' }}>
         Manage your services, bookings, and profile from here.
       </p>
+      </div>
+      </Container>
     </div>
   );
 }

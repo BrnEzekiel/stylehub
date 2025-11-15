@@ -1,4 +1,3 @@
-// src/bookings/bookings.service.ts
 import {
   Injectable,
   NotFoundException,
@@ -8,15 +7,21 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { BookingStatus, Prisma } from '@prisma/client';
+import * as PDFDocument from 'pdfkit';
 
 @Injectable()
 export class BookingsService {
   constructor(private prisma: PrismaService) {}
 
   /**
-   * Create a new booking (Client) — WALLET HOLD REMOVED FOR TESTING
+   * Create a new booking (Client)
    */
   async createBooking(clientId: string, dto: CreateBookingDto) {
+    // 🔥 VALIDATE clientId
+    if (!clientId) {
+      throw new BadRequestException('Client ID is required.');
+    }
+
     const service = await this.prisma.service.findUnique({
       where: { id: dto.serviceId },
     });
@@ -38,10 +43,10 @@ export class BookingsService {
     const startTime = new Date(dto.startTime);
     const endTime = new Date(startTime.getTime() + service.durationMinutes * 60000);
 
-    // ✅ CREATE BOOKING WITHOUT WALLET ESCROW
+    // ✅ CREATE BOOKING WITHOUT WALLET ESCROW (for now)
     const newBooking = await this.prisma.booking.create({
       data: {
-        serviceId: service.id,
+        serviceId: dto.serviceId,
         clientId: clientId,
         providerId: service.providerId,
         startTime: startTime,
@@ -49,6 +54,7 @@ export class BookingsService {
         status: BookingStatus.pending,
         price: price,
         isHomeService: dto.isHomeService,
+        paymentMethod: dto.paymentMethod,
       },
     });
 
@@ -115,6 +121,35 @@ export class BookingsService {
     return this.prisma.booking.update({
       where: { id: bookingId },
       data: { status: newStatus },
+    });
+  }
+
+  /**
+   * Cancel a booking (Client only)
+   */
+  async cancelBooking(bookingId: string, clientId: string) {
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+    });
+    if (!booking) {
+      throw new NotFoundException('Booking not found.');
+    }
+
+    if (booking.clientId !== clientId) {
+      throw new ForbiddenException('You can only cancel your own bookings.');
+    }
+
+    if (booking.status === BookingStatus.cancelled) {
+      throw new BadRequestException('Booking is already cancelled.');
+    }
+
+    if (booking.status === BookingStatus.completed) {
+      throw new BadRequestException('Cannot cancel a completed booking.');
+    }
+
+    return this.prisma.booking.update({
+      where: { id: bookingId },
+      data: { status: BookingStatus.cancelled },
     });
   }
 

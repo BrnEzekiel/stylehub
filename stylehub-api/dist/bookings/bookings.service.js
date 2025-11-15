@@ -18,6 +18,9 @@ let BookingsService = class BookingsService {
         this.prisma = prisma;
     }
     async createBooking(clientId, dto) {
+        if (!clientId) {
+            throw new common_1.BadRequestException('Client ID is required.');
+        }
         const service = await this.prisma.service.findUnique({
             where: { id: dto.serviceId },
         });
@@ -38,7 +41,7 @@ let BookingsService = class BookingsService {
         const endTime = new Date(startTime.getTime() + service.durationMinutes * 60000);
         const newBooking = await this.prisma.booking.create({
             data: {
-                serviceId: service.id,
+                serviceId: dto.serviceId,
                 clientId: clientId,
                 providerId: service.providerId,
                 startTime: startTime,
@@ -46,6 +49,7 @@ let BookingsService = class BookingsService {
                 status: client_1.BookingStatus.pending,
                 price: price,
                 isHomeService: dto.isHomeService,
+                paymentMethod: dto.paymentMethod,
             },
         });
         return newBooking;
@@ -91,6 +95,27 @@ let BookingsService = class BookingsService {
         return this.prisma.booking.update({
             where: { id: bookingId },
             data: { status: newStatus },
+        });
+    }
+    async cancelBooking(bookingId, clientId) {
+        const booking = await this.prisma.booking.findUnique({
+            where: { id: bookingId },
+        });
+        if (!booking) {
+            throw new common_1.NotFoundException('Booking not found.');
+        }
+        if (booking.clientId !== clientId) {
+            throw new common_1.ForbiddenException('You can only cancel your own bookings.');
+        }
+        if (booking.status === client_1.BookingStatus.cancelled) {
+            throw new common_1.BadRequestException('Booking is already cancelled.');
+        }
+        if (booking.status === client_1.BookingStatus.completed) {
+            throw new common_1.BadRequestException('Cannot cancel a completed booking.');
+        }
+        return this.prisma.booking.update({
+            where: { id: bookingId },
+            data: { status: client_1.BookingStatus.cancelled },
         });
     }
     async getAllBookingsAdmin() {

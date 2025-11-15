@@ -13,6 +13,7 @@ function ServiceDetailPage() {
   const [bookingDate, setBookingDate] = useState('');
   const { id } = useParams();
   const { token, user } = useAuth();
+  const [paymentMethod, setPaymentMethod] = useState('cash_on_delivery');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -40,6 +41,7 @@ function ServiceDetailPage() {
         serviceId: id,
         startTime: bookingDate,
         isHomeService: isHome,
+        paymentMethod: paymentMethod, // ✅ NEW FIELD
       });
       setBookingMessage('Booking request sent! Check your bookings page.');
     } catch (err) {
@@ -95,6 +97,18 @@ function ServiceDetailPage() {
               </p>
             )}
           </div>
+          <div style={{ marginTop: '15px' }}>
+  <label>Payment Method:</label>
+  <select
+    value={paymentMethod}
+    onChange={(e) => setPaymentMethod(e.target.value)}
+    style={{ width: '100%', padding: '8px', marginBottom: '10px' }}
+  >
+    <option value="cash_on_delivery">Cash on Delivery</option>
+    <option value="mpesa">M-Pesa</option>
+    <option value="bank_transfer">Bank Transfer</option>
+  </select>
+</div>
         </div>
       </div>
     </div>

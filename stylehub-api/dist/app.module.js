@@ -32,6 +32,7 @@ const provider_portfolio_module_1 = require("./provider-portfolio/provider-portf
 const services_module_1 = require("./services/services.module");
 const bookings_module_1 = require("./bookings/bookings.module");
 const withdrawal_admin_module_1 = require("./withdrawal-admin/withdrawal-admin.module");
+const style_diy_module_1 = require("./style-diy/style-diy.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -62,6 +63,7 @@ exports.AppModule = AppModule = __decorate([
             services_module_1.ServicesModule,
             bookings_module_1.BookingsModule,
             withdrawal_admin_module_1.WithdrawalAdminModule,
+            style_diy_module_1.StyleDIYModule,
         ],
         providers: [],
     })

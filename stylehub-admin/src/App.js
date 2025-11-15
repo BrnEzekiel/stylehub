@@ -26,44 +26,44 @@ import WithdrawalRequestsPage from './pages/WithdrawalRequestsPage'; // 1. 🛑 
 import './App.css';
 
 // --- Admin Layout ---
-function AdminLayout({ onLogout }) {
+function AdminLayout({ onLogout, isSidebarOpen, setIsSidebarOpen }) {
   return (
     <div className="admin-layout">
       {/* Sidebar Navigation */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
         <ul className="sidebar-nav">
           <li>
-            <Link to="/dashboard">Dashboard</Link>
+            <Link to="/dashboard" onClick={() => setIsSidebarOpen(false)}>Dashboard</Link>
           </li>
           <li>
-            <Link to="/financials">Financials</Link>
+            <Link to="/financials" onClick={() => setIsSidebarOpen(false)}>Financials</Link>
           </li>
           {/* 2. 🛑 Add new link */}
           <li>
-            <Link to="/withdrawal-requests">Withdrawal Requests</Link>
+            <Link to="/withdrawal-requests" onClick={() => setIsSidebarOpen(false)}>Withdrawal Requests</Link>
           </li>
           <li>
-            <Link to="/kyc-dashboard">KYC Management</Link>
+            <Link to="/kyc-dashboard" onClick={() => setIsSidebarOpen(false)}>KYC Management</Link>
           </li>
           <li>
-            <Link to="/seller-verification">Seller Verification</Link>
+            <Link to="/seller-verification" onClick={() => setIsSidebarOpen(false)}>Seller Verification</Link>
           </li>
           <li>
-            <Link to="/portfolio-management">Provider Portfolios</Link>
+            <Link to="/portfolio-management" onClick={() => setIsSidebarOpen(false)}>Provider Portfolios</Link>
           </li>
           <li>
-            <Link to="/user-management">User Management</Link>
+            <Link to="/user-management" onClick={() => setIsSidebarOpen(false)}>User Management</Link>
           </li>
           <li>
-            <Link to="/product-management">Product Management</Link>
+            <Link to="/product-management" onClick={() => setIsSidebarOpen(false)}>Product Management</Link>
           </li>
           <li>
-            <Link to="/order-management">Order Management</Link>
+            <Link to="/order-management" onClick={() => setIsSidebarOpen(false)}>Order Management</Link>
           </li>
         </ul>
       </aside>
       {/* Main Content */}
-      <main className="admin-content">
+      <main className="admin-content page-transition">
         <Routes>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/financials" element={<FinancialsPage />} />
@@ -92,6 +92,7 @@ function AdminLayout({ onLogout }) {
 function AppContent() {
   const { token, user, logout } = useAuth();
   const location = useLocation();
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
   if (!token || user?.role !== 'admin') {
     return (
@@ -108,14 +109,33 @@ function AppContent() {
   return (
     <div className="App">
       <nav className="top-nav">
-        <Link to="/dashboard" className="top-nav-logo">
-          <img src="/logo192.png" alt="StyleHub Admin" style={{ height: '60px' }} />
-        </Link>
-        <button onClick={logout} className="top-nav-logout">
-          Logout
-        </button>
+        <div className="flex items-center gap-4">
+          <button 
+            className="mobile-menu-toggle"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            aria-label="Toggle menu"
+          >
+            ☰
+          </button>
+          <Link to="/dashboard" className="top-nav-logo flex items-center">
+            <img src="/logo192.png" alt="StyleHub Admin" style={{ height: '60px' }} />
+            <span className="ml-2 font-bold text-xl">
+              <span className="text-indigo-600">Style</span><span className="text-purple-600">Hub</span> Admin
+            </span>
+          </Link>
+        </div>
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-gray-600 hidden md:block">{user?.email}</span>
+          <button onClick={logout} className="top-nav-logout btn-modern">
+            Logout
+          </button>
+        </div>
       </nav>
-      <AdminLayout onLogout={logout} />
+      <div 
+        className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`}
+        onClick={() => setIsSidebarOpen(false)}
+      ></div>
+      <AdminLayout onLogout={logout} isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
     </div>
   );
 }

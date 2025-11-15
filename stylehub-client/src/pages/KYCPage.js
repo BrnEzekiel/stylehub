@@ -2,7 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { getKYCStatus, submitKYC } from '../api/kycService';
+import { getKycStatus, submitKyc } from '../api/kycService';
+import Container from '../components/Container';
+import Card from '../components/Card';
 
 function KYCPage() {
   const [kycStatus, setKycStatus] = useState(null);
