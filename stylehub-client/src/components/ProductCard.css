@@ -1,0 +1,17 @@
+/* src/components/ProductCard.css */
+
+@keyframes radiate {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 102, 255, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 10px 20px rgba(0, 102, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 102, 255, 0);
+  }
+}
+
+.radiate-chip {
+  animation: radiate 1s infinite;
+}

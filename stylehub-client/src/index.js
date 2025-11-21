@@ -7,17 +7,21 @@ import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext'; // 1. 🛑 Import
+import { ThemeProvider } from '@mui/material/styles';
+import { mainTheme } from './styles/theme';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <SocketProvider> {/* 2. 🛑 Wrap the App */}
-          <App />
-        </SocketProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <AuthProvider>
+      <SocketProvider>
+        <BrowserRouter>
+          <ThemeProvider theme={mainTheme}>
+            <App />
+          </ThemeProvider>
+        </BrowserRouter>
+      </SocketProvider>
+    </AuthProvider>
   </React.StrictMode>
 );
 
