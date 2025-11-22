@@ -8,21 +8,29 @@ export declare class WalletController {
         walletTransactions: {
             id: string;
             createdAt: Date;
-            description: string;
             userId: string;
+            description: string;
             type: import(".prisma/client").$Enums.TransactionType;
             amount: import("@prisma/client/runtime/library").Decimal;
+            balance: import("@prisma/client/runtime/library").Decimal;
+            reference: string | null;
+            metadata: import("@prisma/client/runtime/library").JsonValue | null;
         }[];
     }>;
     requestWithdrawal(req: any, dto: WithdrawalRequestDto): Promise<{
         id: string;
         createdAt: Date;
+        updatedAt: Date;
         status: import(".prisma/client").$Enums.WithdrawalStatus;
         sellerId: string;
         amount: import("@prisma/client/runtime/library").Decimal;
         mpesaNumber: string;
+        reference: string | null;
         walletTransactionId: string | null;
         processedAt: Date | null;
+        processedBy: string | null;
+        idNumber: string | null;
+        idDocumentUrl: string | null;
         adminRemarks: string | null;
     }>;
 }

@@ -1,12 +1,16 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import Page from '../components/Page'; // Import the Page component
 
 function LoginPage() {
-  const [email, setEmail] = useState('super@stylehub.com');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('brianonyango229@gmail.com');
+  const [password, setPassword] = useState('@Kawangware1');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -25,128 +29,126 @@ function LoginPage() {
     }
   };
 
+  const COLORS = {
+    blue: '#0066FF',
+    skyBlue: '#00BFFF',
+    yellow: '#FFD700',
+    black: '#000000',
+    white: '#FFFFFF',
+    green: '#00FF00',
+    red: '#EF4444',
+    magenta: '#FF00FF'
+  };
+
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h2 style={styles.title}>Admin Login</h2>
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Email</label>
+    <Page title="Admin Login" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+      <div
+        style={{
+          background: 'rgba(255, 255, 255, 0.08)',
+          backdropFilter: 'blur(40px)',
+          WebkitBackdropFilter: 'blur(40px)',
+          borderRadius: '32px',
+          padding: 'clamp(24px, 4vw, 40px)',
+          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+          border: '2px solid rgba(255, 255, 255, 0.12)',
+          width: '100%',
+          maxWidth: '400px',
+          textAlign: 'center',
+          color: 'black',
+        }}
+      >
+        <h2
+          style={{
+            color: 'black',
+            marginBottom: '24px',
+            borderBottom: `3px solid ${COLORS.yellow}`,
+            display: 'inline-block',
+            paddingBottom: '8px',
+          }}
+        >
+          Admin Login
+        </h2>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '2px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '12px',
+                color: 'black',
+                padding: '12px 16px',
+                fontSize: '16px',
+                outline: 'none',
+              }}
+          />
+          <div style={{ position: 'relative' }}>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={styles.input}
-            />
-          </div>
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Password</label>
-            <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              style={styles.input}
+              style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '2px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '12px',
+                color: 'black',
+                padding: '12px 16px',
+                fontSize: '16px',
+                width: '100%',
+                outline: 'none',
+              }}
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: 'absolute',
+                right: '16px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none',
+                border: 'none',
+                color: 'black',
+                cursor: 'pointer',
+              }}
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </button>
           </div>
 
-          {error && <p style={styles.error}>{error}</p>}
+          {error && (
+            <p style={{ color: COLORS.red, marginTop: '8px', marginBottom: '8px' }}>
+              {error}
+            </p>
+          )}
 
-          <button type="submit" disabled={loading} style={styles.button}>
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+                marginTop: '16px',
+                background: `linear-gradient(135deg, ${COLORS.yellow} 0%, ${COLORS.skyBlue} 100%)`,
+                color: 'black',
+                padding: '12px 24px',
+                borderRadius: '12px',
+                textDecoration: 'none',
+                fontWeight: 'bold',
+                border: 'none',
+                cursor: 'pointer'
+            }}
+          >
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
       </div>
-    </div>
+    </Page>
   );
 }
 
-// 🎨 Shared Palette — Blue, Yellow, Magenta, Black, White
-const styles = {
-  container: {
-    background: 'linear-gradient(135deg, #0f35df 40%, #fa0f8c 100%)',
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '20px',
-    color: '#000',
-    fontFamily: '"Poppins", sans-serif',
-  },
-  card: {
-    backgroundColor: '#ffffff',
-    padding: '30px 25px',
-    borderRadius: '12px',
-    boxShadow: '0 5px 25px rgba(0, 0, 0, 0.15)',
-    width: '100%',
-    maxWidth: '400px',
-    textAlign: 'center',
-  },
-  title: {
-    color: '#0f35df',
-    fontSize: '1.8rem',
-    marginBottom: '20px',
-    borderBottom: '3px solid #fa0f8c',
-    display: 'inline-block',
-    paddingBottom: '6px',
-    fontWeight: '600',
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '15px',
-  },
-  inputGroup: {
-    textAlign: 'left',
-  },
-  label: {
-    display: 'block',
-    fontWeight: '600',
-    color: '#000000',
-    marginBottom: '5px',
-  },
-  input: {
-    width: '100%',
-    padding: '10px 12px',
-    border: '1.5px solid #ddd',
-    borderRadius: '8px',
-    fontSize: '1rem',
-    outline: 'none',
-    transition: 'all 0.3s ease',
-  },
-  error: {
-    color: '#fa0f8c',
-    fontWeight: '500',
-    fontSize: '0.9rem',
-    marginTop: '5px',
-  },
-  button: {
-    backgroundColor: '#f4d40f', // Yellow
-    color: '#000000',
-    border: 'none',
-    padding: '12px 0',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    fontWeight: '700',
-    fontSize: '1rem',
-    marginTop: '10px',
-    transition: 'all 0.3s ease',
-  },
-};
-
-// 💫 Add hover styles dynamically (inline JS approach)
-Object.assign(styles.input, {
-  ':focus': {
-    borderColor: '#0f35df',
-    boxShadow: '0 0 5px rgba(15, 53, 223, 0.4)',
-  },
-});
-
-Object.assign(styles.button, {
-  ':hover': {
-    backgroundColor: '#ffe44d',
-  },
-});
-
 export default LoginPage;
+

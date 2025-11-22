@@ -18,9 +18,9 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/enums/role.enum';
 import { FileInterceptor } from '@nest-lab/fastify-multer';
 import { SubmitPortfolioDto } from './dto/submit-portfolio.dto';
-import { UpdateVerificationStatusDto } from '../verification/dto/update-verification.dto';
+import { UpdateProviderPortfolioStatusDto } from './dto/update-provider-portfolio-status.dto';
 
-@Controller('api/provider-portfolio')
+@Controller('provider-portfolio')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ProviderPortfolioController {
   constructor(private readonly portfolioService: ProviderPortfolioService) {}
@@ -52,7 +52,7 @@ export class ProviderPortfolioController {
   @Roles(Role.Admin)
   updatePortfolioStatus(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: UpdateVerificationStatusDto,
+    @Body() dto: UpdateProviderPortfolioStatusDto,
   ) {
     return this.portfolioService.updatePortfolioStatus(id, dto.status);
   }

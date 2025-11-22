@@ -35,8 +35,12 @@ export class VerificationService {
       throw new NotFoundException('User not found');
     }
 
+    // If a submission exists, its status is the source of truth.
+    // Otherwise, fall back to the user's general verification status.
+    const definitiveStatus = user.verification?.status || user.verificationStatus;
+
     return {
-      status: user.verificationStatus,
+      status: definitiveStatus,
       submission: user.verification,
     };
   }
@@ -57,7 +61,7 @@ export class VerificationService {
       where: { userId },
     });
 
-    if (existing && (existing.status === 'pending' || existing.status === 'approved')) {
+    if (existing && (existing.status === 'pending' || existing.status === 'verified')) {
       throw new ConflictException(`Your submission is already ${existing.status}.`);
     }
 

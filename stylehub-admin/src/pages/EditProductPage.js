@@ -1,92 +1,42 @@
-// src/pages/EditProductPage.js
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { getAdminProductById, adminUpdateProduct } from '../api/adminService';
-// 1. 🛑 THE FIX: Corrected the path to go up one more level
-import { categories } from '../utils/categories'; 
+import { getAdminProductById, adminUpdateProduct, deleteProduct } from '../api/adminService';
+import { categories } from '../utils/categories';
+import Page from '../components/Page';
+import { FaArrowLeft, FaTrash } from 'react-icons/fa';
 
-// Re-use styles
-const styles = {
-  container: {
-    padding: '20px',
-    backgroundColor: '#ffffff',
-    fontFamily: '"Poppins", sans-serif',
-  },
-  title: {
-    fontSize: '1.8rem',
-    color: '#0f35df',
-    marginBottom: '20px',
-    fontWeight: '600',
-  },
-  card: {
-    background: '#fff',
-    padding: '25px',
-    borderRadius: '10px',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-    maxWidth: '700px',
-  },
-  inputGroup: {
-    marginBottom: '15px',
-  },
-  label: {
-    display: 'block',
-    marginBottom: '5px',
-    fontWeight: '500',
-    color: '#333',
-  },
-  input: {
-    width: '100%',
-    padding: '10px 12px',
-    border: '1px solid #ccc',
-    borderRadius: '6px',
-    fontSize: '1rem',
-  },
-  button: {
-    padding: '12px 20px',
-    fontSize: '1em',
-    backgroundColor: '#28a745',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontWeight: '600',
-    marginTop: '10px'
-  },
-  error: { color: '#dc3545', marginBottom: '10px' },
-  success: { color: '#28a745', marginBottom: '10px' },
-  loading: { color: '#0f35df' },
-};
 
 function EditProductPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  
-  const [product, setProduct] = useState(null);
+  const theme = useTheme(); // Access the Material-UI theme
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    price: 0,
-    stock: 0,
+    price: '',
+    stock: '',
     category: '',
   });
+  const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [currentImageUrl, setCurrentImageUrl] = useState('');
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        const data = await getAdminProductById(id);
-        setProduct(data);
+        const data = await getProductDetails(id);
         setFormData({
           name: data.name,
-          description: data.description || '',
-          price: parseFloat(data.price),
-          stock: parseInt(data.stock),
+          description: data.description,
+          price: data.price,
+          stock: data.stock,
           category: data.category,
         });
+        setCurrentImageUrl(data.imageUrl);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -98,10 +48,16 @@ function EditProductPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+  };
+
+  const handleImageChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setImage(e.target.files[0]);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -109,15 +65,19 @@ function EditProductPage() {
     setError('');
     setSuccess('');
     setLoading(true);
+
+    const data = new FormData();
+    data.append('name', formData.name);
+    data.append('description', formData.description);
+    data.append('price', parseFloat(formData.price));
+    data.append('stock', parseInt(formData.stock));
+    data.append('category', formData.category);
+    if (image) {
+      data.append('image', image);
+    }
+
     try {
-      const updateData = {
-        name: formData.name,
-        description: formData.description,
-        price: parseFloat(formData.price),
-        stock: parseInt(formData.stock),
-        category: formData.category,
-      };
-      await adminUpdateProduct(id, updateData);
+      await adminUpdateProduct(id, data);
       setSuccess('Product updated successfully!');
     } catch (err) {
       setError(err.message);
@@ -126,91 +86,230 @@ function EditProductPage() {
     }
   };
 
-  if (loading && !product) return <p style={styles.loading}>Loading product data...</p>;
-  if (error && !product) return <p style={styles.error}>Error: {error}</p>;
+  const handleDelete = async () => {
+    if (window.confirm('Are you sure you want to permanently delete this product?')) {
+      try {
+        setLoading(true);
+        await adminDeleteProduct(id);
+        alert('Product deleted successfully.');
+        navigate('/products');
+      } catch (err) {
+        alert(`Failed to delete product: ${err.message}`);
+        setError(err.message);
+        setLoading(false);
+      }
+    }
+  };
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: 'white' }}>
+        <div style={{
+            width: '80px',
+            height: '80px',
+            border: '4px solid rgba(255, 255, 255, 0.2)',
+            borderTop: '4px solid #FFD700',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+        }} />
+        <h1 style={{ marginLeft: '20px' }}>Loading Product...</h1>
+    </div>
+    );
+  }
+
+  if (error) {
+    return (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: 'red' }}>
+            <h1>Error: {error}</h1>
+        </div>
+    );
+  }
+
+  const COLORS = {
+    blue: '#0066FF',
+    skyBlue: '#00BFFF',
+    yellow: '#FFD700',
+    black: '#000000',
+    white: '#FFFFFF',
+    green: '#00FF00',
+    red: '#EF4444',
+    magenta: '#FF00FF'
+  };
 
   return (
-    <div style={styles.container}>
-      <Link to="/product-management" style={{ textDecoration: 'none' }}>
-        &larr; Back to Product Management
+    <Page title="Edit Product">
+      <Link to="/products" style={{
+          color: 'white',
+          textDecoration: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          marginBottom: '32px'
+      }}>
+        <FaArrowLeft /> Back to Product Management
       </Link>
-      <h2 style={styles.title}>Edit Product: {product?.name}</h2>
-      <p>Sold by: <strong>{product?.seller?.name || 'N/A'}</strong> ({product?.seller?.email})</p>
+      <div style={{
+        background: 'rgba(255, 255, 255, 0.08)',
+        backdropFilter: 'blur(40px)',
+        WebkitBackdropFilter: 'blur(40px)',
+        borderRadius: '32px',
+        padding: 'clamp(24px, 4vw, 40px)',
+        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+        border: '2px solid rgba(255, 255, 255, 0.12)',
+        maxWidth: '700px',
+        margin: '0 auto',
+      }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <input
+            placeholder="Product Name"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+            style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '2px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '12px',
+                color: 'white',
+                padding: '12px 16px',
+                fontSize: '16px',
+                outline: 'none',
+            }}
+          />
+          <textarea
+            placeholder="Description"
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            multiline
+            rows="4"
+            style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '2px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '12px',
+                color: 'white',
+                padding: '12px 16px',
+                fontSize: '16px',
+                outline: 'none',
+                resize: 'vertical',
+            }}
+          />
+          <input
+            placeholder="Price (Ksh)"
+            name="price"
+            type="number"
+            value={formData.price}
+            onChange={handleChange}
+            required
+            style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '2px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '12px',
+                color: 'white',
+                padding: '12px 16px',
+                fontSize: '16px',
+                outline: 'none',
+            }}
+          />
+          <input
+            placeholder="Stock"
+            name="stock"
+            type="number"
+            value={formData.stock}
+            onChange={handleChange}
+            required
+            style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '2px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '12px',
+                color: 'white',
+                padding: '12px 16px',
+                fontSize: '16px',
+                outline: 'none',
+            }}
+          />
+          <select
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+            required
+            style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '2px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '12px',
+                color: 'white',
+                padding: '12px 16px',
+                fontSize: '16px',
+                outline: 'none',
+            }}
+          >
+            {categories.map((cat) => (
+              <option key={cat} value={cat} style={{color: 'black'}}>
+                {cat}
+              </option>
+            ))}
+          </select>
+          <div>
+            <label htmlFor="image" style={{ display: 'block', marginBottom: '8px', color: 'white' }}>Product Image</label>
+            {currentImageUrl && (
+              <div style={{ marginBottom: '16px' }}>
+                <p style={{color: 'white', marginBottom: '8px'}}>Current Image:</p>
+                <img src={currentImageUrl} alt="Current Product" style={{ maxWidth: '100%', height: '100px', objectFit: 'contain' }} />
+              </div>
+            )}
+            <input
+              type="file"
+              name="image"
+              id="image"
+              accept="image/*"
+              onChange={handleImageChange}
+              style={{ padding: '10px', border: '1px solid #ccc', borderRadius: '4px', width: '100%', background: 'rgba(255, 255, 255, 0.1)', color: 'white' }}
+            />
+          </div>
 
-      <div style={styles.card}>
-        <form onSubmit={handleSubmit}>
-          {/* ... (rest of the form is unchanged) ... */}
-          <div style={styles.inputGroup}>
-            <label style={styles.label} htmlFor="name">Product Name</label>
-            <input
-              style={styles.input}
-              type="text"
-              name="name"
-              id="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div style={styles.inputGroup}>
-            <label style={styles.label} htmlFor="description">Description</label>
-            <textarea
-              style={{ ...styles.input, minHeight: '100px' }}
-              name="description"
-              id="description"
-              value={formData.description}
-              onChange={handleChange}
-            />
-          </div>
-          <div style={styles.inputGroup}>
-            <label style={styles.label} htmlFor="price">Price (Ksh)</label>
-            <input
-              style={styles.input}
-              type="number"
-              name="price"
-              id="price"
-              value={formData.price}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div style={styles.inputGroup}>
-            <label style={styles.label} htmlFor="stock">Stock</label>
-            <input
-              style={styles.input}
-              type="number"
-              name="stock"
-              id="stock"
-              value={formData.stock}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div style={styles.inputGroup}>
-            <label style={styles.label} htmlFor="category">Category</label>
-            <select
-              style={styles.input}
-              name="category"
-              id="category"
-              value={formData.category}
-              onChange={handleChange}
-              required
-            >
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-          </div>
-          
-          {error && <p style={styles.error}>{error}</p>}
-          {success && <p style={styles.success}>{success}</p>}
+          {error && (
+            <p style={{ color: COLORS.red, marginTop: '8px' }}>
+              {error}
+            </p>
+          )}
+          {success && (
+            <p style={{ color: COLORS.green, marginTop: '8px' }}>
+              {success}
+            </p>
+          )}
 
-          <button type="submit" style={styles.button} disabled={loading}>
-            {loading ? 'Saving...' : 'Save Changes'}
+          <button type="submit" disabled={loading} style={{
+                marginTop: '16px',
+                background: `linear-gradient(135deg, ${COLORS.yellow} 0%, ${COLORS.skyBlue} 100%)`,
+                color: 'white',
+                padding: '12px 24px',
+                borderRadius: '12px',
+                textDecoration: 'none',
+                fontWeight: 'bold',
+                border: 'none',
+                cursor: 'pointer'
+            }}>
+            {loading ? 'Updating...' : 'Update Product'}
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={loading}
+            style={{
+                background: COLORS.red,
+                color: 'white',
+                padding: '12px 24px',
+                borderRadius: '12px',
+                textDecoration: 'none',
+                fontWeight: 'bold',
+                border: 'none',
+                cursor: 'pointer'
+            }}
+          >
+            {loading ? 'Deleting...' : 'Delete Product'}
           </button>
         </form>
       </div>
-    </div>
+    </Page>
   );
 }
 

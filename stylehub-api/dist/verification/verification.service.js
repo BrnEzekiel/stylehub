@@ -30,8 +30,9 @@ let VerificationService = class VerificationService {
         if (!user) {
             throw new common_1.NotFoundException('User not found');
         }
+        const definitiveStatus = user.verification?.status || user.verificationStatus;
         return {
-            status: user.verificationStatus,
+            status: definitiveStatus,
             submission: user.verification,
         };
     }
@@ -42,7 +43,7 @@ let VerificationService = class VerificationService {
         const existing = await this.prisma.verification.findUnique({
             where: { userId },
         });
-        if (existing && (existing.status === 'pending' || existing.status === 'approved')) {
+        if (existing && (existing.status === 'pending' || existing.status === 'verified')) {
             throw new common_1.ConflictException(`Your submission is already ${existing.status}.`);
         }
         let licenseUrl;

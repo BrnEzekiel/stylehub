@@ -64,7 +64,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], PayoutsController.prototype, "markPayoutAsPaid", null);
 exports.PayoutsController = PayoutsController = __decorate([
-    (0, common_1.Controller)('api/payouts'),
+    (0, common_1.Controller)('payouts'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin),
     __metadata("design:paramtypes", [payouts_service_1.PayoutsService])

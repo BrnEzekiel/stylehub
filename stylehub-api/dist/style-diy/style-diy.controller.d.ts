@@ -14,16 +14,20 @@ export declare class StyleDIYController {
             email: string;
             id: string;
         };
-        service: {
-            id: string;
-            imageUrl: string;
-            title: string;
-        };
-        product: {
-            name: string;
-            id: string;
-            imageUrl: string;
-        };
+        services: {
+            service: {
+                id: string;
+                imageUrl: string;
+                title: string;
+            };
+        }[];
+        products: {
+            product: {
+                name: string;
+                id: string;
+                imageUrl: string;
+            };
+        }[];
         _count: {
             comments: number;
         };
@@ -31,14 +35,16 @@ export declare class StyleDIYController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        imageUrl: string | null;
-        productId: string | null;
         userId: string;
-        serviceId: string | null;
-        videoUrl: string | null;
+        status: string;
         title: string;
         content: string | null;
-        likes: number;
+        imageUrls: string[];
+        isPublic: boolean;
+        viewCount: number;
+        likeCount: number;
+        commentCount: number;
+        topic: string | null;
     }>;
     getAllPosts(page?: string, limit?: string): Promise<{
         posts: ({
@@ -47,16 +53,20 @@ export declare class StyleDIYController {
                 email: string;
                 id: string;
             };
-            service: {
-                id: string;
-                imageUrl: string;
-                title: string;
-            };
-            product: {
-                name: string;
-                id: string;
-                imageUrl: string;
-            };
+            services: {
+                service: {
+                    id: string;
+                    imageUrl: string;
+                    title: string;
+                };
+            }[];
+            products: {
+                product: {
+                    name: string;
+                    id: string;
+                    imageUrl: string;
+                };
+            }[];
             _count: {
                 comments: number;
             };
@@ -71,15 +81,13 @@ export declare class StyleDIYController {
                 createdAt: Date;
                 updatedAt: Date;
                 userId: string;
+                status: string;
                 content: string;
+                likeCount: number;
                 postId: string;
+                parentId: string | null;
             })[];
             recommendations: ({
-                user: {
-                    name: string;
-                    email: string;
-                    id: string;
-                };
                 service: {
                     id: string;
                     imageUrl: string;
@@ -100,29 +108,38 @@ export declare class StyleDIYController {
                     email: string;
                     id: string;
                 };
+                recommendedBy: {
+                    name: string;
+                    email: string;
+                    id: string;
+                };
             } & {
                 id: string;
                 createdAt: Date;
+                updatedAt: Date;
+                status: string;
                 sellerId: string | null;
                 productId: string | null;
-                userId: string;
                 comment: string | null;
                 serviceId: string | null;
                 providerId: string | null;
                 postId: string;
+                recommendedById: string;
             })[];
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            imageUrl: string | null;
-            productId: string | null;
             userId: string;
-            serviceId: string | null;
-            videoUrl: string | null;
+            status: string;
             title: string;
             content: string | null;
-            likes: number;
+            imageUrls: string[];
+            isPublic: boolean;
+            viewCount: number;
+            likeCount: number;
+            commentCount: number;
+            topic: string | null;
         })[];
         total: number;
         page: number;
@@ -135,16 +152,20 @@ export declare class StyleDIYController {
             email: string;
             id: string;
         };
-        service: {
-            id: string;
-            imageUrl: string;
-            title: string;
-        };
-        product: {
-            name: string;
-            id: string;
-            imageUrl: string;
-        };
+        services: {
+            service: {
+                id: string;
+                imageUrl: string;
+                title: string;
+            };
+        }[];
+        products: {
+            product: {
+                name: string;
+                id: string;
+                imageUrl: string;
+            };
+        }[];
         comments: ({
             user: {
                 name: string;
@@ -156,15 +177,13 @@ export declare class StyleDIYController {
             createdAt: Date;
             updatedAt: Date;
             userId: string;
+            status: string;
             content: string;
+            likeCount: number;
             postId: string;
+            parentId: string | null;
         })[];
         recommendations: ({
-            user: {
-                name: string;
-                email: string;
-                id: string;
-            };
             service: {
                 id: string;
                 imageUrl: string;
@@ -185,42 +204,53 @@ export declare class StyleDIYController {
                 email: string;
                 id: string;
             };
+            recommendedBy: {
+                name: string;
+                email: string;
+                id: string;
+            };
         } & {
             id: string;
             createdAt: Date;
+            updatedAt: Date;
+            status: string;
             sellerId: string | null;
             productId: string | null;
-            userId: string;
             comment: string | null;
             serviceId: string | null;
             providerId: string | null;
             postId: string;
+            recommendedById: string;
         })[];
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        imageUrl: string | null;
-        productId: string | null;
         userId: string;
-        serviceId: string | null;
-        videoUrl: string | null;
+        status: string;
         title: string;
         content: string | null;
-        likes: number;
+        imageUrls: string[];
+        isPublic: boolean;
+        viewCount: number;
+        likeCount: number;
+        commentCount: number;
+        topic: string | null;
     }>;
     likePost(id: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        imageUrl: string | null;
-        productId: string | null;
         userId: string;
-        serviceId: string | null;
-        videoUrl: string | null;
+        status: string;
         title: string;
         content: string | null;
-        likes: number;
+        imageUrls: string[];
+        isPublic: boolean;
+        viewCount: number;
+        likeCount: number;
+        commentCount: number;
+        topic: string | null;
     }>;
     addComment(req: any, id: string, dto: CreateCommentDto): Promise<{
         user: {
@@ -233,15 +263,13 @@ export declare class StyleDIYController {
         createdAt: Date;
         updatedAt: Date;
         userId: string;
+        status: string;
         content: string;
+        likeCount: number;
         postId: string;
+        parentId: string | null;
     }>;
     addRecommendation(req: any, id: string, dto: CreateRecommendationDto): Promise<{
-        user: {
-            name: string;
-            email: string;
-            id: string;
-        };
         service: {
             id: string;
             imageUrl: string;
@@ -262,28 +290,37 @@ export declare class StyleDIYController {
             email: string;
             id: string;
         };
+        recommendedBy: {
+            name: string;
+            email: string;
+            id: string;
+        };
     } & {
         id: string;
         createdAt: Date;
+        updatedAt: Date;
+        status: string;
         sellerId: string | null;
         productId: string | null;
-        userId: string;
         comment: string | null;
         serviceId: string | null;
         providerId: string | null;
         postId: string;
+        recommendedById: string;
     }>;
     deletePost(req: any, id: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        imageUrl: string | null;
-        productId: string | null;
         userId: string;
-        serviceId: string | null;
-        videoUrl: string | null;
+        status: string;
         title: string;
         content: string | null;
-        likes: number;
+        imageUrls: string[];
+        isPublic: boolean;
+        viewCount: number;
+        likeCount: number;
+        commentCount: number;
+        topic: string | null;
     }>;
 }

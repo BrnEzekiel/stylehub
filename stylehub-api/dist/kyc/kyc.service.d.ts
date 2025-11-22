@@ -9,11 +9,14 @@ export declare class KycService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        user_id: string;
-        doc_type: string;
-        doc_url: string;
-        selfie_url: string;
+        userId: string;
+        docType: string;
+        docUrl: string;
+        selfieUrl: string;
         status: import(".prisma/client").$Enums.KycStatus;
+        remarks: string | null;
+        reviewedAt: Date | null;
+        reviewedBy: string | null;
     } | {
         status: string;
     }>;
@@ -21,11 +24,14 @@ export declare class KycService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        user_id: string;
-        doc_type: string;
-        doc_url: string;
-        selfie_url: string;
+        userId: string;
+        docType: string;
+        docUrl: string;
+        selfieUrl: string;
         status: import(".prisma/client").$Enums.KycStatus;
+        remarks: string | null;
+        reviewedAt: Date | null;
+        reviewedBy: string | null;
     }>;
     getPendingSubmissions(): Promise<({
         user: {
@@ -36,20 +42,26 @@ export declare class KycService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        user_id: string;
-        doc_type: string;
-        doc_url: string;
-        selfie_url: string;
+        userId: string;
+        docType: string;
+        docUrl: string;
+        selfieUrl: string;
         status: import(".prisma/client").$Enums.KycStatus;
+        remarks: string | null;
+        reviewedAt: Date | null;
+        reviewedBy: string | null;
     })[]>;
     updateKycStatus(kycId: string, status: KycStatus): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        user_id: string;
-        doc_type: string;
-        doc_url: string;
-        selfie_url: string;
+        userId: string;
+        docType: string;
+        docUrl: string;
+        selfieUrl: string;
         status: import(".prisma/client").$Enums.KycStatus;
+        remarks: string | null;
+        reviewedAt: Date | null;
+        reviewedBy: string | null;
     }>;
 }

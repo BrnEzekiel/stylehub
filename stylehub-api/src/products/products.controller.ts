@@ -18,7 +18,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/enums/role.enum';
 import { AdminUpdateProductDto } from './dto/admin-update-product.dto';
 
-@Controller('api/products')
+@Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 

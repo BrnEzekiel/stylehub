@@ -22,7 +22,7 @@ import { FileInterceptor } from '@nest-lab/fastify-multer';
 import { SubmitVerificationDto } from './dto/submit-verification.dto';
 import { UpdateVerificationStatusDto } from './dto/update-verification.dto'; // 4. 🛑 Import DTO
 
-@Controller('api/verification')
+@Controller('verification')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class VerificationController {
   constructor(private readonly verificationService: VerificationService) {}

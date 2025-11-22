@@ -18,29 +18,41 @@ export declare class PayoutsService {
         payouts: {
             id: string;
             createdAt: Date;
+            updatedAt: Date;
             status: import(".prisma/client").$Enums.PayoutStatus;
             sellerId: string;
             amount: Prisma.Decimal;
+            reference: string | null;
             walletTransactionId: string | null;
-            paidAt: Date | null;
+            notes: string | null;
+            processedAt: Date | null;
+            processedBy: string | null;
         }[];
     }[]>;
     createPayout(sellerId: string): Promise<{
         id: string;
         createdAt: Date;
+        updatedAt: Date;
         status: import(".prisma/client").$Enums.PayoutStatus;
         sellerId: string;
         amount: Prisma.Decimal;
+        reference: string | null;
         walletTransactionId: string | null;
-        paidAt: Date | null;
+        notes: string | null;
+        processedAt: Date | null;
+        processedBy: string | null;
     }>;
     markPayoutAsPaid(payoutId: string): Promise<{
         id: string;
         createdAt: Date;
+        updatedAt: Date;
         status: import(".prisma/client").$Enums.PayoutStatus;
         sellerId: string;
         amount: Prisma.Decimal;
+        reference: string | null;
         walletTransactionId: string | null;
-        paidAt: Date | null;
+        notes: string | null;
+        processedAt: Date | null;
+        processedBy: string | null;
     }>;
 }

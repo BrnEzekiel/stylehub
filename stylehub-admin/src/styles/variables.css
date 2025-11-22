@@ -1,0 +1,49 @@
+/* ==============================
+   variables.css — Theme System
+============================== */
+
+:root {
+  /* 🎨 Color Palette (Light Mode Defaults) */
+  --color-primary: #0f1f3d;   /* Navy Blue */
+  --color-secondary: #fa0f8c; /* Magenta */
+  --color-accent: #ffe600;    /* Yellow */
+  --color-bg: #ffffff;        /* White */
+  --color-bg-secondary: #f9f9f9; /* Lighter Grey for secondary backgrounds */
+  --color-text: #0a0a0a;      /* Black */
+  --color-text-secondary: #333333; /* Darker grey for secondary text */
+  --color-muted: #6b6b6b;     /* Soft Grey */
+  --color-border: #e0e0e0;    /* Light Border */
+  --color-success: #16a34a;   /* Green for success */
+  --color-warning: #d97706;   /* Orange for warning */
+  --color-error: #e11d48;     /* Red for error */
+  --color-info: #0284c7;      /* Blue for info */
+
+  /* 📏 Layout + Effects */
+  --radius: 12px;
+  --shadow-soft: 0 4px 10px rgba(0, 0, 0, 0.05);
+  --shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.1);
+  --transition: all 0.3s ease;
+
+  /* 💬 Typography */
+  --font-primary: 'Inter', 'Segoe UI', sans-serif;
+}
+
+/* Dark Mode */
+body.dark-theme {
+  --color-primary: #212c44;    /* Darker Navy Blue */
+  --color-secondary: #ff3cac;  /* Brighter Magenta */
+  --color-accent: #ffeb3b;     /* Brighter Yellow */
+  --color-bg: #121212;         /* Very Dark Grey */
+  --color-bg-secondary: #1e1e1e; /* Slightly lighter dark grey */
+  --color-text: #e0e0e0;       /* Light Grey */
+  --color-text-secondary: #b0b0b0; /* Muted light grey for secondary text */
+  --color-muted: #9e9e9e;      /* Lighter Soft Grey */
+  --color-border: #333333;     /* Darker Border */
+  --color-success: #69f0ae;   /* Lighter green for success */
+  --color-warning: #ffb300;   /* Lighter orange for warning */
+  --color-error: #ff5252;     /* Lighter red for error */
+  --color-info: #82b1ff;      /* Lighter blue for info */
+
+  --shadow-soft: 0 4px 10px rgba(0, 0, 0, 0.3);
+  --shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.4);
+}

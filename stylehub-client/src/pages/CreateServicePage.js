@@ -2,6 +2,23 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createService } from '../api/serviceService';
+import {
+  Box,
+  Typography,
+  Button,
+  Paper,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Checkbox,
+  FormControlLabel,
+  CircularProgress,
+  Container,
+  Grid
+} from '@mui/material';
+import { pageSx, paperSx, COLOR_PRIMARY_BLUE, COLOR_TEXT_DARK } from '../styles/theme';
 
 const CATEGORIES = ['Hair', 'Nails', 'Makeup', 'Skincare', 'Barber'];
 
@@ -43,16 +60,12 @@ export default function CreateServicePage() {
       alert('Service created successfully!');
       navigate('/my-services');
     } catch (err) {
-      // 🔥 Better error handling for production
       let msg = 'Failed to create service.';
       if (err.response) {
-        // Server responded with error (4xx/5xx)
         msg = err.response.data?.message || `Server error: ${err.response.status}`;
       } else if (err.request) {
-        // Network error (no response)
         msg = 'Network error. Please check your internet connection.';
       } else {
-        // Other errors
         msg = err.message || 'An unknown error occurred.';
       }
       setMessage(msg);
@@ -63,58 +76,69 @@ export default function CreateServicePage() {
   };
 
   return (
-    <div className="admin-content" style={{ maxWidth: '600px', margin: '0 auto' }}>
-      <h2>Create a New Service</h2>
-      {message && <p style={{ color: 'red' }}>{message}</p>}
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '15px' }}>
-          <label>Title</label>
-          <input type="text" name="title" value={formData.title} onChange={handleChange} required style={{ width: '100%', padding: '8px' }} />
-        </div>
-        <div style={{ marginBottom: '15px' }}>
-          <label>Description</label>
-          <textarea name="description" value={formData.description} onChange={handleChange} required style={{ width: '100%', height: '100px', padding: '8px' }} />
-        </div>
-        <div style={{ marginBottom: '15px' }}>
-          <label>Category</label>
-          <select name="category" value={formData.category} onChange={handleChange} style={{ width: '100%', padding: '8px' }}>
-            {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-          </select>
-        </div>
-        <div style={{ marginBottom: '15px' }}>
-          <label>Price (Shop) - Ksh</label>
-          <input type="number" step="0.01" name="priceShopCents" value={formData.priceShopCents} onChange={handleChange} required style={{ width: '100%', padding: '8px' }} />
-        </div>
-        <div style={{ marginBottom: '15px' }}>
-          <label>
-            <input type="checkbox" name="offersHome" checked={formData.offersHome} onChange={handleChange} />
-            Offers Home Service
-          </label>
-          {formData.offersHome && (
-            <input
-              type="number"
-              step="0.01"
-              name="priceHomeCents"
-              placeholder="Home service price"
-              value={formData.priceHomeCents}
-              onChange={handleChange}
-              required
-              style={{ width: '100%', padding: '8px', marginTop: '8px' }}
-            />
-          )}
-        </div>
-        <div style={{ marginBottom: '15px' }}>
-          <label>Duration (minutes)</label>
-          <input type="number" name="durationMinutes" value={formData.durationMinutes} onChange={handleChange} required style={{ width: '100%', padding: '8px' }} />
-        </div>
-        <div style={{ marginBottom: '15px' }}>
-          <label>Service Image</label>
-          <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files[0])} required style={{ width: '100%' }} />
-        </div>
-        <button type="submit" disabled={loading} style={{ width: '100%', padding: '12px' }}>
-          {loading ? 'Creating...' : 'Create Service'}
-        </button>
-      </form>
-    </div>
+    <Box sx={pageSx}>
+        <Container maxWidth="md">
+            <Typography variant="h4" sx={{color: COLOR_TEXT_DARK, fontWeight: '900', mb: 3}}>Create a New Service</Typography>
+            <Paper sx={{...paperSx, p: 4}}>
+                <Box component="form" onSubmit={handleSubmit}>
+                    <Grid container spacing={3}>
+                        <Grid item xs={12}>
+                            <TextField fullWidth label="Title" name="title" value={formData.title} onChange={handleChange} required />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <TextField fullWidth label="Description" name="description" value={formData.description} onChange={handleChange} required multiline rows={4} />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <FormControl fullWidth required>
+                                <InputLabel>Category</InputLabel>
+                                <Select name="category" value={formData.category} onChange={handleChange} label="Category">
+                                    {CATEGORIES.map(cat => <MenuItem key={cat} value={cat}>{cat}</MenuItem>)}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                           <TextField fullWidth label="Duration (minutes)" name="durationMinutes" type="number" value={formData.durationMinutes} onChange={handleChange} required />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <TextField fullWidth label="Price (Shop) - Ksh" name="priceShopCents" type="number" value={formData.priceShopCents} onChange={handleChange} required />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <FormControlLabel
+                                control={<Checkbox name="offersHome" checked={formData.offersHome} onChange={handleChange} />}
+                                label="Offers Home Service"
+                            />
+                            {formData.offersHome && (
+                                <TextField
+                                    fullWidth
+                                    label="Home Service Price - Ksh"
+                                    name="priceHomeCents"
+                                    type="number"
+                                    value={formData.priceHomeCents}
+                                    onChange={handleChange}
+                                    required
+                                    sx={{mt: 2}}
+                                />
+                            )}
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Button variant="contained" component="label" sx={{backgroundColor: COLOR_PRIMARY_BLUE}}>
+                                Upload Service Image
+                                <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files[0])} required hidden />
+                            </Button>
+                            {imageFile && <Typography sx={{display: 'inline', ml: 2}}>{imageFile.name}</Typography>}
+                        </Grid>
+                        
+                        {message && <Grid item xs={12}><Typography color="error">{message}</Typography></Grid>}
+
+                        <Grid item xs={12}>
+                            <Button type="submit" disabled={loading} variant="contained" size="large" fullWidth sx={{backgroundColor: COLOR_PRIMARY_BLUE}}>
+                                {loading ? <CircularProgress size={24} color="inherit" /> : 'Create Service'}
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </Box>
+            </Paper>
+        </Container>
+    </Box>
   );
 }

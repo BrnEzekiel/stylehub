@@ -1,10 +1,15 @@
 // src/pages/SearchPage.js
 
 import React, { useState, useEffect } from 'react';
-import { useLocation, Link } from 'react-router-dom';
-import { getProducts } from '../api/productService'; // 1. 🛑 Import from new service
+import { useLocation, useNavigate } from 'react-router-dom';
+import { getProducts } from '../api/productService';
 import { useAuth } from '../context/AuthContext';
-import { getWishlistProductIds, addWishlistItem, removeWishlistItem } from '../api/wishlistService'; // 2. 🛑 Import wishlist functions
+import { getWishlistProductIds, addWishlistItem, removeWishlistItem } from '../api/wishlistService';
+import {
+  Box, Typography, Grid, CircularProgress, Container, Paper, Pagination, Alert
+} from '@mui/material';
+import { pageSx, paperSx, COLOR_PRIMARY_BLUE, COLOR_TEXT_DARK } from '../styles/theme';
+import ProductCard from '../components/ProductCard';
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -15,10 +20,10 @@ function SearchPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // 3. 🛑 Wishlist state
   const [wishlistIds, setWishlistIds] = useState(new Set());
   const { token, user } = useAuth();
   
+  const navigate = useNavigate();
   const query = useQuery();
   const searchTerm = query.get('q');
   const page = parseInt(query.get('page') || '1');
@@ -33,14 +38,8 @@ function SearchPage() {
     const fetchSearch = async () => {
       try {
         setLoading(true);
+        const params = { search: searchTerm, page: page, limit: 9 };
         
-        const params = {
-          search: searchTerm,
-          page: page,
-          limit: 9
-        };
-        
-        // 4. 🛑 Fetch search and wishlist IDs in parallel
         const [responseData, wishlistIdSet] = await Promise.all([
           getProducts(params),
           token && user?.role === 'client' ? getWishlistProductIds() : new Set()
@@ -51,25 +50,19 @@ function SearchPage() {
         setError(null);
       } catch (err) {
         setError('Failed to fetch search results.');
-        console.error(err);
       } finally {
         setLoading(false);
       }
     };
 
     fetchSearch();
-  }, [searchTerm, page, token, user]); // 5. 🛑 Re-run if auth state changes
+  }, [searchTerm, page, token, user]);
 
-  // 6. 🛑 Wishlist toggle handler
-  const handleToggleWishlist = async (e, productId) => {
-    e.preventDefault();
-    e.stopPropagation();
-
+  const handleToggleWishlist = async (productId) => {
     if (!token || user?.role !== 'client') {
-      alert('Please log in as a client to use the wishlist.');
+      navigate('/login');
       return;
     }
-
     const newSet = new Set(wishlistIds);
     if (wishlistIds.has(productId)) {
       try {
@@ -84,85 +77,58 @@ function SearchPage() {
     }
     setWishlistIds(newSet);
   };
+  
+  const handlePageChange = (event, value) => {
+      navigate(`/search?q=${searchTerm}&page=${value}`);
+  };
 
-  if (loading) return <p>Searching for "{searchTerm}"...</p>;
-  if (error) return <p style={{ color: 'red' }}>{error}</p>;
+  if (loading) {
+    return (
+        <Box sx={{ ...pageSx, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <CircularProgress sx={{ color: COLOR_PRIMARY_BLUE }} />
+            <Typography variant="h6" sx={{ ml: 2 }}>Searching for "{searchTerm}"...</Typography>
+        </Box>
+    );
+  }
+  if (error) { return <Box sx={pageSx}><Alert severity="error">{error}</Alert></Box>; }
 
   const { products, meta } = data;
   const { totalPages, total } = meta;
 
   return (
-    <div>
-      <h2>Search Results for "{searchTerm}"</h2>
-      <p>{total || 0} results found.</p>
-      
-      {products.length === 0 ? (
-        <p>No products matched your search.</p>
-      ) : (
-        <div className="product-grid">
-          {products.map((product) => (
-            <ProductCard 
-              key={product.id} 
-              product={product} 
-              isWishlisted={wishlistIds.has(product.id)} // 7. 🛑 Pass state
-              onToggleWishlist={handleToggleWishlist} // 8. 🛑 Pass handler
-              userRole={user?.role}
-            />
-          ))}
-        </div>
-      )}
+    <Box sx={pageSx}>
+        <Container maxWidth="lg">
+            <Typography variant="h4" sx={{color: COLOR_TEXT_DARK, fontWeight: '900', mb: 1}}>Search Results for "{searchTerm}"</Typography>
+            <Typography color="text.secondary" sx={{mb: 3}}>{total || 0} results found.</Typography>
+            
+            {products.length === 0 ? (
+                <Paper sx={{...paperSx, p: 4, textAlign: 'center'}}>
+                    <Typography variant="h6">No products matched your search.</Typography>
+                </Paper>
+            ) : (
+            <>
+                <Grid container spacing={2}>
+                {products.map((product) => (
+                    <Grid item key={product.id} xs={12} sm={6} md={4}>
+                        <ProductCard 
+                            product={product} 
+                            isWishlisted={wishlistIds.has(product.id)} 
+                            onToggleWishlist={handleToggleWishlist}
+                            userRole={user?.role}
+                        />
+                    </Grid>
+                ))}
+                </Grid>
 
-      <div className="pagination-controls">
-        <Link to={`/search?q=${searchTerm}&page=${page - 1}`}>
-          <button disabled={page <= 1}>
-            &larr; Previous
-          </button>
-        </Link>
-        <span>Page {page} of {totalPages || 1}</span>
-        <Link to={`/search?q=${searchTerm}&page=${page + 1}`}>
-          <button disabled={page >= totalPages}>
-            Next &rarr;
-          </button>
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-// 9. 🛑 Product Card updated with Wishlist button and Verified Badge
-function ProductCard({ product, isWishlisted, onToggleWishlist, userRole }) {
-  const isVerified = product.seller?.verificationStatus === 'approved';
-
-  return (
-    <div className="product-card">
-      {userRole === 'client' && (
-        <button 
-          className={`wishlist-btn ${isWishlisted ? 'active' : ''}`}
-          onClick={(e) => onToggleWishlist(e, product.id)}
-          title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
-        >
-          {isWishlisted ? '♥' : '♡'}
-        </button>
-      )}
-      
-      <Link to={`/products/${product.id}`} className="product-card-link">
-        <img 
-          src={product.imageUrl || 'https://placehold.co/600x400/007bff/FFFFFF?text=StyleHub'} 
-          alt={product.name} 
-          className="product-card-image"
-          onError={(e) => { e.target.onerror = null; e.target.src="https://placehold.co/600x400/dc3545/FFFFFF?text=Image+Missing"; }}
-        />
-        <div className="product-card-content">
-          {isVerified && (
-            <div className="verified-seller-badge" style={{fontSize: '0.8em', marginBottom: '8px'}}>
-              ✅ Verified Seller
-            </div>
-          )}
-          <h3>{product.name}</h3>
-          <p>Ksh {parseFloat(product.price).toFixed(2)}</p>
-        </div>
-      </Link>
-    </div>
+                {totalPages > 1 && (
+                    <Box sx={{display: 'flex', justifyContent: 'center', mt: 4}}>
+                        <Pagination count={totalPages} page={page} onChange={handlePageChange} color="primary" />
+                    </Box>
+                )}
+            </>
+            )}
+        </Container>
+    </Box>
   );
 }
 

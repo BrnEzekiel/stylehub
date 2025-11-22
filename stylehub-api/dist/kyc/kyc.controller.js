@@ -85,7 +85,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], KycController.prototype, "updateKycStatus", null);
 exports.KycController = KycController = __decorate([
-    (0, common_1.Controller)('api/kyc'),
+    (0, common_1.Controller)('kyc'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     __metadata("design:paramtypes", [kyc_service_1.KycService])
 ], KycController);

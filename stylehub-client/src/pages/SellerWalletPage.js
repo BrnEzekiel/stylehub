@@ -2,16 +2,25 @@
 
 import React, { useState, useEffect } from 'react';
 import { getWalletDetails, requestWithdrawal } from '../api/walletService';
-
-// --- Helper to format currency ---
-function formatCurrency(num) {
-  const number = parseFloat(num);
-  if (isNaN(number)) return 'Ksh 0.00';
-  return new Intl.NumberFormat('en-KE', {
-    style: 'currency',
-    currency: 'KSH',
-  }).format(number);
-}
+import {
+  Box,
+  Typography,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  CircularProgress,
+  Button,
+  TextField,
+  Grid,
+  Container
+} from '@mui/material';
+import { pageSx, paperSx, COLOR_PRIMARY_BLUE, COLOR_TEXT_DARK } from '../styles/theme';
+import StatCard from '../components/StatCard';
+import { formatCurrency } from '../utils/styleUtils';
 
 // --- Main Page Component ---
 function SellerWalletPage() {
@@ -73,216 +82,118 @@ function SellerWalletPage() {
     }
   };
 
-  if (loading) return <p style={styles.loading}>Loading your wallet...</p>;
-  if (error) return <p style={styles.error}>Error: {error}</p>;
-  if (!wallet) return <p>Could not load wallet details.</p>;
+  if (loading) {
+    return (
+        <Box sx={{ ...pageSx, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <CircularProgress sx={{ color: COLOR_PRIMARY_BLUE }} />
+            <Typography variant="h6" sx={{ ml: 2, color: COLOR_PRIMARY_BLUE }}>Loading your wallet...</Typography>
+        </Box>
+    );
+  }
+  if (error) {
+      return (
+          <Box sx={{ ...pageSx, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <Typography color="error" variant="h6">Error: {error}</Typography>
+          </Box>
+      );
+  }
+  if (!wallet) return <Box sx={pageSx}><Typography>Could not load wallet details.</Typography></Box>;
+
 
   return (
-    <div style={styles.container}>
-      <h2 style={styles.title}>My Earnings & Wallet</h2>
+    <Box sx={pageSx}>
+      <Container maxWidth="lg">
+        <Typography variant="h4" sx={{color: COLOR_TEXT_DARK, fontWeight: '900', mb: 3}}>My Earnings & Wallet</Typography>
 
-      {/* --- Stat Cards --- */}
-      <div className="stats-grid">
-        <StatCard
-          title="Available Balance"
-          value={formatCurrency(wallet.walletBalance)}
-          icon="💰"
-          className="balance"
-        />
-      </div>
+        {/* --- Stat Cards --- */}
+        <Grid container spacing={3} sx={{mb: 4}}>
+            <Grid item xs={12} sm={6} md={4}>
+                <StatCard
+                title="Available Balance"
+                value={formatCurrency(wallet.walletBalance)}
+                icon="💰"
+                />
+            </Grid>
+        </Grid>
 
-      <div style={styles.grid}>
-        {/* --- Withdrawal Form --- */}
-        <div style={styles.card}>
-          <h3 style={styles.cardTitle}>Request Withdrawal</h3>
-          <p>Request a payout to your M-Pesa. Requests are processed by an admin.</p>
-          <form onSubmit={handleWithdrawal}>
-            <div style={styles.inputGroup}>
-              <label style={styles.label} htmlFor="amount">Amount (Ksh)</label>
-              <input
-                style={styles.input}
-                type="number"
-                id="amount"
-                placeholder="e.g., 5000"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                required
-              />
-            </div>
-            <div style={styles.inputGroup}>
-              <label style={styles.label} htmlFor="mpesaNumber">M-Pesa Phone Number</label>
-              <input
-                style={styles.input}
-                type="tel"
-                id="mpesaNumber"
-                placeholder="e.g., 0712345678"
-                value={mpesaNumber}
-                onChange={(e) => setMpesaNumber(e.target.value)}
-                required
-              />
-            </div>
-            
-            {formError && <p style={styles.error}>{formError}</p>}
-            {formSuccess && <p style={styles.success}>{formSuccess}</p>}
+        <Grid container spacing={3}>
+            {/* --- Withdrawal Form --- */}
+            <Grid item xs={12} md={4}>
+                <Paper sx={paperSx}>
+                    <Typography variant="h5" sx={{fontWeight: 'bold', color: COLOR_TEXT_DARK, mb: 2}}>Request Withdrawal</Typography>
+                    <Typography color="text.secondary" sx={{mb: 2}}>Request a payout to your M-Pesa. Requests are processed by an admin.</Typography>
+                    <Box component="form" onSubmit={handleWithdrawal}>
+                        <TextField
+                            fullWidth
+                            label="Amount (Ksh)"
+                            type="number"
+                            placeholder="e.g., 5000"
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                            sx={{ mb: 2 }}
+                            required
+                        />
+                        <TextField
+                            fullWidth
+                            label="M-Pesa Phone Number"
+                            type="tel"
+                            placeholder="e.g., 0712345678"
+                            value={mpesaNumber}
+                            onChange={(e) => setMpesaNumber(e.target.value)}
+                            sx={{ mb: 2 }}
+                            required
+                        />
+                        
+                        {formError && <Typography color="error" sx={{ mb: 1 }}>{formError}</Typography>}
+                        {formSuccess && <Typography color="success.main" sx={{ mb: 1 }}>{formSuccess}</Typography>}
 
-            <button type="submit" style={styles.button} disabled={formLoading}>
-              {formLoading ? 'Submitting...' : 'Request Withdrawal'}
-            </button>
-          </form>
-        </div>
+                        <Button type="submit" fullWidth variant="contained" sx={{ backgroundColor: COLOR_PRIMARY_BLUE }} disabled={formLoading}>
+                            {formLoading ? <CircularProgress size={24} color="inherit" /> : 'Request Withdrawal'}
+                        </Button>
+                    </Box>
+                </Paper>
+            </Grid>
 
-        {/* --- Transaction History (Receipts) --- */}
-        <div style={styles.card}>
-          <h3 style={styles.cardTitle}>Transaction History</h3>
-          <div style={styles.tableWrapper}>
-            <table style={styles.table}>
-              <thead>
-                <tr style={styles.headerRow}>
-                  <th style={styles.cell}>Date</th>
-                  <th style={styles.cell}>Description</th>
-                  <th style={styles.cell}>Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {wallet.walletTransactions.length === 0 ? (
-                  <tr>
-                    <td colSpan="3" style={{...styles.cell, textAlign: 'center'}}>
-                      No transactions found.
-                    </td>
-                  </tr>
-                ) : (
-                  wallet.walletTransactions.map((tx) => (
-                    <tr key={tx.id} style={styles.row}>
-                      <td style={styles.cell}>{new Date(tx.createdAt).toLocaleDateString()}</td>
-                      <td style={styles.cell}>{tx.description}</td>
-                      <td style={{
-                        ...styles.cell, 
-                        fontWeight: '600',
-                        color: tx.type === 'credit' ? '#15803d' : '#991b1b'
-                      }}>
-                        {formatCurrency(tx.amount)}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
+            {/* --- Transaction History (Receipts) --- */}
+            <Grid item xs={12} md={8}>
+                <Paper sx={paperSx}>
+                    <Typography variant="h5" sx={{fontWeight: 'bold', color: COLOR_TEXT_DARK, mb: 2}}>Transaction History</Typography>
+                    <TableContainer>
+                        <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Date</TableCell>
+                                    <TableCell>Description</TableCell>
+                                    <TableCell align="right">Amount</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {wallet.walletTransactions.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={3} sx={{ textAlign: 'center' }}>
+                                            No transactions found.
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    wallet.walletTransactions.map((tx) => (
+                                    <TableRow key={tx.id}>
+                                        <TableCell>{new Date(tx.createdAt).toLocaleDateString()}</TableCell>
+                                        <TableCell>{tx.description}</TableCell>
+                                        <TableCell align="right" sx={{ fontWeight: 'bold', color: tx.type === 'credit' ? 'green' : 'red' }}>
+                                            {tx.type === 'credit' ? '+' : '-'} Ksh {parseFloat(tx.amount).toFixed(2)}
+                                        </TableCell>
+                                    </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </Paper>
+            </Grid>
+        </Grid>
+      </Container>
+    </Box>
   );
 }
-
-// --- Reusable Stat Card Component ---
-function StatCard({ title, value, icon, className = '' }) {
-  return (
-    <div className={`stat-card ${className}`}>
-      <div className="stat-icon">{icon}</div>
-      <div className="stat-info">
-        <p>{title}</p>
-        <h3 style={{ wordWrap: 'break-word', fontSize: '2.5rem' }}>{value}</h3>
-      </div>
-    </div>
-  );
-}
-
-// --- Styles ---
-const styles = {
-  container: {
-    padding: '20px',
-    backgroundColor: '#f9f9f9',
-    minHeight: '100vh',
-  },
-  title: {
-    fontSize: '1.8rem',
-    color: '#0f35df',
-    marginBottom: '20px',
-    fontWeight: '600',
-  },
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 2fr',
-    gap: '20px',
-    marginTop: '20px',
-  },
-  card: {
-    background: '#fff',
-    padding: '25px',
-    borderRadius: '10px',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-  },
-  cardTitle: {
-    fontSize: '1.25rem',
-    fontWeight: '600',
-    color: '#0f35df',
-    borderBottom: '1px solid #eee',
-    paddingBottom: '10px',
-    marginBottom: '15px',
-  },
-  inputGroup: {
-    marginBottom: '15px',
-  },
-  label: {
-    display: 'block',
-    marginBottom: '5px',
-    fontWeight: '500',
-    color: '#333',
-  },
-  input: {
-    width: '100%',
-    padding: '10px 12px',
-    border: '1px solid #ccc',
-    borderRadius: '6px',
-    fontSize: '1rem',
-  },
-  button: {
-    width: '100%',
-    padding: '12px 20px',
-    fontSize: '1em',
-    backgroundColor: '#0f35df',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontWeight: '600',
-  },
-  tableWrapper: {
-    overflowX: 'auto',
-    maxHeight: '400px',
-  },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    fontSize: '0.95rem',
-  },
-  headerRow: {
-    backgroundColor: '#0f35df',
-    color: '#fff',
-    position: 'sticky',
-    top: 0,
-  },
-  cell: {
-    padding: '12px 15px',
-    border: '1px solid #ddd',
-    textAlign: 'left',
-  },
-  row: {
-    transition: 'background 0.2s ease',
-  },
-  loading: {
-    textAlign: 'center',
-    color: '#0f35df',
-    fontWeight: '500',
-  },
-  error: {
-    color: '#dc3545',
-    marginBottom: '10px',
-  },
-  success: {
-    color: '#28a745',
-    marginBottom: '10px',
-  },
-};
 
 export default SellerWalletPage;

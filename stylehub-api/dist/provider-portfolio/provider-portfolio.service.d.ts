@@ -10,22 +10,26 @@ export declare class ProviderPortfolioService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        status: import(".prisma/client").$Enums.VerificationStatus;
         userId: string;
-        bio: string;
-        portfolioUrl: string;
+        status: import(".prisma/client").$Enums.VerificationStatus;
+        remarks: string | null;
+        reviewedAt: Date | null;
+        reviewedBy: string | null;
+        bio: string | null;
+        portfolioUrl: string | null;
         videoUrl: string | null;
-    } | {
-        status: "unverified";
     }>;
     submitPortfolio(userId: string, dto: SubmitPortfolioDto, videoFile: any): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        status: import(".prisma/client").$Enums.VerificationStatus;
         userId: string;
-        bio: string;
-        portfolioUrl: string;
+        status: import(".prisma/client").$Enums.VerificationStatus;
+        remarks: string | null;
+        reviewedAt: Date | null;
+        reviewedBy: string | null;
+        bio: string | null;
+        portfolioUrl: string | null;
         videoUrl: string | null;
     }>;
     getPendingPortfolios(): Promise<({
@@ -37,20 +41,26 @@ export declare class ProviderPortfolioService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        status: import(".prisma/client").$Enums.VerificationStatus;
         userId: string;
-        bio: string;
-        portfolioUrl: string;
+        status: import(".prisma/client").$Enums.VerificationStatus;
+        remarks: string | null;
+        reviewedAt: Date | null;
+        reviewedBy: string | null;
+        bio: string | null;
+        portfolioUrl: string | null;
         videoUrl: string | null;
     })[]>;
     updatePortfolioStatus(portfolioId: string, status: VerificationStatus): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        status: import(".prisma/client").$Enums.VerificationStatus;
         userId: string;
-        bio: string;
-        portfolioUrl: string;
+        status: import(".prisma/client").$Enums.VerificationStatus;
+        remarks: string | null;
+        reviewedAt: Date | null;
+        reviewedBy: string | null;
+        bio: string | null;
+        portfolioUrl: string | null;
         videoUrl: string | null;
     }>;
 }

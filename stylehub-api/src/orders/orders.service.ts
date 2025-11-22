@@ -40,7 +40,22 @@ export class OrdersService {
   }
 
   async findAllForSeller(sellerId: string) {
-    const orders = await this.prisma.order.findMany({
+    type OrderWithDetails = Prisma.OrderGetPayload<{
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        items: {
+          select: {
+            sellerEarning: true;
+            quantity: true;
+            unitPrice: true;
+            productName: true;
+            product: { select: { name: true, imageUrl: true } };
+          };
+        };
+      };
+    }>;
+
+    const orders: OrderWithDetails[] = await this.prisma.order.findMany({
       where: {
         items: {
           some: { product: { sellerId: sellerId } },
@@ -48,11 +63,16 @@ export class OrdersService {
       },
       include: {
         user: { select: { id: true, name: true, email: true } },
-        items: {
-          where: { product: { sellerId: sellerId } },
-          include: { product: { select: { name: true, imageUrl: true } } },
-        },
-      },
+                  items: {
+                    where: { product: { sellerId: sellerId } },
+                    select: { // Changed from 'include' to 'select'
+                      sellerEarning: true,
+                      quantity: true,
+                      unitPrice: true,
+                      productName: true,
+                      product: { select: { name: true, imageUrl: true } }, // Nested include for product
+                    },
+                  },      },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -166,7 +186,7 @@ export class OrdersService {
       where: { id: orderId },
       include: {
         user: {
-          select: { name: true, email: true },
+          select: { name: true, email: true, phone: true },
         },
         shippingAddress: true,
         items: {

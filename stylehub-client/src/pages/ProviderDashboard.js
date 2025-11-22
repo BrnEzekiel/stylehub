@@ -1,39 +1,30 @@
 // src/pages/ProviderDashboard.js
 import React from 'react';
 import { Link } from 'react-router-dom';
-import Container from '../components/Container';
-import Card from '../components/Card';
+import {
+  Box,
+  Typography,
+  Grid,
+  Container,
+} from '@mui/material';
+import { pageSx, COLOR_PRIMARY_BLUE, COLOR_TEXT_DARK } from '../styles/theme';
+import StatCard from '../components/StatCard';
 
 function ProviderDashboard() {
   return (
-    <div className="page-transition" style={{ paddingBottom: '80px' }}>
-      <Container>
-      <div className="page-section">
-      <h1>Service Provider Dashboard</h1>
-      <div className="stats-grid">
-        <StatCard title="My Services" icon="💇‍♀️" linkTo="/my-services" />
-        <StatCard title="My Bookings" icon="📅" linkTo="/provider-bookings" />
-        <StatCard title="Portfolio Status" icon="📁" linkTo="/portfolio" />
-      </div>
-      <p style={{ marginTop: '30px', textAlign: 'center', color: '#555' }}>
-        Manage your services, bookings, and profile from here.
-      </p>
-      </div>
+    <Box sx={pageSx}>
+      <Container maxWidth="lg">
+        <Typography variant="h4" sx={{color: COLOR_TEXT_DARK, fontWeight: '900', mb: 3}}>Service Provider Dashboard</Typography>
+        <Grid container spacing={3}>
+          <StatCard title="My Services" icon="💇‍♀️" linkTo="/my-services" />
+          <StatCard title="My Bookings" icon="📅" linkTo="/provider-bookings" />
+          <StatCard title="Portfolio Status" icon="📁" linkTo="/portfolio" />
+        </Grid>
+        <Typography sx={{ mt: 4, textAlign: 'center', color: 'text.secondary' }}>
+          Manage your services, bookings, and profile from here.
+        </Typography>
       </Container>
-    </div>
-  );
-}
-
-function StatCard({ title, icon, linkTo }) {
-  return (
-    <Link to={linkTo} style={{ textDecoration: 'none' }}>
-      <div className="stat-card">
-        <div className="stat-icon">{icon}</div>
-        <div className="stat-info">
-          <p style={{ fontSize: '1.2em', margin: 0, color: '#0f35df' }}>{title}</p>
-        </div>
-      </div>
-    </Link>
+    </Box>
   );
 }
 

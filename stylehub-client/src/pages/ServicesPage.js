@@ -1,9 +1,12 @@
 // src/pages/ServicesPage.js
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { getServices } from '../api/serviceService';
-import Container from '../components/Container';
-import Card from '../components/Card';
+import {
+  Box, Typography, Grid, CircularProgress, Container, Paper, Alert
+} from '@mui/material';
+import { pageSx, paperSx, COLOR_PRIMARY_BLUE, COLOR_TEXT_DARK } from '../styles/theme';
+import ServiceCard from '../components/ServiceCard';
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -38,89 +41,37 @@ function ServicesPage() {
 
   if (loading) {
     return (
-      <div className="page-section">
-        <div className="text-center py-20">
-          <p className="text-gray-600">Loading services...</p>
-        </div>
-      </div>
+        <Box sx={{ ...pageSx, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <CircularProgress sx={{ color: COLOR_PRIMARY_BLUE }} />
+            <Typography variant="h6" sx={{ ml: 2 }}>Loading services...</Typography>
+        </Box>
     );
   }
   
-  if (error) {
-    return (
-      <div className="page-section">
-        <div className="alert alert-error">{error}</div>
-      </div>
-    );
-  }
+  if (error) { return <Box sx={pageSx}><Alert severity="error">{error}</Alert></Box>; }
 
   return (
-    <div className="page-transition" style={{ paddingBottom: '80px' }}>
-      <Container>
-      <div className="page-section">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">
+    <Box sx={pageSx}>
+      <Container maxWidth="lg">
+        <Typography variant="h4" sx={{color: COLOR_TEXT_DARK, fontWeight: '900', mb: 3}}>
           {category ? `Services in ${category}` : 'All Services'}
-        </h1>
+        </Typography>
         {servicesList.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-gray-600 text-lg">No services available.</p>
-            {category && (
-              <p className="text-gray-500 mt-2">Try browsing other categories or check back later.</p>
-            )}
-          </div>
+          <Paper sx={{...paperSx, p: 4, textAlign: 'center'}}>
+            <Typography variant="h6">No services available.</Typography>
+            {category && <Typography color="text.secondary" sx={{mt: 1}}>Try browsing other categories or check back later.</Typography>}
+          </Paper>
         ) : (
-          <div className="product-grid">
+          <Grid container spacing={2}>
             {servicesList.map((service) => (
-              <ServiceCard key={service.id} service={service} />
+              <Grid item key={service.id} xs={12} sm={6} md={4}>
+                <ServiceCard service={service} />
+              </Grid>
             ))}
-          </div>
+          </Grid>
         )}
-      </div>
       </Container>
-    </div>
-  );
-}
-
-function ServiceCard({ service }) {
-  const isVerified = service.provider?.verificationStatus === 'approved';
-  return (
-    <div className="product-card card-hover">
-      <Link to={`/services/${service.id}`} className="product-card-link">
-        <div className="relative">
-          {service.imageUrl ? (
-            <img 
-              src={service.imageUrl} 
-              alt={service.title} 
-              className="product-card-image"
-              onError={(e) => { 
-                e.target.onerror = null;
-                e.target.src = "https://placehold.co/600x400/dc3545/FFFFFF?text=Missing"; 
-              }}
-            />
-          ) : (
-            <div className="product-card-image flex items-center justify-center" style={{ background: 'linear-gradient(to bottom right, #f3f4f6, #e5e7eb)' }}>
-              <span className="text-gray-500">No Image</span>
-            </div>
-          )}
-          {isVerified && (
-            <div className="verified-badge">
-              <i className="fas fa-check-circle"></i> Verified
-            </div>
-          )}
-        </div>
-        <div className="product-card-content">
-          <h3 className="font-bold text-gray-800 mb-2">{service.title}</h3>
-          <p className="text-green-600 font-bold text-lg mb-1">
-            KSh {parseFloat(service.priceShopCents || 0).toFixed(2)} (Shop)
-          </p>
-          {service.offersHome && (
-            <p className="text-sm text-gray-600">
-              Home: KSh {parseFloat(service.priceHomeCents || 0).toFixed(2)}
-            </p>
-          )}
-        </div>
-      </Link>
-    </div>
+    </Box>
   );
 }
 

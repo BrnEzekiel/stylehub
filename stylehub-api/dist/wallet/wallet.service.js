@@ -19,19 +19,21 @@ let WalletService = class WalletService {
     }
     async addPayoutToWallet(tx, sellerId, amount, payoutId) {
         try {
-            await tx.user.update({
+            const updatedUser = await tx.user.update({
                 where: { id: sellerId },
                 data: {
                     walletBalance: {
                         increment: amount,
                     },
                 },
+                select: { walletBalance: true },
             });
             const transaction = await tx.walletTransaction.create({
                 data: {
-                    userId: sellerId,
-                    type: client_1.TransactionType.credit,
+                    user: { connect: { id: sellerId } },
+                    type: client_1.TransactionType.DEPOSIT,
                     amount: amount,
+                    balance: updatedUser.walletBalance,
                     description: `Payout from Payout ID: ${payoutId.substring(0, 8)}`,
                 },
             });
@@ -77,19 +79,21 @@ let WalletService = class WalletService {
             if (user.walletBalance.lessThan(amountToWithdraw)) {
                 throw new common_1.BadRequestException('Insufficient wallet balance.');
             }
-            await tx.user.update({
+            const updatedUser = await tx.user.update({
                 where: { id: userId },
                 data: {
                     walletBalance: {
                         decrement: amountToWithdraw,
                     },
                 },
+                select: { walletBalance: true },
             });
             const transaction = await tx.walletTransaction.create({
                 data: {
-                    userId: userId,
-                    type: client_1.TransactionType.debit,
+                    user: { connect: { id: userId } },
+                    type: client_1.TransactionType.WITHDRAWAL,
                     amount: amountToWithdraw.negated(),
+                    balance: updatedUser.walletBalance,
                     description: `Withdrawal request to ${dto.mpesaNumber}`,
                 },
             });
@@ -113,19 +117,21 @@ let WalletService = class WalletService {
         if (user.walletBalance.lessThan(amount)) {
             throw new common_1.BadRequestException('Insufficient wallet balance to make booking.');
         }
-        await tx.user.update({
+        const updatedUser = await tx.user.update({
             where: { id: clientId },
             data: {
                 walletBalance: {
                     decrement: amount,
                 },
             },
+            select: { walletBalance: true },
         });
         const transaction = await tx.walletTransaction.create({
             data: {
-                userId: clientId,
-                type: client_1.TransactionType.debit,
+                user: { connect: { id: clientId } },
+                type: client_1.TransactionType.PAYMENT,
                 amount: amount.negated(),
+                balance: updatedUser.walletBalance,
                 description: `Escrow hold for Booking ID: ${bookingId.substring(0, 8)}`,
                 booking: { connect: { id: bookingId } },
             },
@@ -136,19 +142,21 @@ let WalletService = class WalletService {
         });
     }
     async releaseBookingHold(tx, bookingId, providerId, amount) {
-        await tx.user.update({
+        const updatedUser = await tx.user.update({
             where: { id: providerId },
             data: {
                 walletBalance: {
                     increment: amount,
                 },
             },
+            select: { walletBalance: true },
         });
         await tx.walletTransaction.create({
             data: {
-                userId: providerId,
-                type: client_1.TransactionType.credit,
+                user: { connect: { id: providerId } },
+                type: client_1.TransactionType.EARNING,
                 amount: amount,
+                balance: updatedUser.walletBalance,
                 description: `Payment for Booking ID: ${bookingId.substring(0, 8)}`,
                 booking: { connect: { id: bookingId } },
             },

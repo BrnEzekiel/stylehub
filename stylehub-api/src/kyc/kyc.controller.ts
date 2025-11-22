@@ -21,7 +21,7 @@ import { FileFieldsInterceptor } from '@nest-lab/fastify-multer';
 import { SubmitKycDto } from './dto/submit-kyc.dto';
 import { UpdateKycStatusDto } from './dto/update-kyc.dto'; // 2. Import new DTO
 
-@Controller('api/kyc')
+@Controller('kyc')
 @UseGuards(JwtAuthGuard, RolesGuard) // Protect all routes in this controller
 export class KycController {
   constructor(private readonly kycService: KycService) {}

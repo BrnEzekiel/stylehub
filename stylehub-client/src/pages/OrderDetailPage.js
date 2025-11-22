@@ -1,10 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faDownload, faCheck, faClock, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { fetchClientOrders, downloadOrderReceipt } from '../api/orderService';
-import Container from '../components/Container';
-import Card from '../components/Card';
+import {
+  Box,
+  Typography,
+  Button,
+  Grid,
+  Paper,
+  Chip,
+  CircularProgress,
+  Container,
+} from '@mui/material';
+import { ArrowBack, Download, Check, AccessTime, Close } from '@mui/icons-material';
+import { pageSx, paperSx, COLOR_PRIMARY_BLUE, COLOR_TEXT_DARK } from '../styles/theme';
+import { formatCurrency } from '../utils/styleUtils'; // Import formatCurrency
 
 function OrderDetailPage() {
   const { id } = useParams();
@@ -46,180 +55,102 @@ function OrderDetailPage() {
     }
   };
 
-  const getStatusIcon = (status) => {
+  const getStatusChip = (status) => {
     const s = (status || '').toLowerCase();
-    if (s === 'completed') return <FontAwesomeIcon icon={faCheck} className="text-green-600" />;
-    if (s === 'pending') return <FontAwesomeIcon icon={faClock} className="text-yellow-600" />;
-    if (s === 'cancelled') return <FontAwesomeIcon icon={faTimes} className="text-red-600" />;
-    return null;
-  };
-
-  const getStatusBadge = (status) => {
-    const s = (status || '').toLowerCase();
-    if (s === 'completed') return 'bg-green-100 text-green-800';
-    if (s === 'pending') return 'bg-yellow-100 text-yellow-800';
-    if (s === 'cancelled') return 'bg-red-100 text-red-800';
-    if (s === 'in_progress') return 'bg-blue-100 text-blue-800';
-    return 'bg-gray-100 text-gray-800';
+    if (s === 'completed' || s === 'delivered') return <Chip icon={<Check />} label={status} color="success" size="small" />;
+    if (s === 'pending') return <Chip icon={<AccessTime />} label={status} color="warning" size="small" />;
+    if (s === 'cancelled') return <Chip icon={<Close />} label={status} color="error" size="small" />;
+    return <Chip label={status} size="small" />;
   };
 
   if (loading) {
     return (
-      <div className="page-section">
-        <div className="text-center py-20">
-          <p className="text-gray-600">Loading order details...</p>
-        </div>
-      </div>
+        <Box sx={{ ...pageSx, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <CircularProgress sx={{ color: COLOR_PRIMARY_BLUE }} />
+            <Typography variant="h6" sx={{ ml: 2, color: COLOR_PRIMARY_BLUE }}>Loading order details...</Typography>
+        </Box>
     );
   }
 
   if (error) {
     return (
-      <div className="page-section">
-        <button onClick={() => navigate(-1)} className="mb-4 inline-flex items-center gap-2 text-primary hover:underline">
-          <FontAwesomeIcon icon={faArrowLeft} /> Back
-        </button>
-        <div className="alert alert-error">{error}</div>
-      </div>
+      <Box sx={pageSx}>
+        <Button onClick={() => navigate(-1)} startIcon={<ArrowBack />} sx={{ mb: 2, color: COLOR_PRIMARY_BLUE }}>Back</Button>
+        <Paper sx={{...paperSx, p: 3, textAlign: 'center'}}>
+          <Typography color="error" variant="h6">Error: {error}</Typography>
+        </Paper>
+      </Box>
     );
   }
 
   if (!order) {
     return (
-      <div className="page-section">
-        <button onClick={() => navigate(-1)} className="mb-4 inline-flex items-center gap-2 text-primary hover:underline">
-          <FontAwesomeIcon icon={faArrowLeft} /> Back
-        </button>
-        <p className="text-gray-600">Order not found</p>
-      </div>
+      <Box sx={pageSx}>
+        <Button onClick={() => navigate(-1)} startIcon={<ArrowBack />} sx={{ mb: 2, color: COLOR_PRIMARY_BLUE }}>Back</Button>
+        <Paper sx={{...paperSx, p: 3, textAlign: 'center'}}>
+          <Typography variant="h6">Order not found</Typography>
+        </Paper>
+      </Box>
     );
   }
 
   return (
-    <div className="page-section">
-      <button onClick={() => navigate(-1)} className="mb-4 inline-flex items-center gap-2 text-primary hover:underline">
-        <FontAwesomeIcon icon={faArrowLeft} /> Back to Orders
-      </button>
+    <Box sx={pageSx}>
+      <Container maxWidth="lg">
+        <Button onClick={() => navigate(-1)} startIcon={<ArrowBack />} sx={{ mb: 2, color: COLOR_PRIMARY_BLUE }}>Back to Orders</Button>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            <Paper sx={{...paperSx, p: 3, mb: 3}}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <Box>
+                  <Typography variant="h4" sx={{fontWeight: 'bold', color: COLOR_TEXT_DARK}}>Order Details</Typography>
+                  <Typography variant="caption" color="textSecondary">{order.id}</Typography>
+                </Box>
+                {getStatusChip(order.status)}
+              </Box>
 
-      {/* Grid layout: sidebar on right for desktop, below for mobile */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Order Info - Takes 2 cols on desktop, 1 on mobile */}
-        <div className="lg:col-span-2 space-y-6">
-          <Card className="p-6">
-            <div className="flex justify-between items-start">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-800">Order Details</h1>
-                <p className="text-gray-500 font-mono text-sm mt-1">{order.id}</p>
-              </div>
-              <div className="text-right">
-                <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-md ${getStatusBadge(order.status)}`}>
-                  {getStatusIcon(order.status)}
-                  <span className="font-semibold">{order.status || 'N/A'}</span>
-                </div>
-              </div>
-            </div>
+              <Grid container spacing={2} sx={{ mt: 2, pt: 2, borderTop: '1px solid #ccc' }}>
+                <Grid item xs={4}><Typography variant="caption" color="textSecondary">Order Date</Typography><Typography sx={{fontWeight: 'medium'}}>{new Date(order.createdAt).toLocaleDateString()}</Typography></Grid>
+                <Grid item xs={4}><Typography variant="caption" color="textSecondary">Total Amount</Typography><Typography sx={{fontWeight: 'bold'}}>{formatCurrency(order.totalAmount)}</Typography></Grid>
+                <Grid item xs={4}><Typography variant="caption" color="textSecondary">Items</Typography><Typography sx={{fontWeight: 'medium'}}>{(order.items || []).length}</Typography></Grid>
+              </Grid>
+            </Paper>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6 pt-6 border-t">
-              <div>
-                <div className="text-xs text-gray-500 uppercase">Order Date</div>
-                <div className="text-sm font-medium">{new Date(order.createdAt).toLocaleDateString()}</div>
-              </div>
-              <div>
-                <div className="text-xs text-gray-500 uppercase">Total Amount</div>
-                <div className="text-sm font-semibold">KSh {parseFloat(order.totalAmount || 0).toFixed(2)}</div>
-              </div>
-              <div>
-                <div className="text-xs text-gray-500 uppercase">Items</div>
-                <div className="text-sm font-medium">{(order.items || []).length}</div>
-              </div>
-            </div>
-          </Card>
+            <Paper sx={{...paperSx, p: 3}}>
+                <Typography variant="h5" sx={{fontWeight: 'bold', color: COLOR_TEXT_DARK, mb: 2}}>Order Items</Typography>
+                {(order.items || []).map((item, idx) => (
+                    <Paper key={idx} variant="outlined" sx={{ p: 2, mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                         <Box>
+                            <Typography sx={{fontWeight: 'bold'}}>{item.product?.name || 'Product'}</Typography>
+                            <Typography variant="body2" color="text.secondary">Qty: {item.quantity}</Typography>
+                         </Box>
+                         <Typography sx={{fontWeight: 'bold'}}>{formatCurrency(item.price * item.quantity)}</Typography>
+                    </Paper>
+                ))}
+                <Box sx={{mt: 3, pt: 2, borderTop: '1px solid #ccc', display: 'flex', justifyContent: 'flex-end'}}>
+                    <Box sx={{width: 250}}>
+                        <Box sx={{display: 'flex', justifyContent: 'space-between'}}><Typography color="text.secondary">Subtotal</Typography><Typography>{formatCurrency(order.totalAmount)}</Typography></Box>
+                        <Box sx={{display: 'flex', justifyContent: 'space-between', mt:1, pt:1, borderTop: '1px solid #ddd'}}><Typography variant="h6" sx={{fontWeight: 'bold'}}>Total</Typography><Typography variant="h6" sx={{fontWeight: 'bold'}}>{formatCurrency(order.totalAmount)}</Typography></Box>
+                    </Box>
+                </Box>
+            </Paper>
+          </Grid>
 
-          {/* Items List */}
-          <Card className="p-6">
-            <h2 className="text-lg font-bold text-gray-800 mb-4">Order Items</h2>
-            <div className="space-y-4">
-              {(order.items || []).map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-md">
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-800">{item.product?.name || 'Product'}</div>
-                    <div className="text-sm text-gray-500">{item.product?.description?.slice(0, 100)}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm text-gray-600">
-                      Qty: <span className="font-semibold">{item.quantity}</span>
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      Price: <span className="font-semibold">KSh {parseFloat(item.price || 0).toFixed(2)}</span>
-                    </div>
-                    <div className="text-sm font-semibold text-gray-800 mt-1">
-                      KSh {(parseFloat(item.price || 0) * item.quantity).toFixed(2)}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-6 pt-6 border-t">
-              <div className="flex justify-end">
-                <div className="w-full md:w-64">
-                  <div className="flex justify-between py-2 text-gray-600">
-                    <span>Subtotal</span>
-                    <span>KSh {parseFloat(order.totalAmount || 0).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between py-2 text-gray-600 border-t">
-                    <span className="font-semibold">Total</span>
-                    <span className="font-bold text-lg">KSh {parseFloat(order.totalAmount || 0).toFixed(2)}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Sidebar - Actions & Info (Appears below on mobile, right on desktop) */}
-        <div className="lg:col-span-1">
-          <Card className="p-6 sticky lg:top-20">
-            <h2 className="text-lg font-bold text-gray-800 mb-4">Actions</h2>
-
-            <button
-              onClick={handleDownload}
-              disabled={downloading}
-              className="w-full btn btn-primary mb-3"
-              style={{
-                padding: '12px 16px',
-                fontSize: '14px',
-                fontWeight: '600',
-              }}
-            >
-              <FontAwesomeIcon icon={faDownload} className="mr-2" />
-              {downloading ? 'Downloading...' : 'Download Receipt'}
-            </button>
-
-            <button
-              onClick={() => navigate('/orders')}
-              className="w-full btn btn-outline"
-            >
-              Back to Orders
-            </button>
-
-            {/* Additional Info */}
-            <div className="mt-6 pt-6 border-t space-y-4">
-              <div>
-                <div className="text-xs text-gray-500 uppercase mb-1">Shipping Address</div>
-                <div className="text-sm text-gray-700">{order.shippingAddress || 'Not provided'}</div>
-              </div>
-              {order.trackingNumber && (
-                <div>
-                  <div className="text-xs text-gray-500 uppercase mb-1">Tracking Number</div>
-                  <div className="text-sm font-mono text-gray-700">{order.trackingNumber}</div>
-                </div>
-              )}
-            </div>
-          </Card>
-        </div>
-      </div>
-    </div>
+          <Grid item xs={12} md={4}>
+            <Paper sx={{...paperSx, p: 3, position: 'sticky', top: '20px' }}>
+              <Typography variant="h5" sx={{fontWeight: 'bold', color: COLOR_TEXT_DARK, mb: 2}}>Actions</Typography>
+              <Button onClick={handleDownload} disabled={downloading} fullWidth variant="contained" startIcon={<Download />} sx={{ mb: 2, backgroundColor: COLOR_PRIMARY_BLUE }}>
+                {downloading ? 'Downloading...' : 'Download Receipt'}
+              </Button>
+              <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid #ccc' }}>
+                <Typography variant="caption" color="textSecondary">Shipping Address</Typography>
+                <Typography>{order.shippingAddress || 'Not provided'}</Typography>
+              </Box>
+            </Paper>
+          </Grid>
+        </Grid>
+      </Container>
+    </Box>
   );
 }
 

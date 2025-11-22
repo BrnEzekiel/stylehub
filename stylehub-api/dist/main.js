@@ -7,7 +7,9 @@ const platform_fastify_1 = require("@nestjs/platform-fastify");
 const multipart_1 = require("@fastify/multipart");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule, new platform_fastify_1.FastifyAdapter());
+    app.setGlobalPrefix('api');
     const corsOrigins = [
+        'http://localhost:3000',
         'http://localhost:3000',
         'http://localhost:3002',
     ];

@@ -23,13 +23,16 @@ let ProviderPortfolioService = class ProviderPortfolioService {
         const portfolio = await this.prisma.providerPortfolio.findUnique({
             where: { userId },
         });
-        return portfolio || { status: client_1.VerificationStatus.unverified };
+        if (!portfolio) {
+            throw new common_1.NotFoundException('Portfolio not found');
+        }
+        return portfolio;
     }
     async submitPortfolio(userId, dto, videoFile) {
         const existing = await this.prisma.providerPortfolio.findUnique({
             where: { userId },
         });
-        if (existing && (existing.status === 'pending' || existing.status === 'approved')) {
+        if (existing && (existing.status === 'pending' || existing.status === 'verified')) {
             throw new common_1.ConflictException(`Your portfolio is already ${existing.status}.`);
         }
         let videoUrl = null;

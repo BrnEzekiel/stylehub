@@ -19,7 +19,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/enums/role.enum';
 import { CreateReviewDto } from './dto/create-review.dto';
 
-@Controller('api/reviews')
+@Controller('reviews')
 export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 

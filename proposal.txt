@@ -1,0 +1,24 @@
+I have reverted the header and bottom navigation to their original state.
+
+For new styling, I propose a subtle, semi-transparent dark background for both the header and bottom navigation to integrate them more smoothly with the app's overall design without having them "hover" as aggressively as the glassmorphism effect. This will remove the "floating" feeling.
+
+Here are the proposed changes for `stylehub-client/src/components/Header.css`:
+```css
+/* Update Header background and shadow */
+.main-header {
+  background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent dark background */
+  box-shadow: none; /* Remove shadow to reduce floating effect */
+}
+```
+
+And for `stylehub-client/src/components/BottomNav.css`:
+```css
+/* Update Bottom Nav background and shadow */
+.bottom-nav {
+  background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent dark background */
+  box-shadow: none; /* Remove shadow to reduce floating effect */
+  border-top: none; /* Remove border to blend better */
+}
+```
+
+Do you approve these changes?

@@ -3,15 +3,27 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createProduct } from '../api/productService';
 import { categories } from '../utils/categories';
-import Container from '../components/Container';
-import Card from '../components/Card';
+import {
+  Box,
+  Typography,
+  Button,
+  Paper,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  CircularProgress,
+  Container,
+  Grid,
+} from '@mui/material';
+import { pageSx, paperSx, COLOR_PRIMARY_BLUE, COLOR_TEXT_DARK } from '../styles/theme';
 
 const CreateProductPage = () => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [stock, setStock] = useState('');
-  // 2. 🛑 Set default category
   const [category, setCategory] = useState(categories[0]); 
   const [image, setImage] = useState(null);
   
@@ -35,7 +47,7 @@ const CreateProductPage = () => {
     formData.append('description', description);
     formData.append('price', parseFloat(price).toFixed(2));
     formData.append('stock', parseInt(stock, 10));
-    formData.append('category', category); // 3. 🛑 Category is now from the dropdown
+    formData.append('category', category);
     
     if (image) {
       formData.append('image', image);
@@ -57,127 +69,56 @@ const CreateProductPage = () => {
     }
   };
 
-  // 4. 🛑 Apply styles to match the admin theme
   return (
-    <div className="page-transition" style={{ paddingBottom: '80px' }}>
-      <Container>
-      <div className="page-section">
-      <h2 style={{ color: '#0f35df', marginBottom: '20px' }}>Create New Product</h2>
-      
-      {/* Use a standard card for the form */}
-      <Card className="mb-8" style={{ maxWidth: '700px', margin: '0 auto' }}>
-        <form onSubmit={handleSubmit}>
-          {/* Name */}
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Name:</label>
-            <input
-              style={styles.input}
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </div>
-          {/* Description */}
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Description:</label>
-            <textarea
-              style={{ ...styles.input, minHeight: '100px' }}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-          </div>
-          {/* Price */}
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Price:</label>
-            <input
-              style={styles.input}
-              type="number"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              required
-            />
-          </div>
-          {/* Stock */}
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Stock:</label>
-            <input
-              style={styles.input}
-              type="number"
-              value={stock}
-              onChange={(e) => setStock(e.target.value)}
-              required
-            />
-          </div>
-          {/* 5. 🛑 Category Dropdown */}
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Category:</label>
-            <select
-              style={styles.input}
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              required
-            >
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-          </div>
-          {/* Image */}
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Image:</label>
-            <input
-              style={styles.input}
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              required
-            />
-          </div>
+    <Box sx={pageSx}>
+        <Container maxWidth="md">
+            <Typography variant="h4" sx={{color: COLOR_TEXT_DARK, fontWeight: '900', mb: 3}}>Create New Product</Typography>
+            <Paper sx={{...paperSx, p: 4}}>
+                <Box component="form" onSubmit={handleSubmit}>
+                    <Grid container spacing={3}>
+                        <Grid item xs={12}>
+                            <TextField fullWidth label="Product Name" value={name} onChange={(e) => setName(e.target.value)} required />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <TextField fullWidth label="Description" value={description} onChange={(e) => setDescription(e.target.value)} multiline rows={4} />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <TextField fullWidth label="Price" type="number" value={price} onChange={(e) => setPrice(e.target.value)} required />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <TextField fullWidth label="Stock" type="number" value={stock} onChange={(e) => setStock(e.target.value)} required />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <FormControl fullWidth required>
+                                <InputLabel>Category</InputLabel>
+                                <Select value={category} onChange={(e) => setCategory(e.target.value)} label="Category">
+                                    {categories.map((cat) => (
+                                        <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Button variant="contained" component="label" sx={{backgroundColor: COLOR_PRIMARY_BLUE}}>
+                                Upload Image
+                                <input type="file" accept="image/*" onChange={handleImageChange} required hidden />
+                            </Button>
+                            {image && <Typography sx={{display: 'inline', ml: 2}}>{image.name}</Typography>}
+                        </Grid>
+                        
+                        {error && <Grid item xs={12}><Typography color="error">{error}</Typography></Grid>}
 
-          {error && <p style={{ color: 'red' }}>{error}</p>}
-          
-          <button type="submit" disabled={loading} style={styles.button}>
-            {loading ? 'Creating...' : 'Create Product'}
-          </button>
-        </form>
-      </Card>
-      </div>
-      </Container>
-    </div>
+                        <Grid item xs={12}>
+                            <Button type="submit" disabled={loading} variant="contained" size="large" fullWidth sx={{backgroundColor: COLOR_PRIMARY_BLUE}}>
+                                {loading ? <CircularProgress size={24} color="inherit" /> : 'Create Product'}
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </Box>
+            </Paper>
+        </Container>
+    </Box>
   );
-};
-
-// 6. 🛑 Added styles for the form
-const styles = {
-  inputGroup: {
-    marginBottom: '15px',
-  },
-  label: {
-    display: 'block',
-    marginBottom: '5px',
-    fontWeight: '500',
-    color: '#333',
-  },
-  input: {
-    width: '100%',
-    padding: '10px 12px',
-    border: '1px solid #ccc',
-    borderRadius: '6px',
-    fontSize: '1rem',
-  },
-  button: {
-    width: '100%',
-    padding: '12px',
-    fontSize: '1em',
-    backgroundColor: '#0f35df',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontWeight: '600',
-    marginTop: '10px'
-  }
 };
 
 export default CreateProductPage;

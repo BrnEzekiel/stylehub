@@ -1,169 +1,216 @@
-// src/pages/Dashboard.js
 
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { getAdminStats, getRecentOrders, getPendingSubmissions, getAllUsers } from '../api/adminService';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+    getAdminStats, getRecentOrders, getAllUsers, getPendingSubmissions, getPendingVerifications, getPendingProviderPortfolios, getWithdrawalRequests
+} from '../api/adminService';
+import Page from '../components/Page';
+import GlassStatCard from '../components/GlassStatCard';
+import ActionCard from '../components/ActionCard';
+import { FaMoneyBillWave, FaUsers, FaBoxOpen, FaUserCheck, FaUserShield, FaWallet, FaPlus, FaTasks, FaClipboardList } from 'react-icons/fa';
 
-// --- 1. 🛑 NEW: Helper function to format currency (Ksh 1.3M) ---
+// --- HELPER FUNCTIONS ---
 function formatCurrency(num) {
-  const number = parseFloat(num);
-  if (isNaN(number)) return 'Ksh 0.00';
-  
-  if (number < 1000) {
-    return `Ksh ${number.toFixed(2)}`;
-  } else if (number < 1000000) {
-    return `Ksh ${(number / 1000).toFixed(1).replace(/\.0$/, '')}K`;
-  } else if (number < 1000000000) {
-    return `Ksh ${(number / 1000000).toFixed(1).replace(/\.0$/, '')}M`;
-  } else {
-    return `Ksh ${(number / 1000000000).toFixed(1).replace(/\.0$/, '')}B`;
-  }
+    const number = parseFloat(num);
+    if (isNaN(number)) return 'Ksh 0.00';
+
+    if (number < 1000) {
+        return `Ksh ${number.toFixed(2)}`;
+    } else if (number < 1000000) {
+        return `Ksh ${(number / 1000).toFixed(1).replace(/\.0$/, '')}K`;
+    } else if (number < 1000000000) {
+        return `Ksh ${(number / 1000000).toFixed(1).replace(/\.0$/, '')}M`;
+    } else {
+        return `Ksh ${(number / 1000000000).toFixed(1).replace(/\.0$/, '')}B`;
+    }
 }
 
-// --- 2. 🛑 NEW: Helper function to format simple counts (1.3M) ---
 function formatCount(num) {
-  if (num === null || num === undefined) return '0';
-  const number = parseInt(num);
-  if (number < 1000) return number.toString();
-  if (number < 1000000) return (number / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-  if (number < 1000000000) return (number / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-  return (number / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
+    if (num === null || num === undefined) return '0';
+    const number = parseInt(num);
+    if (number < 1000) return number.toString();
+    if (number < 1000000) return (number / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+    if (number < 1000000000) return (number / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+    return (number / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
 }
+// --- END HELPER FUNCTIONS ---
 
+export default function Dashboard() {
+    const [stats, setStats] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [pendingVerifications, setPendingVerifications] = useState(0);
+    const [pendingProviderPortfolios, setPendingProviderPortfolios] = useState(0);
+    const [withdrawalRequests, setWithdrawalRequests] = useState(0);
 
-// --- Main Dashboard Component ---
+    const fetchDashboardData = useCallback(async () => {
+        try {
+            setLoading(true);
+            const [statsData, kycData, verificationsData, portfoliosData, withdrawalsData] = await Promise.all([
+                getAdminStats(),
+                getPendingSubmissions(),
+                getPendingVerifications(),
+                getPendingProviderPortfolios(),
+                getWithdrawalRequests(),
+            ]);
 
-function Dashboard() {
-  const [stats, setStats] = useState(null);
-  const [recentOrders, setRecentOrders] = useState([]);
-  const [newUsers, setNewUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+            setStats({
+                ...statsData,
+                pendingKYC: kycData.length
+            });
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        const [statsData, ordersData, usersData, kycData] = await Promise.all([
-          getAdminStats(),
-          getRecentOrders(),
-          getAllUsers(),
-          getPendingSubmissions(),
-        ]);
-        
-        setStats({
-          ...statsData,
-          pendingKYC: kycData.length 
-        });
-        setRecentOrders(ordersData.slice(0, 5));
-        setNewUsers(usersData.slice(0, 5));
-        
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+            setPendingVerifications(verificationsData.length);
+            setPendingProviderPortfolios(portfoliosData.length);
+            setWithdrawalRequests(withdrawalsData.length);
 
-    fetchDashboardData();
-  }, []);
+        } catch (err) {
+            setError('Failed to load dashboard data. Check API endpoints.');
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
-  if (loading) return <p>Loading Admin Command Center...</p>;
-  if (error) return <p style={{ color: 'red' }}>Error: {error}</p>;
-  if (!stats) return <p>No stats found.</p>;
+    useEffect(() => {
+        fetchDashboardData();
+    }, [fetchDashboardData]);
 
-  return (
-    <div className="dashboard-container">
-      <h1>Admin Dashboard</h1>
-
-      {/* --- 3. 🛑 KPI Stat Cards (using new formatters) --- */}
-      <div className="stats-grid">
-        <StatCard
-          title="Total Revenue"
-          value={formatCurrency(stats.totalRevenue)}
-          icon="💰"
-        />
-        <StatCard
-          title="Total Users"
-          value={formatCount(stats.totalUsers)}
-          icon="👥"
-          linkTo="/user-management"
-        />
-        <StatCard
-          title="Total Products"
-          value={formatCount(stats.totalProducts)}
-          icon="📦"
-          linkTo="/product-management"
-        />
-        <StatCard
-          title="Pending KYC"
-          value={formatCount(stats.pendingKYC)}
-          icon="⏳"
-          className="pending"
-          linkTo="/kyc-dashboard"
-        />
-      </div>
-
-      {/* --- Main Content Grid (Lists) --- */}
-      <div className="dashboard-grid-large">
-        <div className="dashboard-card">
-          <h3>Recent Activity</h3>
-          <div className="activity-feed">
-            {/* Recent Orders List */}
-            <div className="activity-section">
-              <h4>Recent Orders</h4>
-              <ul className="activity-list">
-                {recentOrders.map(order => (
-                  <li key={order.id} className="activity-item">
-                    <div>
-                      <strong>{order.user?.name || 'Customer'}</strong> just placed an order.
-                      <span className="activity-value">Ksh {parseFloat(order.totalAmount).toFixed(2)}</span>
-                    </div>
-                    <Link to={`/order/${order.id}`} className="activity-link">View</Link>
-                  </li>
-                ))}
-              </ul>
+    if (loading) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: 'white' }}>
+                <div style={{
+                    width: '80px',
+                    height: '80px',
+                    border: '4px solid rgba(255, 255, 255, 0.2)',
+                    borderTop: '4px solid #FFD700',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                }} />
+                <h1 style={{ marginLeft: '20px' }}>Loading Dashboard...</h1>
             </div>
-            
-            {/* New Users List */}
-            <div className="activity-section">
-              <h4>New Users</h4>
-              <ul className="activity-list">
-                {newUsers.map(user => (
-                  <li key={user.id} className="activity-item">
-                    <div>
-                      <strong>{user.name}</strong> just joined as a {user.role}.
-                      <span className="activity-value">{new Date(user.createdAt).toLocaleDateString()}</span>
-                    </div>
-                    <Link to={`/user/${user.id}/edit`} className="activity-link">View</Link>
-                  </li>
-                ))}
-              </ul>
+        );
+    }
+
+    if (error) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: 'red' }}>
+                <h1>Error: {error}</h1>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+        );
+    }
+
+    const safeStats = stats || { totalRevenue: 0, totalUsers: 0, totalProducts: 0, pendingKYC: 0 };
+    const COLORS = {
+        blue: '#0066FF',
+        skyBlue: '#00BFFF',
+        yellow: '#FFD700',
+        black: '#000000',
+        white: '#FFFFFF',
+        green: '#00FF00',
+        red: '#EF4444',
+        magenta: '#FF00FF'
+      };
+
+    return (
+        <Page title="Admin Control Center">
+            <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+                gap: 'clamp(16px, 3vw, 24px)',
+                marginBottom: 'clamp(24px, 4vw, 32px)'
+            }}>
+                <GlassStatCard
+                    title="Total Revenue"
+                    value={formatCurrency(safeStats.totalRevenue)}
+                    icon={FaMoneyBillWave}
+                    linkTo="/financials"
+                    gradient={`linear-gradient(135deg, ${COLORS.blue} 0%, ${COLORS.skyBlue} 100%)`}
+                    delay={0.1}
+                />
+                <GlassStatCard
+                    title="Total Users"
+                    value={formatCount(safeStats.totalUsers)}
+                    icon={FaUsers}
+                    linkTo="/users"
+                    gradient={`linear-gradient(135deg, ${COLORS.skyBlue} 0%, ${COLORS.yellow} 100%)`}
+                    delay={0.2}
+                />
+                <GlassStatCard
+                    title="Total Products"
+                    value={formatCount(safeStats.totalProducts)}
+                    icon={FaBoxOpen}
+                    linkTo="/products"
+                    gradient={`linear-gradient(135deg, ${COLORS.blue} 0%, ${COLORS.black} 100%)`}
+                    delay={0.3}
+                />
+                <GlassStatCard
+                    title="Pending KYC"
+                    value={formatCount(safeStats.pendingKYC)}
+                    icon={FaUserCheck}
+                    linkTo="/kyc"
+                    gradient={`linear-gradient(135deg, ${COLORS.yellow} 0%, ${COLORS.red} 100%)`}
+                    delay={0.4}
+                />
+                <GlassStatCard
+                    title="Pending Verifications"
+                    value={formatCount(pendingVerifications)}
+                    icon={FaUserShield}
+                    linkTo="/verifications"
+                    gradient={`linear-gradient(135deg, ${COLORS.red} 0%, ${COLORS.magenta} 100%)`}
+                    delay={0.5}
+                />
+                <GlassStatCard
+                    title="Pending Provider Portfolios"
+                    value={formatCount(pendingProviderPortfolios)}
+                    icon={FaClipboardList}
+                    linkTo="/portfolios"
+                    gradient={`linear-gradient(135deg, ${COLORS.magenta} 0%, ${COLORS.blue} 100%)`}
+                    delay={0.6}
+                />
+                <GlassStatCard
+                    title="Withdrawal Requests"
+                    value={formatCount(withdrawalRequests)}
+                    icon={FaWallet}
+                    linkTo="/withdrawals"
+                    gradient={`linear-gradient(135deg, ${COLORS.green} 0%, ${COLORS.skyBlue} 100%)`}
+                    delay={0.7}
+                />
+            </div>
+
+            <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))',
+                gap: 'clamp(16px, 3vw, 24px)',
+                marginBottom: 'clamp(24px, 4vw, 32px)'
+            }}>
+                <ActionCard
+                    title="Create User"
+                    icon={FaPlus}
+                    linkTo="/users/create"
+                    gradient={`linear-gradient(135deg, ${COLORS.yellow} 0%, ${COLORS.skyBlue} 100%)`}
+                    delay={0.4}
+                />
+                <ActionCard
+                    title="Create Product"
+                    icon={FaPlus}
+                    linkTo="/products/create"
+                    gradient={`linear-gradient(135deg, ${COLORS.blue} 0%, ${COLORS.skyBlue} 100%)`}
+                    delay={0.5}
+                />
+                <ActionCard
+                    title="Create Service"
+                    icon={FaPlus}
+                    linkTo="/services/create"
+                    gradient={`linear-gradient(135deg, ${COLORS.skyBlue} 0%, ${COLORS.blue} 100%)`}
+                    delay={0.6}
+                />
+                 <ActionCard
+                    title="Order Management"
+                    icon={FaTasks}
+                    linkTo="/orders"
+                    gradient={`linear-gradient(135deg, ${COLORS.green} 0%, ${COLORS.blue} 100%)`}
+                    delay={0.7}
+                />
+            </div>
+        </Page>
+    );
 }
-
-// --- Reusable Stat Card Component ---
-
-function StatCard({ title, value, icon, className = '', linkTo = null }) {
-  // 4. 🛑 Simplified h3 style, word-break handles overflow
-  const content = (
-    <div className={`stat-card ${className}`}>
-      <div className="stat-icon">{icon}</div>
-      <div className="stat-info">
-        <p>{title}</p>
-        <h3 style={{ wordBreak: 'break-all' }}>
-          {value}
-        </h3>
-      </div>
-    </div>
-  );
-  
-  return linkTo ? <Link to={linkTo} style={{ textDecoration: 'none' }}>{content}</Link> : content;
-}
-
-export default Dashboard;

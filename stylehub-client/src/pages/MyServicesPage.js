@@ -2,6 +2,17 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getMyServices } from '../api/serviceService';
+import {
+  Box,
+  Typography,
+  Button,
+  Grid,
+  CircularProgress,
+  Container,
+  Paper
+} from '@mui/material';
+import { pageSx, paperSx, COLOR_PRIMARY_BLUE, COLOR_TEXT_DARK } from '../styles/theme';
+import ServiceCard from '../components/ServiceCard';
 
 function MyServicesPage() {
   const [services, setServices] = useState([]);
@@ -21,32 +32,39 @@ function MyServicesPage() {
     load();
   }, []);
 
-  if (loading) return <p className="admin-content">Loading your services...</p>;
+  if (loading) {
+    return (
+        <Box sx={{ ...pageSx, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <CircularProgress sx={{ color: COLOR_PRIMARY_BLUE }} />
+            <Typography variant="h6" sx={{ ml: 2, color: COLOR_PRIMARY_BLUE }}>Loading your services...</Typography>
+        </Box>
+    );
+  }
 
   return (
-    <div className="admin-content">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2>My Services</h2>
-        <Link to="/my-services/create" style={{ background: 'var(--color-primary)', color: 'white', padding: '8px 16px', borderRadius: '5px', textDecoration: 'none' }}>
-          + Create Service
-        </Link>
-      </div>
-      {services.length === 0 ? (
-        <p>You haven’t created any services yet.</p>
-      ) : (
-        <div className="product-grid">
-          {services.map((s) => (
-            <div key={s.id} className="product-card">
-              <img src={s.imageUrl} alt={s.title} className="product-card-image" />
-              <div className="product-card-content">
-                <h3>{s.title}</h3>
-                <p>Ksh {parseFloat(s.priceShopCents).toFixed(2)}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+    <Box sx={pageSx}>
+        <Container maxWidth="lg">
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h4" sx={{color: COLOR_TEXT_DARK, fontWeight: '900'}}>My Services</Typography>
+                <Button component={Link} to="/my-services/create" variant="contained" sx={{backgroundColor: COLOR_PRIMARY_BLUE}}>
+                + Create Service
+                </Button>
+            </Box>
+            {services.length === 0 ? (
+                <Paper sx={{...paperSx, p: 4, textAlign: 'center'}}>
+                    <Typography variant="h6">You haven’t created any services yet.</Typography>
+                </Paper>
+            ) : (
+                <Grid container spacing={2}>
+                {services.map((s) => (
+                    <Grid item key={s.id} xs={12} sm={6} md={4}>
+                        <ServiceCard service={s} />
+                    </Grid>
+                ))}
+                </Grid>
+            )}
+        </Container>
+    </Box>
   );
 }
 

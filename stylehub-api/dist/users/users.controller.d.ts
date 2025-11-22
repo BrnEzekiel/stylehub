@@ -12,12 +12,14 @@ export declare class UsersController {
         phone: string;
         role: string;
         id: string;
+        username: string;
         createdAt: Date;
     }[]>;
     getUserById(id: string): Promise<{
         name: string;
         role: string;
         id: string;
+        username: string;
     }>;
     createUser(adminCreateUserDto: AdminCreateUserDto): Promise<{
         name: string | null;
@@ -25,6 +27,7 @@ export declare class UsersController {
         phone: string;
         role: string;
         id: string;
+        username: string | null;
         createdAt: Date;
         updatedAt: Date;
         walletBalance: import("@prisma/client/runtime/library").Decimal;
@@ -36,6 +39,7 @@ export declare class UsersController {
         phone: string;
         role: string;
         id: string;
+        username: string;
         createdAt: Date;
         _count: {
             orders: number;
@@ -49,6 +53,7 @@ export declare class UsersController {
         phone: string;
         role: string;
         id: string;
+        username: string;
     }>;
     deleteUser(id: string): Promise<{
         message: string;

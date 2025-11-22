@@ -3,6 +3,7 @@ type DetailedOrder = Order & {
     user: {
         name: string;
         email: string;
+        phone?: string;
     };
     shippingAddress: {
         fullName: string;

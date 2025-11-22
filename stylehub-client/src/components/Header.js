@@ -1,185 +1,317 @@
-// src/components/Header.js
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch, faBell, faUser, faCrown, faHistory, faCog, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faHistory, faCog, faSignOutAlt, faIdCard, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons'; // Added faEye, faEyeSlash
+import { getNotifications, getUnreadNotificationsCount, markNotificationAsRead, markAllNotificationsAsRead } from '../api/notificationsService'; // Import notification service
+import { Box, IconButton, Badge, Popover, Typography, List, ListItem, ListItemText, Divider, Menu, MenuItem, Tooltip } from '@mui/material'; // Material-UI components, added Tooltip
+import { Notifications, Close } from '@mui/icons-material'; // Material-UI icons
+import './Header.css';
+import apiClient from '../api/axiosConfig'; // Ensure apiClient is imported for wallet balance fetch
+
+const formatCurrency = (value) => {
+  if (!value) return 'Ksh 0.00';
+  const numericValue = parseFloat(String(value).replace(/[^0-9.-]+/g, ""));
+  if (isNaN(numericValue)) return value;
+
+  if (numericValue >= 1000000) {
+    return `Ksh ${(numericValue / 1000000).toFixed(1)}M`;
+  }
+  if (numericValue >= 1000) {
+    return `Ksh ${(numericValue / 1000).toFixed(1)}K`;
+  }
+  return `Ksh ${numericValue.toFixed(2)}`;
+};
 
 export function Header() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const userMenuRef = useRef(null);
-  const searchInputRef = useRef(null);
+  const [userMenuAnchorEl, setUserMenuAnchorEl] = useState(null); // State for MUI Menu anchor
+  const isUserMenuOpen = Boolean(userMenuAnchorEl); // Derived state for MUI Menu
+  const [searchTerm, setSearchTerm] = useState(''); // Retain for now, although mobile search is removed
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
-        setIsUserMenuOpen(false);
+  // Notification states
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [notificationAnchorEl, setNotificationAnchorEl] = useState(null);
+
+  // Wallet Balance states
+  const [walletBalance, setWalletBalance] = useState('Ksh 0.00');
+  const [walletBalanceAnchorEl, setWalletBalanceAnchorEl] = useState(null);
+  const isWalletBalancePopoverOpen = Boolean(walletBalanceAnchorEl);
+
+  // No longer need handleClickOutside for custom dropdown with MUI Menu
+  // useEffect(() => {
+  //   const handleClickOutside = (event) => {
+  //     if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+  //       setIsUserMenuOpen(false);
+  //     }
+  //   };
+  //   document.addEventListener('mousedown', handleClickOutside);
+  //   return () => document.removeEventListener('mousedown', handleClickOutside);
+  // }, []);
+
+  // Fetch notifications and unread count
+  const fetchNotifications = async () => {
+    if (user && user.id) { // Only fetch if user is logged in
+      try {
+        const fetchedNotifications = await getNotifications();
+        setNotifications(fetchedNotifications);
+        const count = await getUnreadNotificationsCount();
+        setUnreadCount(count);
+      } catch (error) {
+        console.error("Failed to fetch notifications:", error);
       }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    if (searchTerm.trim()) {
-      navigate(`/search?q=${searchTerm.trim()}`);
-      setSearchTerm('');
-      setIsMobileSearchOpen(false);
     }
   };
 
+  useEffect(() => {
+    fetchNotifications(); // Fetch on mount
+
+    const interval = setInterval(fetchNotifications, 60000); // Poll every 60 seconds
+    return () => clearInterval(interval); // Cleanup on unmount
+  }, [user]); // Re-fetch if user changes
+
   const handleLogout = () => {
     logout();
-    setIsUserMenuOpen(false);
+    handleCloseUserMenu(); // Close the menu after logout
     navigate('/');
   };
 
-  return (
-    <>
-      <header className="fixed top-0 left-0 right-0 bg-white shadow-sm" style={{ zIndex: 1000 }}>
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center">
-            <Link to="/" className="flex items-center">
-              <img 
-                src="/logo192.png" 
-                alt="StyleHub Logo" 
-                style={{ height: '50px', width: 'auto' }}
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  if (e.target.nextSibling) {
-                    e.target.nextSibling.style.display = 'block';
-                  }
-                }}
-              />
-              <span className="font-bold text-xl" style={{ display: 'none', marginLeft: '8px' }}>
-                <span style={{ color: 'var(--color-primary)' }}>Style</span><span style={{ color: 'var(--color-secondary)' }}>Hub</span>
-              </span>
-            </Link>
-          </div>
-          
-          <div className="flex-1 mx-4 hidden md:block">
-            <form onSubmit={handleSearchSubmit} className="relative">
-              <input 
-                type="text" 
-                placeholder="Search services, products, providers..." 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:outline-none"
-                style={{ 
-                  focusRing: '2px solid var(--color-primary)',
-                }}
-                onFocus={(e) => e.target.style.boxShadow = '0 0 0 2px var(--color-primary)'}
-                onBlur={(e) => e.target.style.boxShadow = ''}
-              />
-              <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-3 text-gray-400" />
-            </form>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <div className="md:hidden">
-              <button 
-                onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
-                className="text-gray-600 focus:outline-none"
-              >
-                <FontAwesomeIcon icon={faSearch} className="text-xl" />
-              </button>
-            </div>
-            
-            <div className="relative">
-              <button className="text-gray-600 focus:outline-none relative">
-                <FontAwesomeIcon icon={faBell} className="text-xl" />
-                <span className="badge flex items-center justify-center w-5 h-5 bg-red-500 rounded-full text-white text-xs">3</span>
-              </button>
-            </div>
-            
-            {user && (
-              <div className="hidden md:flex items-center bg-gray-100 px-3 py-1 rounded-full">
-                <FontAwesomeIcon icon={faCrown} className="text-yellow-500 mr-1" />
-                <span className="text-sm font-medium">235 pts</span>
-              </div>
-            )}
+  const handleNotificationsToggle = async (event) => {
+    if (!user) { // Don't open if not logged in
+      navigate('/login');
+      return;
+    }
 
-            <div className="relative" ref={userMenuRef}>
-              <button 
-                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="w-10 h-10 rounded-full focus:outline-none flex items-center justify-center transition-all hover:scale-110"
-                style={{ 
-                  background: user 
-                    ? 'linear-gradient(135deg, var(--color-primary), var(--color-blue))'
-                    : '#e5e7eb',
-                  boxShadow: user ? '0 2px 8px rgba(250, 15, 140, 0.3)' : 'none'
-                }}
-              >
-                {user ? (
-                  <span className="text-white font-bold text-sm">
-                    {(user.name || user.email || 'U').charAt(0).toUpperCase()}
-                  </span>
-                ) : (
-                  <FontAwesomeIcon icon={faUser} className="text-gray-600" />
-                )}
-              </button>
-              
-              {isUserMenuOpen && user && (
-                <div className="user-dropdown">
-                  <div className="user-dropdown-header">
-                    <p>{user.name || 'User'}</p>
-                    <p>{user.email}</p>
-                  </div>
-                  <ul className="user-dropdown-menu">
-                    <li>
-                      <Link to="/dashboard" onClick={() => setIsUserMenuOpen(false)}>
-                        <FontAwesomeIcon icon={faUser} /> My Profile
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="/orders" onClick={() => setIsUserMenuOpen(false)}>
-                        <FontAwesomeIcon icon={faHistory} /> Order History
-                      </Link>
-                    </li>
-                    <li>
-                      <button onClick={() => { navigate('/my-wallet'); setIsUserMenuOpen(false); }} className="w-full text-left" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                        <FontAwesomeIcon icon={faCrown} /> Loyalty Points
-                      </button>
-                    </li>
-                    <li>
-                      <button onClick={() => { navigate('/settings'); setIsUserMenuOpen(false); }} className="w-full text-left" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                        <FontAwesomeIcon icon={faCog} /> Settings
-                      </button>
-                    </li>
-                    <li>
-                      <button onClick={handleLogout} className="w-full text-left" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                        <FontAwesomeIcon icon={faSignOutAlt} /> Log Out
-                      </button>
-                    </li>
-                  </ul>
-                </div>
-              )}
-            </div>
-          </div>
+    if (isNotificationsOpen) {
+      // If closing, mark all currently visible unread notifications as read
+      // This logic will be handled by handleCloseNotifications
+    }
+    setNotificationAnchorEl(event.currentTarget);
+    setIsNotificationsOpen(!isNotificationsOpen);
+  };
+
+  const handleCloseNotifications = async () => {
+    // When popover closes, mark all currently visible unread notifications as read
+    try {
+      await markAllNotificationsAsRead();
+    } catch (error) {
+      console.error("Failed to mark all notifications as read:", error);
+    }
+    fetchNotifications(); // Refresh count and status
+    setIsNotificationsOpen(false);
+    setNotificationAnchorEl(null);
+  };
+
+  // Handlers for MUI User Menu
+  const handleOpenUserMenu = (event) => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    setUserMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseUserMenu = () => {
+    setUserMenuAnchorEl(null);
+  };
+
+  // Fetch Wallet Balance
+  const fetchWalletBalance = async () => {
+    if (user && user.id) {
+      try {
+        const response = await apiClient.get(`/wallet/balance`); // Assuming this endpoint exists
+        setWalletBalance(formatCurrency(response.data.balance));
+      } catch (error) {
+        console.error("Failed to fetch wallet balance:", error);
+        setWalletBalance('Error');
+      }
+    }
+  };
+
+  // Handlers for Wallet Balance Popover
+  const handleToggleWalletBalance = async (event) => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    if (walletBalanceAnchorEl) { // If already open, close it
+      setWalletBalanceAnchorEl(null);
+    } else { // If closed, open it and fetch balance
+      await fetchWalletBalance();
+      setWalletBalanceAnchorEl(event.currentTarget);
+    }
+  };
+
+  const handleCloseWalletBalance = () => {
+    setWalletBalanceAnchorEl(null);
+  };
+
+
+
+  return (
+    <header className="main-header">
+      <div className="header-container">
+        <div className="logo-container">
+          <Link to="/" className="flex items-center">
+            <img 
+              src="/logo192.png" 
+              alt="StyleHub Logo" 
+              className="logo-img"
+            />
+          </Link>
         </div>
         
-        {/* Mobile search bar */}
-        <div className={`mobile-search-bar ${isMobileSearchOpen ? 'active' : ''}`}>
-          <form onSubmit={handleSearchSubmit} className="relative">
-            <input 
-              ref={searchInputRef}
-              type="text" 
-              placeholder="Search services, products, providers..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-            />
-            <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-3 text-gray-400" />
-          </form>
+        <div className="header-actions">
+          
+          {user && ( // Only show wallet balance toggle if user is logged in
+            <div className="relative">
+              <Tooltip title={isWalletBalancePopoverOpen ? "Hide Balance" : "Show Balance"}>
+                <IconButton color="inherit" onClick={handleToggleWalletBalance}>
+                  <FontAwesomeIcon icon={isWalletBalancePopoverOpen ? faEyeSlash : faEye} />
+                </IconButton>
+              </Tooltip>
+              <Popover
+                open={isWalletBalancePopoverOpen}
+                anchorEl={walletBalanceAnchorEl}
+                onClose={handleCloseWalletBalance}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'right',
+                }}
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+              >
+                <Box sx={{ p: 2 }}>
+                  <Typography variant="subtitle1" fontWeight="bold">
+                    Wallet Balance: {walletBalance}
+                  </Typography>
+                </Box>
+              </Popover>
+            </div>
+          )}
+
+          <div className="relative">
+            <IconButton color="inherit" onClick={handleNotificationsToggle}>
+              <Badge badgeContent={unreadCount} color="error">
+                <Notifications />
+              </Badge>
+            </IconButton>
+            <Popover
+              open={isNotificationsOpen}
+              anchorEl={notificationAnchorEl}
+              onClose={handleCloseNotifications}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+            >
+              <Box sx={{ width: 300, maxHeight: 400, overflowY: 'auto' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1 }}>
+                  <Typography variant="h6" sx={{ ml: 1 }}>Notifications</Typography>
+                  <IconButton size="small" onClick={handleCloseNotifications}>
+                    <Close fontSize="small" />
+                  </IconButton>
+                </Box>
+                <Divider />
+                <List dense>
+                  {notifications.length === 0 ? (
+                    <ListItem><ListItemText primary="No new notifications." /></ListItem>
+                  ) : (
+                    notifications.map((notification) => (
+                      <ListItem 
+                        key={notification.id} 
+                        onClick={() => console.log('Notification clicked:', notification.id)} // Placeholder for navigation
+                        sx={{ bgcolor: notification.read ? 'transparent' : 'action.selected' }}
+                      >
+                        <ListItemText 
+                          primary={notification.message} 
+                          secondary={new Date(notification.timestamp).toLocaleString()} 
+                        />
+                      </ListItem>
+                    ))
+                  )}
+                </List>
+              </Box>
+            </Popover>
+          </div>
+          
+          <div className="relative"> {/* Removed ref={userMenuRef} as it's no longer needed for custom dropdown */}
+            <button 
+              onClick={handleOpenUserMenu} // Use MUI Menu handler
+              className={`user-menu-btn ${user ? 'user-avatar' : 'user-avatar-placeholder'}`}
+            >
+              {user ? (
+                <span className="user-avatar-initial">
+                  {(user.name || user.email || 'U').charAt(0).toUpperCase()}
+                </span>
+              ) : (
+                <FontAwesomeIcon icon={faUser} />
+              )}
+            </button>
+            
+            <Menu
+              anchorEl={userMenuAnchorEl}
+              open={isUserMenuOpen && user} // Only open if anchor is set AND user is logged in
+              onClose={handleCloseUserMenu}
+              MenuListProps={{
+                'aria-labelledby': 'basic-button',
+              }}
+              PaperProps={{
+                style: {
+                  width: '250px', // Match previous custom dropdown width
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', // Match previous custom dropdown shadow
+                  borderRadius: '8px', // Match previous custom dropdown border-radius
+                },
+              }}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+            >
+              {user && ( // Ensure user exists before rendering menu items
+                <Box sx={{ padding: '1rem', borderBottom: '1px solid #e5e7eb' }}>
+                  <Typography variant="subtitle1" fontWeight="600" color="text.dark">
+                    {user.name || 'User'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {user.email}
+                  </Typography>
+                </Box>
+              )}
+              <MenuItem onClick={() => { navigate('/dashboard'); handleCloseUserMenu(); }}>
+                <FontAwesomeIcon icon={faUser} style={{ marginRight: '0.75rem' }} /> My Profile
+              </MenuItem>
+              <MenuItem onClick={() => { navigate('/orders'); handleCloseUserMenu(); }}>
+                <FontAwesomeIcon icon={faHistory} style={{ marginRight: '0.75rem' }} /> Order History
+              </MenuItem>
+              <MenuItem onClick={() => { navigate('/verification-hub'); handleCloseUserMenu(); }}>
+                <FontAwesomeIcon icon={faIdCard} style={{ marginRight: '0.75rem' }} /> Verification
+              </MenuItem>
+              <MenuItem onClick={() => { navigate('/settings'); handleCloseUserMenu(); }}>
+                <FontAwesomeIcon icon={faCog} style={{ marginRight: '0.75rem' }} /> Settings
+              </MenuItem>
+              <MenuItem onClick={handleLogout}>
+                <FontAwesomeIcon icon={faSignOutAlt} style={{ marginRight: '0.75rem' }} /> Log Out
+              </MenuItem>
+            </Menu>
+          </div>
         </div>
-      </header>
-    </>
+      </div>
+      
+      {/* Mobile search bar - removed */}
+    </header>
   );
 }

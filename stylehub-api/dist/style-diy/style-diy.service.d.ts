@@ -13,16 +13,20 @@ export declare class StyleDIYService {
             email: string;
             id: string;
         };
-        service: {
-            id: string;
-            imageUrl: string;
-            title: string;
-        };
-        product: {
-            name: string;
-            id: string;
-            imageUrl: string;
-        };
+        services: {
+            service: {
+                id: string;
+                imageUrl: string;
+                title: string;
+            };
+        }[];
+        products: {
+            product: {
+                name: string;
+                id: string;
+                imageUrl: string;
+            };
+        }[];
         _count: {
             comments: number;
         };
@@ -30,32 +34,38 @@ export declare class StyleDIYService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        imageUrl: string | null;
-        productId: string | null;
         userId: string;
-        serviceId: string | null;
-        videoUrl: string | null;
+        status: string;
         title: string;
         content: string | null;
-        likes: number;
+        imageUrls: string[];
+        isPublic: boolean;
+        viewCount: number;
+        likeCount: number;
+        commentCount: number;
+        topic: string | null;
     }>;
-    getAllPosts(page?: number, limit?: number): Promise<{
+    getAllPosts(page?: number, limit?: number, postId?: string): Promise<{
         posts: ({
             user: {
                 name: string;
                 email: string;
                 id: string;
             };
-            service: {
-                id: string;
-                imageUrl: string;
-                title: string;
-            };
-            product: {
-                name: string;
-                id: string;
-                imageUrl: string;
-            };
+            services: {
+                service: {
+                    id: string;
+                    imageUrl: string;
+                    title: string;
+                };
+            }[];
+            products: {
+                product: {
+                    name: string;
+                    id: string;
+                    imageUrl: string;
+                };
+            }[];
             _count: {
                 comments: number;
             };
@@ -70,15 +80,13 @@ export declare class StyleDIYService {
                 createdAt: Date;
                 updatedAt: Date;
                 userId: string;
+                status: string;
                 content: string;
+                likeCount: number;
                 postId: string;
+                parentId: string | null;
             })[];
             recommendations: ({
-                user: {
-                    name: string;
-                    email: string;
-                    id: string;
-                };
                 service: {
                     id: string;
                     imageUrl: string;
@@ -99,29 +107,38 @@ export declare class StyleDIYService {
                     email: string;
                     id: string;
                 };
+                recommendedBy: {
+                    name: string;
+                    email: string;
+                    id: string;
+                };
             } & {
                 id: string;
                 createdAt: Date;
+                updatedAt: Date;
+                status: string;
                 sellerId: string | null;
                 productId: string | null;
-                userId: string;
                 comment: string | null;
                 serviceId: string | null;
                 providerId: string | null;
                 postId: string;
+                recommendedById: string;
             })[];
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            imageUrl: string | null;
-            productId: string | null;
             userId: string;
-            serviceId: string | null;
-            videoUrl: string | null;
+            status: string;
             title: string;
             content: string | null;
-            likes: number;
+            imageUrls: string[];
+            isPublic: boolean;
+            viewCount: number;
+            likeCount: number;
+            commentCount: number;
+            topic: string | null;
         })[];
         total: number;
         page: number;
@@ -134,16 +151,20 @@ export declare class StyleDIYService {
             email: string;
             id: string;
         };
-        service: {
-            id: string;
-            imageUrl: string;
-            title: string;
-        };
-        product: {
-            name: string;
-            id: string;
-            imageUrl: string;
-        };
+        services: {
+            service: {
+                id: string;
+                imageUrl: string;
+                title: string;
+            };
+        }[];
+        products: {
+            product: {
+                name: string;
+                id: string;
+                imageUrl: string;
+            };
+        }[];
         comments: ({
             user: {
                 name: string;
@@ -155,15 +176,13 @@ export declare class StyleDIYService {
             createdAt: Date;
             updatedAt: Date;
             userId: string;
+            status: string;
             content: string;
+            likeCount: number;
             postId: string;
+            parentId: string | null;
         })[];
         recommendations: ({
-            user: {
-                name: string;
-                email: string;
-                id: string;
-            };
             service: {
                 id: string;
                 imageUrl: string;
@@ -184,44 +203,55 @@ export declare class StyleDIYService {
                 email: string;
                 id: string;
             };
+            recommendedBy: {
+                name: string;
+                email: string;
+                id: string;
+            };
         } & {
             id: string;
             createdAt: Date;
+            updatedAt: Date;
+            status: string;
             sellerId: string | null;
             productId: string | null;
-            userId: string;
             comment: string | null;
             serviceId: string | null;
             providerId: string | null;
             postId: string;
+            recommendedById: string;
         })[];
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        imageUrl: string | null;
-        productId: string | null;
         userId: string;
-        serviceId: string | null;
-        videoUrl: string | null;
+        status: string;
         title: string;
         content: string | null;
-        likes: number;
+        imageUrls: string[];
+        isPublic: boolean;
+        viewCount: number;
+        likeCount: number;
+        commentCount: number;
+        topic: string | null;
     }>;
     likePost(postId: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        imageUrl: string | null;
-        productId: string | null;
         userId: string;
-        serviceId: string | null;
-        videoUrl: string | null;
+        status: string;
         title: string;
         content: string | null;
-        likes: number;
+        imageUrls: string[];
+        isPublic: boolean;
+        viewCount: number;
+        likeCount: number;
+        commentCount: number;
+        topic: string | null;
     }>;
-    addComment(postId: string, userId: string, dto: CreateCommentDto): Promise<{
+    addComment(postId: string, userId: string, dto: CreateCommentDto, parentCommentId?: string | null): Promise<{
         user: {
             name: string;
             email: string;
@@ -232,15 +262,13 @@ export declare class StyleDIYService {
         createdAt: Date;
         updatedAt: Date;
         userId: string;
+        status: string;
         content: string;
+        likeCount: number;
         postId: string;
+        parentId: string | null;
     }>;
     addRecommendation(postId: string, userId: string, dto: CreateRecommendationDto): Promise<{
-        user: {
-            name: string;
-            email: string;
-            id: string;
-        };
         service: {
             id: string;
             imageUrl: string;
@@ -261,28 +289,37 @@ export declare class StyleDIYService {
             email: string;
             id: string;
         };
+        recommendedBy: {
+            name: string;
+            email: string;
+            id: string;
+        };
     } & {
         id: string;
         createdAt: Date;
+        updatedAt: Date;
+        status: string;
         sellerId: string | null;
         productId: string | null;
-        userId: string;
         comment: string | null;
         serviceId: string | null;
         providerId: string | null;
         postId: string;
+        recommendedById: string;
     }>;
     deletePost(postId: string, userId: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        imageUrl: string | null;
-        productId: string | null;
         userId: string;
-        serviceId: string | null;
-        videoUrl: string | null;
+        status: string;
         title: string;
         content: string | null;
-        likes: number;
+        imageUrls: string[];
+        isPublic: boolean;
+        viewCount: number;
+        likeCount: number;
+        commentCount: number;
+        topic: string | null;
     }>;
 }

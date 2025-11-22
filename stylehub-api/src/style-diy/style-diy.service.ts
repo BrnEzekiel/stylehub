@@ -1,4 +1,3 @@
-// src/style-diy/style-diy.service.ts
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
@@ -15,7 +14,7 @@ export class StyleDIYService {
 
   async createPost(userId: string, dto: CreatePostDto, imageFile?: any, videoFile?: any) {
     let imageUrl: string | undefined;
-    let videoUrl: string | undefined;
+    let videoUrl: string | undefined; // This variable exists but isn't used in your schema
 
     // Upload image if provided
     if (imageFile) {
@@ -34,48 +33,89 @@ export class StyleDIYService {
         'style-diy-videos',
         'video',
       );
-      videoUrl = uploadResult.secure_url;
+      videoUrl = uploadResult.secure_url; // Note: 'videoUrl' is not in your StyleDIYPost schema
     }
+
+    // --- FIX: The data block must match your schema ---
+    const imageInput = imageUrl || dto.imageUrl;
 
     return this.prisma.styleDIYPost.create({
       data: {
         userId,
         title: dto.title,
         content: dto.content,
-        videoUrl: videoUrl || dto.videoUrl,
-        imageUrl: imageUrl || dto.imageUrl,
-        productId: dto.productId,
-        serviceId: dto.serviceId,
+        // FIX 1: 'imageUrls' is an array in your schema
+        imageUrls: imageInput ? [imageInput] : [],
+        // FIX 2: Products and services are relations, not direct fields
+        products: dto.productId
+          ? {
+              create: { productId: dto.productId },
+            }
+          : undefined,
+        services: dto.serviceId
+          ? {
+              create: { serviceId: dto.serviceId },
+            }
+          : undefined,
       },
       include: {
         user: { select: { id: true, name: true, email: true } },
-        product: { select: { id: true, name: true, imageUrl: true } },
-        service: { select: { id: true, title: true, imageUrl: true } },
+        // FIX 3: Needs a nested select to get product details
+        products: {
+          select: {
+            product: {
+              select: { id: true, name: true, imageUrl: true },
+            },
+          },
+        },
+        services: { // Renamed 'service' to 'services' to match schema
+          select: {
+            service: { // Added nested select
+              select: { id: true, title: true, imageUrl: true },
+            }
+          }
+        },
         _count: { select: { comments: true } },
       },
     });
   }
 
-  async getAllPosts(page = 1, limit = 20) {
+  async getAllPosts(page = 1, limit = 20, postId?: string) {
     const skip = (page - 1) * limit;
+
+    const where = postId ? { id: postId } : {};
+
     const [posts, total] = await Promise.all([
       this.prisma.styleDIYPost.findMany({
         skip,
         take: limit,
+        where,
         include: {
           user: { select: { id: true, name: true, email: true } },
-          product: { select: { id: true, name: true, imageUrl: true } },
-          service: { select: { id: true, title: true, imageUrl: true } },
+          // FIX 4: 'product' -> 'products' and nested select
+          products: {
+            select: {
+              product: {
+                select: { id: true, name: true, imageUrl: true },
+              },
+            },
+          },
+          services: { // Renamed 'service' to 'services'
+            select: {
+              service: { // Added nested select
+                select: { id: true, title: true, imageUrl: true },
+              }
+            }
+          },
           comments: {
             include: {
               user: { select: { id: true, name: true, email: true } },
             },
             orderBy: { createdAt: 'desc' },
-            take: 5, // Show latest 5 comments
           },
           recommendations: {
             include: {
-              user: { select: { id: true, name: true, email: true } },
+              recommendedBy: { select: { id: true, name: true, email: true } },
               seller: { select: { id: true, name: true, email: true } },
               provider: { select: { id: true, name: true, email: true } },
               product: { select: { id: true, name: true, imageUrl: true } },
@@ -86,7 +126,7 @@ export class StyleDIYService {
         },
         orderBy: { createdAt: 'desc' },
       }),
-      this.prisma.styleDIYPost.count(),
+      this.prisma.styleDIYPost.count({ where }),
     ]);
 
     return { posts, total, page, limit, totalPages: Math.ceil(total / limit) };
@@ -97,8 +137,21 @@ export class StyleDIYService {
       where: { id: postId },
       include: {
         user: { select: { id: true, name: true, email: true } },
-        product: { select: { id: true, name: true, imageUrl: true } },
-        service: { select: { id: true, title: true, imageUrl: true } },
+        // FIX 5: 'product' -> 'products' and nested select
+        products: {
+          select: {
+            product: {
+              select: { id: true, name: true, imageUrl: true },
+            },
+          },
+        },
+        services: { // Renamed 'service' to 'services'
+          select: {
+            service: { // Added nested select
+              select: { id: true, title: true, imageUrl: true },
+            }
+          }
+        },
         comments: {
           include: {
             user: { select: { id: true, name: true, email: true } },
@@ -107,7 +160,7 @@ export class StyleDIYService {
         },
         recommendations: {
           include: {
-            user: { select: { id: true, name: true, email: true } },
+            recommendedBy: { select: { id: true, name: true, email: true } },
             seller: { select: { id: true, name: true, email: true } },
             provider: { select: { id: true, name: true, email: true } },
             product: { select: { id: true, name: true, imageUrl: true } },
@@ -135,11 +188,16 @@ export class StyleDIYService {
 
     return this.prisma.styleDIYPost.update({
       where: { id: postId },
-      data: { likes: { increment: 1 } },
+      data: { likeCount: { increment: 1 } },
     });
   }
 
-  async addComment(postId: string, userId: string, dto: CreateCommentDto) {
+  async addComment(
+    postId: string,
+    userId: string,
+    dto: CreateCommentDto,
+    parentCommentId: string | null = null,
+  ) {
     const post = await this.prisma.styleDIYPost.findUnique({
       where: { id: postId },
     });
@@ -153,6 +211,7 @@ export class StyleDIYService {
         postId,
         userId,
         content: dto.content,
+        parentId: parentCommentId,
       },
       include: {
         user: { select: { id: true, name: true, email: true } },
@@ -177,7 +236,7 @@ export class StyleDIYService {
     return this.prisma.styleDIYRecommendation.create({
       data: {
         postId,
-        userId,
+        recommendedById: userId, // FIX 6: Use 'userId' from function params
         sellerId: dto.sellerId,
         providerId: dto.providerId,
         productId: dto.productId,
@@ -185,7 +244,7 @@ export class StyleDIYService {
         comment: dto.comment,
       },
       include: {
-        user: { select: { id: true, name: true, email: true } },
+        recommendedBy: { select: { id: true, name: true, email: true } },
         seller: { select: { id: true, name: true, email: true } },
         provider: { select: { id: true, name: true, email: true } },
         product: { select: { id: true, name: true, imageUrl: true } },
@@ -212,4 +271,3 @@ export class StyleDIYService {
     });
   }
 }
-

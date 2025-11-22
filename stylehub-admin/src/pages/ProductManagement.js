@@ -1,13 +1,15 @@
-// src/pages/ProductManagement.js
 
 import React, { useState, useEffect } from 'react';
 import { getAllProducts, deleteProduct } from '../api/adminService';
 import { Link } from 'react-router-dom';
+import Page from '../components/Page';
+import { FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
 
 function ProductManagement() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchProducts();
@@ -27,11 +29,7 @@ function ProductManagement() {
   };
 
   const handleDelete = async (productId) => {
-    if (
-      window.confirm(
-        'Are you sure you want to permanently delete this product?'
-      )
-    ) {
+    if (window.confirm('Are you sure you want to permanently delete this product?')) {
       try {
         await deleteProduct(productId);
         setProducts((prev) => prev.filter((p) => p.id !== productId));
@@ -41,52 +39,135 @@ function ProductManagement() {
     }
   };
 
-  if (loading) return <p style={styles.loading}>Loading products...</p>;
-  if (error) return <p style={styles.error}>Error: {error}</p>;
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  if (loading) {
+    return (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: 'white' }}>
+            <div style={{
+                width: '80px',
+                height: '80px',
+                border: '4px solid rgba(255, 255, 255, 0.2)',
+                borderTop: '4px solid #FFD700',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite'
+            }} />
+            <h1 style={{ marginLeft: '20px' }}>Loading Products...</h1>
+        </div>
+    );
+  }
+
+  if (error) {
+    return (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: 'red' }}>
+            <h1>Error: {error}</h1>
+        </div>
+    );
+  }
+
+  const COLORS = {
+    blue: '#0066FF',
+    skyBlue: '#00BFFF',
+    yellow: '#FFD700',
+    black: '#000000',
+    white: '#FFFFFF',
+    green: '#00FF00',
+    red: '#EF4444',
+    magenta: '#FF00FF'
+  };
 
   return (
-    <div style={styles.container}>
-      {/* 1. 🛑 Header with Create button */}
-      <div style={styles.header}>
-        <h2 style={styles.title}>Product Management</h2>
-        <Link to="/product/create">
-          <button style={styles.buttonCreate}>+ Create New Product</button>
+    <Page title="Product Management">
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '32px'
+      }}>
+        <input
+          type="text"
+          placeholder="Search Products"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{
+            background: 'rgba(255, 255, 255, 0.1)',
+            border: '2px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '12px',
+            color: 'white',
+            padding: '12px 16px',
+            fontSize: '16px',
+            width: '40%',
+            outline: 'none',
+          }}
+        />
+        <Link to="/product/create" style={{
+          background: `linear-gradient(135deg, ${COLORS.yellow} 0%, ${COLORS.skyBlue} 100%)`,
+          color: 'white',
+          padding: '12px 24px',
+          borderRadius: '12px',
+          textDecoration: 'none',
+          fontWeight: 'bold',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <FaPlus /> Create New Product
         </Link>
       </div>
-
-      <div style={styles.tableWrapper}>
-        <table style={styles.table}>
+      <div style={{
+        background: 'rgba(255, 255, 255, 0.08)',
+        backdropFilter: 'blur(40px)',
+        WebkitBackdropFilter: 'blur(40px)',
+        borderRadius: '32px',
+        padding: 'clamp(24px, 4vw, 40px)',
+        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+        border: '2px solid rgba(255, 255, 255, 0.12)',
+      }}>
+        <table style={{
+          width: '100%',
+          borderCollapse: 'collapse',
+          color: 'white'
+        }}>
           <thead>
-            <tr style={styles.headerRow}>
-              <th style={styles.cell}>Product Name</th>
-              <th style={styles.cell}>Seller</th>
-              <th style={{...styles.cell, textAlign: 'right'}}>Price</th>
-              <th style={{...styles.cell, textAlign: 'center'}}>Stock</th>
-              <th style={{...styles.cell, textAlign: 'center'}}>Rating</th>
-              <th style={styles.cell}>Actions</th>
+            <tr>
+              <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid rgba(255, 255, 255, 0.2)' }}>Product Name</th>
+              <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid rgba(255, 255, 255, 0.2)' }}>Seller</th>
+              <th style={{ padding: '16px', textAlign: 'right', borderBottom: '2px solid rgba(255, 255, 255, 0.2)' }}>Price</th>
+              <th style={{ padding: '16px', textAlign: 'center', borderBottom: '2px solid rgba(255, 255, 255, 0.2)' }}>Stock</th>
+              <th style={{ padding: '16px', textAlign: 'center', borderBottom: '2px solid rgba(255, 255, 255, 0.2)' }}>Rating</th>
+              <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid rgba(255, 255, 255, 0.2)' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {products.map((product) => (
-              <tr key={product.id} style={styles.row}>
-                <td style={styles.cell}>{product.name}</td>
-                <td style={styles.cell}>{product.seller?.email || 'Platform-Owned'}</td>
-                <td style={{...styles.cell, textAlign: 'right'}}>
+            {filteredProducts.map((product) => (
+              <tr key={product.id} style={{
+                borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+              }}>
+                <td style={{ padding: '16px' }}>{product.name}</td>
+                <td style={{ padding: '16px' }}>{product.seller?.email || 'Platform-Owned'}</td>
+                <td style={{ padding: '16px', textAlign: 'right' }}>
                   Ksh {parseFloat(product.price).toFixed(2)}
                 </td>
-                <td style={{...styles.cell, textAlign: 'center'}}>{product.stock}</td>
-                <td style={{...styles.cell, textAlign: 'center'}}>
+                <td style={{ padding: '16px', textAlign: 'center' }}>{product.stock}</td>
+                <td style={{ padding: '16px', textAlign: 'center' }}>
                   {parseFloat(product.averageRating).toFixed(1)} / 5
                 </td>
-                <td style={{...styles.cell, display: 'flex', gap: '5px'}}>
-                  <Link to={`/product/${product.id}/edit`}>
-                    <button style={styles.buttonEdit}>Edit</button>
+                <td style={{ padding: '16px', display: 'flex', gap: '12px' }}>
+                  <Link to={`/product/${product.id}/edit`} style={{
+                    color: COLORS.yellow,
+                    cursor: 'pointer'
+                  }}>
+                    <FaEdit size={20} />
                   </Link>
-                  <button
-                    onClick={() => handleDelete(product.id)}
-                    style={styles.buttonDelete}
-                  >
-                    Delete
+                  <button onClick={() => handleDelete(product.id)} style={{
+                    background: 'none',
+                    border: 'none',
+                    color: COLORS.red,
+                    cursor: 'pointer'
+                  }}>
+                    <FaTrash size={20} />
                   </button>
                 </td>
               </tr>
@@ -94,96 +175,8 @@ function ProductManagement() {
           </tbody>
         </table>
       </div>
-    </div>
+    </Page>
   );
 }
-
-// 2. 🛑 Added new styles for header and create button
-const styles = {
-  container: {
-    padding: '20px',
-    backgroundColor: '#ffffff',
-    minHeight: '100vh',
-    fontFamily: '"Poppins", sans-serif',
-    color: '#000000',
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '20px',
-  },
-  title: {
-    fontSize: '1.8rem',
-    textAlign: 'left',
-    color: '#0f35df',
-    fontWeight: '600',
-    borderBottom: '3px solid #fa0f8c',
-    display: 'inline-block',
-    paddingBottom: '5px',
-    margin: 0,
-  },
-  buttonCreate: {
-    background: '#28a745',
-    color: '#fff',
-    border: 'none',
-    padding: '10px 15px',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontWeight: '600',
-    fontSize: '1em',
-  },
-  tableWrapper: {
-    overflowX: 'auto',
-    borderRadius: '10px',
-    boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-  },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    fontSize: '0.95rem',
-  },
-  headerRow: {
-    backgroundColor: '#0f35df',
-    color: '#ffffff',
-  },
-  row: {
-    transition: 'background 0.2s ease',
-  },
-  cell: {
-    padding: '12px 15px',
-    border: '1px solid #ddd',
-    textAlign: 'left',
-    verticalAlign: 'middle',
-  },
-  buttonEdit: {
-    background: '#0f35df',
-    color: '#fff',
-    border: 'none',
-    padding: '8px 12px',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontWeight: '500',
-  },
-  buttonDelete: {
-    background: '#dc3545',
-    color: '#fff',
-    border: 'none',
-    padding: '8px 12px',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontWeight: '500',
-  },
-  loading: {
-    textAlign: 'center',
-    color: '#0f35df',
-    fontWeight: '500',
-  },
-  error: {
-    textAlign: 'center',
-    color: '#fa0f8c',
-    fontWeight: '600',
-  },
-};
 
 export default ProductManagement;

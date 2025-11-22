@@ -16,7 +16,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/enums/role.enum';
 import { UpdateWithdrawalDto } from './dto/update-withdrawal.dto';
 
-@Controller('api/admin/withdrawals')
+@Controller('admin/withdrawals')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.Admin) // All routes are Admin-only
 export class WithdrawalAdminController {

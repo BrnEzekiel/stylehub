@@ -11,9 +11,9 @@
   --color-primary: #fa0f8c; /* Magenta - Primary brand color */
   --color-secondary: #f4d40f; /* Yellow - Secondary/Accent */
   --color-accent: #f4d40f; /* Yellow */
-  --color-background: #7a76761a; /* White */
+  --color-background: hsl(0, 0%, 100%); /* White */
   --color-text: #000000; /* Black */
-  --color-white: #ffffffff;
+  --color-white: #fff;
   --color-blue: #0f35df; /* Blue */
   --color-border: #eee;
   --color-verified: #0a875a;
@@ -97,6 +97,7 @@ body {
   .sidebar-nav { display: flex; gap: 8px; align-items: center; }
   .sidebar-nav li { flex: 0 0 auto; }
   .sidebar-nav li a { padding: 8px 12px; background: rgba(0,0,0,0.04); border-radius: 8px; color: inherit; }
+  .sidebar-nav li a:hover { background: rgba(0,0,0,0.08); }
   .admin-content {
     width: 100%;
     padding-top: 12px;
@@ -1482,4 +1483,75 @@ input[type="text"]:focus {
   gap: 1rem;
   margin-top: 2rem;
   padding: 1rem;
+}
+
+/* Custom Animations from premium_seller_dashboard.tsx */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0); }
+  33% { transform: translate(50px, -50px); }
+  66% { transform: translate(-30px, 30px); }
+}
+
+/* Custom Tailwind-like classes for glassmorphism effects */
+.shadow-lg-glass {
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.text-shadow-md {
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+.text-shadow-lg {
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.text-shadow-sm {
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Background Gradients for orbs */
+.bg-radial-gradient-yellow\/25 {
+  background: radial-gradient(circle, #FFD70040 0%, transparent 70%); /* Yellow with 25% opacity */
+}
+.bg-radial-gradient-skyBlue\/20 {
+  background: radial-gradient(circle, #00BFFF33 0%, transparent 70%); /* SkyBlue with 20% opacity */
+}
+.bg-radial-gradient-blue\/20 {
+  background: radial-gradient(circle, #0066FF33 0%, transparent 70%); /* Blue with 20% opacity */
+}
+.bg-radial-gradient-white\/15 {
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%); /* White with 15% opacity */
+}
+
+/* Animation delays and durations for Tailwind classes */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+.animate-float-25 {
+  animation: float 25s ease-in-out infinite;
+}
+.animate-float-20-reverse {
+  animation: float 20s ease-in-out infinite reverse;
+}
+.animate-float-30 {
+  animation: float 30s ease-in-out infinite;
+}
+.animate-slideUp {
+  animation: slideUp 0.6s ease-out both;
 }

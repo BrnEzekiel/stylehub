@@ -11,6 +11,7 @@ export declare class AuthController {
             phone: string;
             role: string;
             id: string;
+            username: string | null;
             createdAt: Date;
             updatedAt: Date;
             walletBalance: import("@prisma/client/runtime/library").Decimal;
@@ -36,6 +37,7 @@ export declare class AuthController {
         phone: string;
         role: string;
         id: string;
+        username: string | null;
         createdAt: Date;
         updatedAt: Date;
         walletBalance: import("@prisma/client/runtime/library").Decimal;

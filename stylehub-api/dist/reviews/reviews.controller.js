@@ -54,7 +54,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ReviewsController.prototype, "getProductReviews", null);
 exports.ReviewsController = ReviewsController = __decorate([
-    (0, common_1.Controller)('api/reviews'),
+    (0, common_1.Controller)('reviews'),
     __metadata("design:paramtypes", [reviews_service_1.ReviewsService])
 ], ReviewsController);
 //# sourceMappingURL=reviews.controller.js.map

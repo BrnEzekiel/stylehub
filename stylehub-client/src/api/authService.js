@@ -24,7 +24,7 @@ export const login = async (email, password) => {
 
 /**
  * Registers a new user.
- * @param {object} userData - Contains name, email, phone, password, role
+ * @param {object} userData - Contains name, username, email, phone, password, role
  * @returns {Promise<object>} The response data, e.g., { user, access_token }
  */
 export const register = async (userData) => {

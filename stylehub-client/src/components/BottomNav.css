@@ -1,0 +1,74 @@
+/* src/components/BottomNav.css */
+
+:root {
+  --bottom-nav-height: 70px;
+  --bottom-nav-bg: rgba(0, 0, 0, 0.7);
+  --bottom-nav-shadow: none;
+  --bottom-nav-border: none;
+  --primary-color: #0f35df;
+  --text-light: #6b7280;
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--bottom-nav-height);
+  background-color: var(--bottom-nav-bg);
+  box-shadow: var(--bottom-nav-shadow);
+  border-top: var(--bottom-nav-border);
+  z-index: 1000;
+}
+
+.nav-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  height: 100%;
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 100%;
+  padding: 12px 16px;
+  position: relative;
+  text-decoration: none;
+  transition: all 0.2s ease-in-out;
+  color: var(--text-light);
+}
+
+.nav-item:hover {
+  color: var(--primary-color);
+}
+
+.nav-item.active {
+  color: var(--primary-color);
+}
+
+.nav-item-icon {
+  font-size: 28px;
+  transition: transform 0.2s;
+}
+
+.nav-item.active .nav-item-icon {
+  transform: scale(1.2);
+}
+
+.nav-item-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 4px;
+  background-color: var(--primary-color);
+  border-radius: 2px 2px 0 0;
+}

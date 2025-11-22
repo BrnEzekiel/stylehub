@@ -9,6 +9,7 @@ export declare class UsersService {
     findByPhone(phone: string): Promise<User | null>;
     create(data: {
         name: string;
+        username: string;
         email: string;
         phone: string;
         password_hash: string;
@@ -20,12 +21,14 @@ export declare class UsersService {
         phone: string;
         role: string;
         id: string;
+        username: string;
         createdAt: Date;
     }[]>;
     findPublicById(id: string): Promise<{
         name: string;
         role: string;
         id: string;
+        username: string;
     }>;
     findFullUserById(id: string): Promise<{
         name: string;
@@ -33,6 +36,7 @@ export declare class UsersService {
         phone: string;
         role: string;
         id: string;
+        username: string;
         createdAt: Date;
         _count: {
             orders: number;
@@ -46,6 +50,7 @@ export declare class UsersService {
         phone: string;
         role: string;
         id: string;
+        username: string;
     }>;
     adminDeleteUser(id: string): Promise<{
         message: string;

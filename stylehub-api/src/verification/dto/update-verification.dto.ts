@@ -6,7 +6,7 @@ import { VerificationStatus } from '@prisma/client';
 export class UpdateVerificationStatusDto {
   @IsString()
   @IsIn([
-    VerificationStatus.approved,
+    VerificationStatus.verified,
     VerificationStatus.rejected,
   ])
   status: VerificationStatus;

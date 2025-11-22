@@ -13,32 +13,31 @@ export declare class OrdersService {
                 email: string;
                 id: string;
             };
-            items: ({
+            items: {
                 product: {
                     name: string;
                     imageUrl: string;
                 };
-            } & {
-                id: string;
-                createdAt: Date;
                 productName: string;
                 unitPrice: Prisma.Decimal;
                 quantity: number;
-                platformFee: Prisma.Decimal;
                 sellerEarning: Prisma.Decimal;
-                orderId: string;
-                productId: string | null;
-                payoutId: string | null;
-            })[];
+            }[];
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            status: string;
             userId: string;
+            status: string;
             totalAmount: Prisma.Decimal;
             subtotal: Prisma.Decimal;
             shippingFee: Prisma.Decimal;
+            paymentStatus: string;
+            paymentMethod: string | null;
+            paymentReference: string | null;
+            trackingNumber: string | null;
+            shippedAt: Date | null;
+            deliveredAt: Date | null;
             shippingAddressId: string | null;
         })[];
         summary: {
@@ -51,11 +50,17 @@ export declare class OrdersService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        status: string;
         userId: string;
+        status: string;
         totalAmount: Prisma.Decimal;
         subtotal: Prisma.Decimal;
         shippingFee: Prisma.Decimal;
+        paymentStatus: string;
+        paymentMethod: string | null;
+        paymentReference: string | null;
+        trackingNumber: string | null;
+        shippedAt: Date | null;
+        deliveredAt: Date | null;
         shippingAddressId: string | null;
     }>;
     findAllAdmin(): Promise<({
@@ -83,22 +88,34 @@ export declare class OrdersService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        status: string;
         userId: string;
+        status: string;
         totalAmount: Prisma.Decimal;
         subtotal: Prisma.Decimal;
         shippingFee: Prisma.Decimal;
+        paymentStatus: string;
+        paymentMethod: string | null;
+        paymentReference: string | null;
+        trackingNumber: string | null;
+        shippedAt: Date | null;
+        deliveredAt: Date | null;
         shippingAddressId: string | null;
     })[]>;
     updateOrderStatus(orderId: string, status: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        status: string;
         userId: string;
+        status: string;
         totalAmount: Prisma.Decimal;
         subtotal: Prisma.Decimal;
         shippingFee: Prisma.Decimal;
+        paymentStatus: string;
+        paymentMethod: string | null;
+        paymentReference: string | null;
+        trackingNumber: string | null;
+        shippedAt: Date | null;
+        deliveredAt: Date | null;
         shippingAddressId: string | null;
     }>;
     private findOrderForReceipt;
@@ -131,23 +148,29 @@ export declare class OrdersService {
             id: string;
             createdAt: Date;
             updatedAt: Date;
+            userId: string;
             fullName: string;
             street: string;
             city: string;
             state: string;
             zipCode: string;
             country: string;
-            userId: string;
         };
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        status: string;
         userId: string;
+        status: string;
         totalAmount: Prisma.Decimal;
         subtotal: Prisma.Decimal;
         shippingFee: Prisma.Decimal;
+        paymentStatus: string;
+        paymentMethod: string | null;
+        paymentReference: string | null;
+        trackingNumber: string | null;
+        shippedAt: Date | null;
+        deliveredAt: Date | null;
         shippingAddressId: string | null;
     }>;
     adminDeleteOrder(orderId: string): Promise<{

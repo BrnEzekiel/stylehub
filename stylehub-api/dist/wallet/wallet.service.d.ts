@@ -10,21 +10,29 @@ export declare class WalletService {
         walletTransactions: {
             id: string;
             createdAt: Date;
-            description: string;
             userId: string;
+            description: string;
             type: import(".prisma/client").$Enums.TransactionType;
             amount: Prisma.Decimal;
+            balance: Prisma.Decimal;
+            reference: string | null;
+            metadata: Prisma.JsonValue | null;
         }[];
     }>;
     requestWithdrawal(userId: string, dto: WithdrawalRequestDto): Promise<{
         id: string;
         createdAt: Date;
+        updatedAt: Date;
         status: import(".prisma/client").$Enums.WithdrawalStatus;
         sellerId: string;
         amount: Prisma.Decimal;
         mpesaNumber: string;
+        reference: string | null;
         walletTransactionId: string | null;
         processedAt: Date | null;
+        processedBy: string | null;
+        idNumber: string | null;
+        idDocumentUrl: string | null;
         adminRemarks: string | null;
     }>;
     createBookingHold(tx: Prisma.TransactionClient, clientId: string, amount: Prisma.Decimal, bookingId: string): Promise<void>;

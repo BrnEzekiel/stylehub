@@ -15,7 +15,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/enums/role.enum';
 
-@Controller('api/payouts')
+@Controller('payouts')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.Admin) // All routes in this module are Admin-only
 export class PayoutsController {

@@ -75,7 +75,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], CartController.prototype, "removeItem", null);
 exports.CartController = CartController = __decorate([
-    (0, common_1.Controller)('api/cart'),
+    (0, common_1.Controller)('cart'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     __metadata("design:paramtypes", [cart_service_1.CartService])
 ], CartController);

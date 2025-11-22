@@ -2,9 +2,22 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { getKycStatus, submitKyc } from '../api/kycService';
-import Container from '../components/Container';
-import Card from '../components/Card';
+import { getKYCStatus, submitKYC } from '../api/kycService';
+import {
+  Box,
+  Typography,
+  Button,
+  Paper,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  CircularProgress,
+  Container,
+  Grid
+} from '@mui/material';
+import { CheckCircle, HourglassEmpty, ErrorOutline } from '@mui/icons-material';
+import { pageSx, paperSx, COLOR_PRIMARY_BLUE, COLOR_TEXT_DARK } from '../styles/theme';
 
 function KYCPage() {
   const [kycStatus, setKycStatus] = useState(null);
@@ -20,12 +33,10 @@ function KYCPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // 🔥 FIXED: Allow both 'seller' and 'service_provider'
     if (!token || (user?.role !== 'seller' && user?.role !== 'service_provider')) {
       navigate('/login');
       return;
     }
-
     const fetchStatus = async () => {
       try {
         setLoading(true);
@@ -63,16 +74,13 @@ function KYCPage() {
       setError('Please upload BOTH your ID document and a selfie.');
       return;
     }
-
     setSubmitLoading(true);
     setError('');
     setSuccessMessage('');
-
     const formData = new FormData();
     formData.append('doc_type', docType);
     formData.append('document', documentFile);
     formData.append('selfie', selfieFile);
-
     try {
       const newKyc = await submitKYC(formData);
       setKycStatus(newKyc);
@@ -84,83 +92,83 @@ function KYCPage() {
     }
   };
 
-  if (loading) return <p>Loading KYC Status...</p>;
-
-  if (kycStatus?.status === 'approved') {
+  if (loading) {
     return (
-      <div style={{ padding: '20px', color: 'green' }}>
-        <h2>KYC Status: Approved</h2>
-        <p>Your KYC is approved! You can now create products or services.</p>
-      </div>
-    );
-  }
-
-  if (kycStatus?.status === 'pending') {
-    return (
-      <div style={{ padding: '20px', color: 'orange' }}>
-        <h2>KYC Status: Pending</h2>
-        <p>Your submission is currently under review by an admin.</p>
-      </div>
+        <Box sx={{ ...pageSx, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <CircularProgress sx={{ color: COLOR_PRIMARY_BLUE }} />
+            <Typography variant="h6" sx={{ ml: 2, color: COLOR_PRIMARY_BLUE }}>Loading KYC Status...</Typography>
+        </Box>
     );
   }
   
-  if (kycStatus?.status === 'rejected') {
+  const StatusDisplay = ({icon, title, message, color}) => (
+      <Box sx={{...pageSx, textAlign: 'center'}}>
+          <Paper sx={{...paperSx, p: 4, display: 'inline-block', borderColor: color, borderTopWidth: 4, borderTopStyle: 'solid'}}>
+              {icon}
+              <Typography variant="h5" sx={{fontWeight: 'bold', my: 1}}>{title}</Typography>
+              <Typography color="text.secondary">{message}</Typography>
+          </Paper>
+      </Box>
+  );
+
+  if (kycStatus?.status === 'approved') {
+    return <StatusDisplay icon={<CheckCircle sx={{fontSize: 48, color: 'green'}} />} title="KYC Approved" message="Your KYC is approved! You can now create products or services." color="green" />;
+  }
+
+  if (kycStatus?.status === 'pending' || successMessage) {
+    return <StatusDisplay icon={<HourglassEmpty sx={{fontSize: 48, color: 'orange'}} />} title="KYC Pending" message={successMessage || "Your submission is currently under review by an admin."} color="orange" />;
+  }
+  
+  if (kycStatus?.status === 'rejected' && !error) {
     setError("Your previous submission was rejected. Please re-submit.");
     setKycStatus(null);
   }
 
   return (
-    <div style={{ padding: '20px', maxWidth: '500px', margin: '0 auto' }}>
-      <h2>KYC Submission</h2>
-      <p>You must submit your KYC for approval before you can create products or services.</p>
-      
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '10px' }}>
-          <label htmlFor="doc_type" style={{ display: 'block', marginBottom: '5px' }}>Document Type</label>
-          <select
-            id="doc_type"
-            value={docType}
-            onChange={(e) => setDocType(e.target.value)}
-            style={{ width: '100%', padding: '8px' }}
-          >
-            <option value="national_id">National ID</option>
-            <option value="passport">Passport</option>
-            <option value="drivers_license">Driver's License</option>
-          </select>
-        </div>
+    <Box sx={pageSx}>
+        <Container maxWidth="sm">
+            <Typography variant="h4" sx={{color: COLOR_TEXT_DARK, fontWeight: '900', mb: 1}}>KYC Submission</Typography>
+            <Typography color="text.secondary" sx={{mb: 3}}>You must submit your KYC for approval before you can create products or services.</Typography>
+            <Paper sx={{...paperSx, p: 4}}>
+                <Box component="form" onSubmit={handleSubmit}>
+                    <Grid container spacing={3}>
+                        <Grid item xs={12}>
+                             <FormControl fullWidth required>
+                                <InputLabel>Document Type</InputLabel>
+                                <Select value={docType} onChange={(e) => setDocType(e.target.value)} label="Document Type">
+                                    <MenuItem value="national_id">National ID</MenuItem>
+                                    <MenuItem value="passport">Passport</MenuItem>
+                                    <MenuItem value="drivers_license">Driver's License</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Button variant="contained" component="label" fullWidth>
+                                Upload ID Document
+                                <input type="file" accept="image/*" onChange={handleDocumentChange} required hidden />
+                            </Button>
+                            {documentFile && <Typography variant="body2" sx={{mt: 1}}>{documentFile.name}</Typography>}
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Button variant="contained" component="label" fullWidth>
+                                Upload Selfie
+                                <input type="file" accept="image/*" onChange={handleSelfieChange} required hidden />
+                            </Button>
+                            {selfieFile && <Typography variant="body2" sx={{mt: 1}}>{selfieFile.name}</Typography>}
+                        </Grid>
 
-        <div style={{ marginBottom: '15px' }}>
-          <label htmlFor="document" style={{ display: 'block', marginBottom: '5px' }}>ID Document Image</label>
-          <input
-            type="file"
-            id="document"
-            accept="image/png, image/jpeg"
-            onChange={handleDocumentChange}
-            required
-            style={{ width: '100%' }}
-          />
-        </div>
+                        {error && <Grid item xs={12}><Typography color="error">{error}</Typography></Grid>}
 
-        <div style={{ marginBottom: '15px' }}>
-          <label htmlFor="selfie" style={{ display: 'block', marginBottom: '5px' }}>Selfie Image</label>
-          <input
-            type="file"
-            id="selfie"
-            accept="image/png, image/jpeg"
-            onChange={handleSelfieChange}
-            required
-            style={{ width: '100%' }}
-          />
-        </div>
-
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        {successMessage && <p style={{ color: 'green' }}>{successMessage}</p>}
-        
-        <button type="submit" disabled={submitLoading} style={{ width: '100%', padding: '10px' }}>
-          {submitLoading ? 'Submitting...' : 'Submit KYC'}
-        </button>
-      </form>
-    </div>
+                        <Grid item xs={12}>
+                            <Button type="submit" disabled={submitLoading} variant="contained" size="large" fullWidth sx={{backgroundColor: COLOR_PRIMARY_BLUE}}>
+                                {submitLoading ? <CircularProgress size={24} color="inherit" /> : 'Submit KYC'}
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </Box>
+            </Paper>
+        </Container>
+    </Box>
   );
 }
 

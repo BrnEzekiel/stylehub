@@ -198,7 +198,7 @@ export class PayoutsService { // 🛑 This 'export' is correct
           where: { id: payoutId },
           data: {
             status: 'paid',
-            paidAt: new Date(),
+            processedAt: new Date(),
           },
         });
 

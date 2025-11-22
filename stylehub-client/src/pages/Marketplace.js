@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { getProducts } from '../api/productService';
 import { getServices } from '../api/serviceService';
@@ -143,4 +142,3 @@ export default function Marketplace() {
     </Page>
   );
 }
-

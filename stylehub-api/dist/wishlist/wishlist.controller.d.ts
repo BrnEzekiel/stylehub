@@ -15,6 +15,7 @@ export declare class WishlistController {
                 category: string | null;
                 imageUrl: string | null;
                 sellerId: string | null;
+                isActive: boolean;
                 averageRating: import("@prisma/client/runtime/library").Decimal;
                 reviewCount: number;
             };
@@ -45,6 +46,7 @@ export declare class WishlistController {
             category: string | null;
             imageUrl: string | null;
             sellerId: string | null;
+            isActive: boolean;
             averageRating: import("@prisma/client/runtime/library").Decimal;
             reviewCount: number;
         };

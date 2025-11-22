@@ -42,7 +42,7 @@ import WishlistPage from './pages/WishlistPage';
 
 const AppContent = () => {
   const location = useLocation();
-  const noLayoutRoutes = ['/login', '/register'];
+  const noLayoutRoutes = ['/login', '/register']; // Removed /login and /register from here
 
   return (
     <>

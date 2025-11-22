@@ -1,6 +1,6 @@
 import { ProviderPortfolioService } from './provider-portfolio.service';
 import { SubmitPortfolioDto } from './dto/submit-portfolio.dto';
-import { UpdateVerificationStatusDto } from '../verification/dto/update-verification.dto';
+import { UpdateProviderPortfolioStatusDto } from './dto/update-provider-portfolio-status.dto';
 export declare class ProviderPortfolioController {
     private readonly portfolioService;
     constructor(portfolioService: ProviderPortfolioService);
@@ -8,22 +8,26 @@ export declare class ProviderPortfolioController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        status: import(".prisma/client").$Enums.VerificationStatus;
         userId: string;
-        bio: string;
-        portfolioUrl: string;
+        status: import(".prisma/client").$Enums.VerificationStatus;
+        remarks: string | null;
+        reviewedAt: Date | null;
+        reviewedBy: string | null;
+        bio: string | null;
+        portfolioUrl: string | null;
         videoUrl: string | null;
-    } | {
-        status: "unverified";
     }>;
     submitPortfolio(req: any, dto: SubmitPortfolioDto, videoFile: any): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        status: import(".prisma/client").$Enums.VerificationStatus;
         userId: string;
-        bio: string;
-        portfolioUrl: string;
+        status: import(".prisma/client").$Enums.VerificationStatus;
+        remarks: string | null;
+        reviewedAt: Date | null;
+        reviewedBy: string | null;
+        bio: string | null;
+        portfolioUrl: string | null;
         videoUrl: string | null;
     }>;
     getPendingPortfolios(): Promise<({
@@ -35,20 +39,26 @@ export declare class ProviderPortfolioController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        status: import(".prisma/client").$Enums.VerificationStatus;
         userId: string;
-        bio: string;
-        portfolioUrl: string;
+        status: import(".prisma/client").$Enums.VerificationStatus;
+        remarks: string | null;
+        reviewedAt: Date | null;
+        reviewedBy: string | null;
+        bio: string | null;
+        portfolioUrl: string | null;
         videoUrl: string | null;
     })[]>;
-    updatePortfolioStatus(id: string, dto: UpdateVerificationStatusDto): Promise<{
+    updatePortfolioStatus(id: string, dto: UpdateProviderPortfolioStatusDto): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        status: import(".prisma/client").$Enums.VerificationStatus;
         userId: string;
-        bio: string;
-        portfolioUrl: string;
+        status: import(".prisma/client").$Enums.VerificationStatus;
+        remarks: string | null;
+        reviewedAt: Date | null;
+        reviewedBy: string | null;
+        bio: string | null;
+        portfolioUrl: string | null;
         videoUrl: string | null;
     }>;
 }

@@ -59,30 +59,30 @@ export const mainTheme = createTheme({
     MuiTypography: {
       styleOverrides: {
         root: {
-          color: 'white', // Default text color to white
+          color: COLOR_TEXT_DARK, // Default text color to dark
         },
       },
     },
     MuiSvgIcon: {
       styleOverrides: {
         root: {
-          color: 'white', // Default icon color to white
+          color: COLOR_TEXT_DARK, // Default icon color to dark
         },
       },
     },
-    MuiInputBase: { // For text fields, ensure input text is white
+    MuiInputBase: { // For text fields, ensure input text is dark
       styleOverrides: {
         input: {
-          color: 'white',
+          color: COLOR_TEXT_DARK,
         },
       },
     },
-    MuiFormLabel: { // For input labels, ensure label text is white
+    MuiFormLabel: { // For input labels, ensure label text is dark
       styleOverrides: {
         root: {
-          color: 'white',
-          '&.Mui-focused': { // Keep label white when focused
-            color: 'white',
+          color: COLOR_TEXT_DARK,
+          '&.Mui-focused': { // Keep label dark when focused
+            color: COLOR_TEXT_DARK,
           },
         },
       },

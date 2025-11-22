@@ -10,6 +10,9 @@ export const getVerificationStatus = async () => {
     const response = await apiClient.get('/verification/status');
     return response.data;
   } catch (error) {
+    if (error.response && error.response.status === 404) {
+      return { status: 'unverified' };
+    }
     const errorMessage = error.response?.data?.message || 'Failed to fetch verification status.';
     console.error('Fetch status error:', errorMessage);
     throw new Error(errorMessage);

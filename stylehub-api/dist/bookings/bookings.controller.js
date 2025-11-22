@@ -38,7 +38,7 @@ let BookingsController = class BookingsController {
     getProviderBookings(req) {
         return this.bookingsService.getProviderBookings(req.user.sub);
     }
-    updateBookingStatus(req, id, status) {
+    updateServiceBookingStatus(req, id, status) {
         if (!status)
             throw new common_1.BadRequestException('Status is required.');
         return this.bookingsService.updateBookingStatus(id, status, req.user.sub, req.user.role);
@@ -48,6 +48,12 @@ let BookingsController = class BookingsController {
     }
     getAllBookingsAdmin() {
         return this.bookingsService.getAllBookingsAdmin();
+    }
+    async downloadConfirmation(req, id, res) {
+        const pdfBuffer = await this.bookingsService.downloadConfirmation(id, req.user.sub);
+        res.header('Content-Type', 'application/pdf');
+        res.header('Content-Disposition', `attachment; filename="BookingConfirmation-${id.substring(0, 8)}.pdf"`);
+        return new common_2.StreamableFile(pdfBuffer);
     }
 };
 exports.BookingsController = BookingsController;
@@ -85,7 +91,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, String, String]),
     __metadata("design:returntype", void 0)
-], BookingsController.prototype, "updateBookingStatus", null);
+], BookingsController.prototype, "updateServiceBookingStatus", null);
 __decorate([
     (0, common_1.Patch)(':id/cancel'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.Client),
@@ -102,8 +108,17 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], BookingsController.prototype, "getAllBookingsAdmin", null);
+__decorate([
+    (0, common_1.Get)(':id/confirmation'),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(2, (0, common_1.Res)({ passthrough: true })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, Object]),
+    __metadata("design:returntype", Promise)
+], BookingsController.prototype, "downloadConfirmation", null);
 exports.BookingsController = BookingsController = __decorate([
-    (0, common_1.Controller)('api/bookings'),
+    (0, common_1.Controller)('bookings'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     __metadata("design:paramtypes", [bookings_service_1.BookingsService])
 ], BookingsController);

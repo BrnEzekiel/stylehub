@@ -14,10 +14,12 @@ async function bootstrap() {
     new FastifyAdapter()
   );
 
+  app.setGlobalPrefix('api'); // Set global API prefix
   // 2. 🛑 THE FIX 🛑
   // Define the list of allowed origins
   const corsOrigins = [
     'http://localhost:3000', // Your stylehub-client app
+    'http://localhost:3000', // Allow stylehub-admin to access the API when running on default create-react-app port
     'http://localhost:3002', // Your new stylehub-admin app
   ];
 

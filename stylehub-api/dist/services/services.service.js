@@ -29,7 +29,7 @@ let ServicesService = class ServicesService {
         });
         if (!provider ||
             provider.kyc?.status !== 'approved' ||
-            provider.providerPortfolio?.status !== 'approved') {
+            provider.providerPortfolio?.status !== 'verified') {
             throw new common_1.ForbiddenException('You must have approved KYC and an approved Portfolio to create a service.');
         }
         let imageUrl;
@@ -71,7 +71,7 @@ let ServicesService = class ServicesService {
         const where = {
             provider: {
                 kyc: { status: 'approved' },
-                providerPortfolio: { status: 'approved' },
+                providerPortfolio: { status: 'verified' },
             },
         };
         if (category) {

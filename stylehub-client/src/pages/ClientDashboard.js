@@ -2,9 +2,22 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { fetchClientOrders } from '../api/orderService';
-import { Link } from 'react-router-dom';
-import Container from '../components/Container';
-import Card from '../components/Card';
+import {
+  Box,
+  Typography,
+  Grid,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  CircularProgress,
+} from '@mui/material';
+import { pageSx, paperSx, COLOR_PRIMARY_BLUE, COLOR_TEXT_DARK } from '../styles/theme';
+import { formatCurrency } from '../utils/styleUtils'; // Import formatCurrency
+import StatCard from '../components/StatCard';
 
 function ClientDashboard() {
   const { user } = useAuth();
@@ -15,7 +28,7 @@ function ClientDashboard() {
     if (user) {
       const loadData = async () => {
         try {
-          const ordersData = await fetchClientOrders(); // ✅ FIXED
+          const ordersData = await fetchClientOrders();
           setOrders(ordersData.slice(0, 3));
         } catch (error) {
           console.error("Failed to fetch recent orders:", error);
@@ -33,66 +46,53 @@ function ClientDashboard() {
   }
 
   return (
-    <div className="page-transition" style={{ paddingBottom: '80px' }}>
-      <Container>
-      <div className="page-section">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">Welcome, {user.name}!</h1>
-        <p className="text-gray-600 mb-6">Here's a quick overview of your account.</p>
+    <Box sx={pageSx}>
+      <Typography variant="h4" sx={{color: COLOR_TEXT_DARK, fontWeight: '900', mb: 1}}>Welcome, <span style={{color: 'lightgreen'}}>{user.name}</span>!</Typography>
+      <Typography color="text.secondary" sx={{mb: 4}}>Here's a quick overview of your account.</Typography>
 
-        <div className="stats-grid">
-          <StatCard title="Go Shopping" icon="🛍️" linkTo="/products" />
-          <StatCard title="View Your Cart" icon="🛒" linkTo="/cart" />
-          <StatCard title="Order History" icon="🧾" linkTo="/orders" />
-          <StatCard title="My Bookings" icon="📅" linkTo="/my-bookings" />
-        </div>
-        
-        <div className="dashboard-grid-large" style={{ gridTemplateColumns: '1fr', marginTop: '30px' }}>
-          <div className="dashboard-card">
-            <h3>Your Recent Orders</h3>
-            {loading ? (
-              <p className="text-gray-600">Loading orders...</p>
-            ) : orders.length === 0 ? (
-              <p>You haven't placed any orders yet.</p>
-            ) : (
-              <table>
-                <thead>
-                  <tr>
-                    <th>Order ID</th>
-                    <th>Date</th>
-                    <th>Total</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.map(order => (
-                    <tr key={order.id}>
-                      <td>{order.id.substring(0, 8)}...</td>
-                      <td>{new Date(order.createdAt).toLocaleDateString()}</td>
-                      <td>Ksh {parseFloat(order.totalAmount).toFixed(2)}</td>
-                      <td>{order.status}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </div>
-      </div>
-      </Container>
-    </div>
+      <Grid container spacing={3}>
+        <StatCard title="Go Shopping" icon="🛍️" linkTo="/products" />
+        <StatCard title="View Your Cart" icon="🛒" linkTo="/cart" />
+        <StatCard title="Order History" icon="🧾" linkTo="/orders" />
+        <StatCard title="My Bookings" icon="📅" linkTo="/my-bookings" />
+      </Grid>
+      
+      <Paper sx={{...paperSx, mt: 4, p: 3}}>
+        <Typography variant="h5" sx={{fontWeight: 'bold', color: COLOR_TEXT_DARK, mb: 2}}>Your Recent Orders</Typography>
+        {loading ? (
+            <Box sx={{display: 'flex', alignItems: 'center'}}>
+                <CircularProgress size={24} sx={{color: COLOR_PRIMARY_BLUE, mr: 2}} />
+                <Typography color="text.secondary">Loading orders...</Typography>
+            </Box>
+        ) : orders.length === 0 ? (
+          <Typography>You haven't placed any orders yet.</Typography>
+        ) : (
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Order ID</TableCell>
+                  <TableCell>Date</TableCell>
+                  <TableCell>Total</TableCell>
+                  <TableCell>Status</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {orders.map(order => (
+                  <TableRow key={order.id}>
+                    <TableCell>{order.id.substring(0, 8)}...</TableCell>
+                    <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell>{formatCurrency(order.totalAmount)}</TableCell>
+                    <TableCell>{order.status}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </Paper>
+    </Box>
   );
-}
-
-function StatCard({ title, icon, linkTo }) {
-  const content = (
-    <div className="stat-card">
-      <div className="stat-icon" style={{ background: '#e0f2fe', color: '#0284c7' }}>{icon}</div>
-      <div className="stat-info">
-        <p style={{ fontSize: '1.2em', margin: 0, color: '#0f35df' }}>{title}</p>
-      </div>
-    </div>
-  );
-  return <Link to={linkTo} style={{ textDecoration: 'none' }}>{content}</Link>;
 }
 
 export default ClientDashboard;

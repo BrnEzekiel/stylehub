@@ -4,44 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { getWishlist, removeWishlistItem } from '../api/wishlistService';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import {
+  Box, Typography, Grid, CircularProgress, Container, Paper, Button, Alert
+} from '@mui/material';
+import { pageSx, paperSx, COLOR_PRIMARY_BLUE, COLOR_TEXT_DARK } from '../styles/theme';
+import ProductCard from '../components/ProductCard';
 
-// We can re-use the ProductCard component from Products.js
-function ProductCard({ product, onRemove }) {
-  return (
-    <div className="product-card card-hover">
-      <Link to={`/products/${product.id}`} className="product-card-link">
-        <div className="relative">
-          {product.imageUrl ? (
-            <img 
-              src={product.imageUrl} 
-              alt={product.name} 
-              className="product-card-image"
-              onError={(e) => { 
-                e.target.onerror = null; 
-                e.target.src="https://placehold.co/600x400/dc3545/FFFFFF?text=Image+Missing"; 
-              }}
-            />
-          ) : (
-            <div className="product-card-image flex items-center justify-center" style={{ background: 'linear-gradient(to bottom right, #f3f4f6, #e5e7eb)' }}>
-              <span className="text-gray-500">No Image</span>
-            </div>
-          )}
-        </div>
-        <div className="product-card-content">
-          <h3 className="font-bold text-gray-800 mb-2">{product.name}</h3>
-          <p className="text-green-600 font-bold text-lg">KSh {parseFloat(product.price).toFixed(2)}</p>
-        </div>
-      </Link>
-      <button 
-        onClick={() => onRemove(product.id)} 
-        className="btn btn-outline w-full mt-2"
-        style={{ borderColor: 'var(--color-secondary)', color: 'var(--color-secondary)' }}
-      >
-        Remove from Wishlist
-      </button>
-    </div>
-  );
-}
 
 function WishlistPage() {
   const [wishlist, setWishlist] = useState(null);
@@ -70,7 +38,6 @@ function WishlistPage() {
   const handleRemove = async (productId) => {
     try {
       await removeWishlistItem(productId);
-      // Refresh the list by filtering the state
       setWishlist(prev => ({
         ...prev,
         items: prev.items.filter(item => item.productId !== productId)
@@ -82,49 +49,45 @@ function WishlistPage() {
 
   if (loading) {
     return (
-      <div className="page-section">
-        <div className="text-center py-20">
-          <p className="text-gray-600">Loading your wishlist...</p>
-        </div>
-      </div>
+        <Box sx={{ ...pageSx, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <CircularProgress sx={{ color: COLOR_PRIMARY_BLUE }} />
+            <Typography variant="h6" sx={{ ml: 2 }}>Loading your wishlist...</Typography>
+        </Box>
     );
   }
   
-  if (error) {
-    return (
-      <div className="page-section">
-        <div className="alert alert-error">{error}</div>
-      </div>
-    );
-  }
+  if (error) { return <Box sx={pageSx}><Alert severity="error">{error}</Alert></Box>; }
   
   if (!wishlist || wishlist.items.length === 0) {
     return (
-      <div className="page-transition">
-        <div className="page-section text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">My Wishlist</h1>
-          <p className="text-gray-600 text-lg mb-6">You haven't added any items to your wishlist yet.</p>
-          <Link to="/products" className="btn btn-primary">Go Shopping</Link>
-        </div>
-      </div>
+      <Box sx={pageSx}>
+        <Container maxWidth="md" sx={{textAlign: 'center'}}>
+          <Typography variant="h4" sx={{fontWeight: 'bold', color: COLOR_TEXT_DARK, mb: 2}}>My Wishlist</Typography>
+          <Paper sx={{...paperSx, p: 4}}>
+            <Typography variant="h6" sx={{mb: 2}}>You haven't added any items to your wishlist yet.</Typography>
+            <Button component={Link} to="/products" variant="contained" sx={{backgroundColor: COLOR_PRIMARY_BLUE}}>Go Shopping</Button>
+          </Paper>
+        </Container>
+      </Box>
     );
   }
 
   return (
-    <div className="page-transition">
-      <div className="page-section">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">My Wishlist</h1>
-        <div className="product-grid">
+    <Box sx={pageSx}>
+      <Container maxWidth="lg">
+        <Typography variant="h4" sx={{fontWeight: '900', color: COLOR_TEXT_DARK, mb: 3}}>My Wishlist</Typography>
+        <Grid container spacing={2}>
           {wishlist.items.map((item) => (
-            <ProductCard 
-              key={item.id} 
-              product={item.product} 
-              onRemove={handleRemove} 
-            />
+            <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
+              <ProductCard 
+                product={item.product} 
+                onRemove={handleRemove} 
+              />
+            </Grid>
           ))}
-        </div>
-      </div>
-    </div>
+        </Grid>
+      </Container>
+    </Box>
   );
 }
 

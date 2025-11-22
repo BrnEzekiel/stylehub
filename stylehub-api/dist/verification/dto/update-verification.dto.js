@@ -18,7 +18,7 @@ exports.UpdateVerificationStatusDto = UpdateVerificationStatusDto;
 __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsIn)([
-        client_1.VerificationStatus.approved,
+        client_1.VerificationStatus.verified,
         client_1.VerificationStatus.rejected,
     ]),
     __metadata("design:type", String)

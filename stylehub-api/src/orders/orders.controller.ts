@@ -23,7 +23,7 @@ import { Role } from '../auth/enums/role.enum';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 
-@Controller('api/orders')
+@Controller('orders')
 @UseGuards(JwtAuthGuard)
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}

@@ -52,7 +52,13 @@ let OrdersService = class OrdersService {
                 user: { select: { id: true, name: true, email: true } },
                 items: {
                     where: { product: { sellerId: sellerId } },
-                    include: { product: { select: { name: true, imageUrl: true } } },
+                    select: {
+                        sellerEarning: true,
+                        quantity: true,
+                        unitPrice: true,
+                        productName: true,
+                        product: { select: { name: true, imageUrl: true } },
+                    },
                 },
             },
             orderBy: { createdAt: 'desc' },
@@ -153,7 +159,7 @@ let OrdersService = class OrdersService {
             where: { id: orderId },
             include: {
                 user: {
-                    select: { name: true, email: true },
+                    select: { name: true, email: true, phone: true },
                 },
                 shippingAddress: true,
                 items: {

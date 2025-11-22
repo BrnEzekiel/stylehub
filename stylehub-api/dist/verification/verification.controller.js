@@ -76,7 +76,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], VerificationController.prototype, "updateVerificationStatus", null);
 exports.VerificationController = VerificationController = __decorate([
-    (0, common_1.Controller)('api/verification'),
+    (0, common_1.Controller)('verification'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     __metadata("design:paramtypes", [verification_service_1.VerificationService])
 ], VerificationController);

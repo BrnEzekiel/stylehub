@@ -1,6 +1,8 @@
-// src/pages/PortfolioManagementPage.js
+
 import React, { useState, useEffect } from 'react';
-import { getPendingProviderPortfolios, updatePortfolioStatus } from '../api/adminService'; // ✅ Updated import
+import { getPendingProviderPortfolios, updatePortfolioStatus } from '../api/adminService';
+import Page from '../components/Page';
+import { FaCheck, FaTimes } from 'react-icons/fa';
 
 function PortfolioManagementPage() {
   const [portfolios, setPortfolios] = useState([]);
@@ -15,7 +17,7 @@ function PortfolioManagementPage() {
     try {
       setLoading(true);
       setError('');
-      const data = await getPendingProviderPortfolios(); // ✅ New function
+      const data = await getPendingProviderPortfolios();
       setPortfolios(data);
     } catch (err) {
       setError(err.message);
@@ -25,180 +27,146 @@ function PortfolioManagementPage() {
   };
 
   const handleUpdateStatus = async (portfolioId, newStatus) => {
+    const action = newStatus === 'verified' ? 'approve' : 'reject';
+    if (!window.confirm(`Are you sure you want to ${action} this portfolio?`)) {
+      return;
+    }
     try {
-      await updatePortfolioStatus(portfolioId, newStatus); // ✅ New function
+      await updatePortfolioStatus(portfolioId, newStatus);
       fetchPortfolios();
     } catch (err) {
       setError(`Failed to ${newStatus} portfolio. Please try again.`);
     }
   };
 
-  if (loading) return <p style={styles.loading}>Loading pending portfolios...</p>;
-  if (error) return <p style={styles.error}>Error: {error}</p>;
+  if (loading) {
+      return (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: 'white' }}>
+              <div style={{
+                  width: '80px',
+                  height: '80px',
+                  border: '4px solid rgba(255, 255, 255, 0.2)',
+                  borderTop: '4px solid #FFD700',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+              }} />
+              <h1 style={{ marginLeft: '20px' }}>Loading Portfolios...</h1>
+          </div>
+      );
+  }
+
+  if (error) {
+      return (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: 'red' }}>
+              <h1>Error: {error}</h1>
+          </div>
+      );
+  }
+
+  const COLORS = {
+    blue: '#0066FF',
+    skyBlue: '#00BFFF',
+    yellow: '#FFD700',
+    black: '#000000',
+    white: '#FFFFFF',
+    green: '#00FF00',
+    red: '#EF4444',
+    magenta: '#FF00FF'
+  };
 
   return (
-    <div style={styles.container}>
-      <h2 style={styles.title}>Service Provider Portfolio Review</h2>
+    <Page title="Service Provider Portfolio Review">
       {portfolios.length === 0 ? (
-        <p style={styles.noData}>No pending portfolios to review. ✅</p>
-      ) : (
-        <div style={styles.tableWrapper}>
-          <table style={styles.table}>
-            <thead>
-              <tr style={styles.headerRow}>
-                <th style={styles.cell}>Provider Name</th>
-                <th style={styles.cell}>Bio</th>
-                <th style={styles.cell}>Portfolio</th>
-                <th style={styles.cell}>Video Pitch</th>
-                <th style={styles.cell}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {portfolios.map((portfolio) => (
-                <tr key={portfolio.id} style={styles.row}>
-                  <td style={styles.cell}>
-                    {portfolio.user?.name || 'N/A'}<br />
-                    <small style={{ color: '#555' }}>{portfolio.user?.email}</small>
-                  </td>
-                  <td style={styles.cell}>
-                    <div style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {portfolio.bio}
-                    </div>
-                  </td>
-                  <td style={styles.cell}>
-                    {portfolio.portfolioUrl ? (
-                      <a
-                        href={portfolio.portfolioUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={styles.link}
-                      >
-                        View Portfolio
-                      </a>
-                    ) : (
-                      '—'
-                    )}
-                  </td>
-                  <td style={styles.cell}>
-                    {portfolio.videoUrl ? (
-                      <a
-                        href={portfolio.videoUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={styles.link}
-                      >
-                        Watch Video
-                      </a>
-                    ) : (
-                      '—'
-                    )}
-                  </td>
-                  <td style={styles.cell}>
-                    <button
-                      onClick={() => handleUpdateStatus(portfolio.id, 'approved')}
-                      style={styles.buttonApprove}
-                    >
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => handleUpdateStatus(portfolio.id, 'rejected')}
-                      style={styles.buttonReject}
-                    >
-                      Reject
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div style={{
+            background: 'rgba(255, 255, 255, 0.08)',
+            backdropFilter: 'blur(40px)',
+            WebkitBackdropFilter: 'blur(40px)',
+            borderRadius: '32px',
+            padding: 'clamp(24px, 4vw, 40px)',
+            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+            border: '2px solid rgba(255, 255, 255, 0.12)',
+            textAlign: 'center',
+            color: 'white'
+        }}>
+          <h2>No pending portfolios to review.</h2>
         </div>
+      ) : (
+        <div style={{
+            background: 'rgba(255, 255, 255, 0.08)',
+            backdropFilter: 'blur(40px)',
+            WebkitBackdropFilter: 'blur(40px)',
+            borderRadius: '32px',
+            padding: 'clamp(24px, 4vw, 40px)',
+            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+            border: '2px solid rgba(255, 255, 255, 0.12)',
+          }}>
+            <h2 style={{color: 'white', marginBottom: '24px'}}>Service Provider Portfolios</h2>
+            <table style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              color: 'white'
+            }}>
+              <thead>
+                <tr>
+                  <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid rgba(255, 255, 255, 0.2)' }}>Provider Name</th>
+                  <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid rgba(255, 255, 255, 0.2)' }}>Bio</th>
+                  <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid rgba(255, 255, 255, 0.2)' }}>Portfolio</th>
+                  <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid rgba(255, 255, 255, 0.2)' }}>Video Pitch</th>
+                  <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid rgba(255, 255, 255, 0.2)' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {portfolios.map((portfolio) => (
+                  <tr key={portfolio.id} style={{
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+                  }}>
+                    <td style={{ padding: '16px' }}>
+                      <div>{portfolio.user?.name || 'N/A'}</div>
+                      <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.7)' }}>{portfolio.user?.email}</div>
+                    </td>
+                    <td style={{ padding: '16px', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {portfolio.bio}
+                    </td>
+                    <td style={{ padding: '16px' }}>
+                      {portfolio.portfolioUrl ? (
+                        <a href={portfolio.portfolioUrl} target="_blank" rel="noopener noreferrer" style={{color: COLORS.skyBlue}}>
+                          View Portfolio
+                        </a>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                    <td style={{ padding: '16px' }}>
+                      {portfolio.videoUrl ? (
+                        <a href={portfolio.videoUrl} target="_blank" rel="noopener noreferrer" style={{color: COLORS.skyBlue}}>
+                          Watch Video
+                        </a>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                    <td style={{ padding: '16px', display: 'flex', gap: '12px' }}>
+                      <button
+                        onClick={() => handleUpdateStatus(portfolio.id, 'verified')}
+                        style={{ background: COLORS.green, color: 'white', border: 'none', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                      >
+                        <FaCheck/> Approve
+                      </button>
+                      <button
+                        onClick={() => handleUpdateStatus(portfolio.id, 'rejected')}
+                        style={{ background: COLORS.red, color: 'white', border: 'none', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                      >
+                        <FaTimes/> Reject
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
       )}
-    </div>
+    </Page>
   );
 }
-
-// 🎨 Reuse your existing admin styles
-const styles = {
-  container: {
-    padding: '20px',
-    backgroundColor: '#ffffff',
-    minHeight: '100vh',
-    color: '#000000',
-    fontFamily: '"Poppins", sans-serif',
-  },
-  title: {
-    color: '#0f35df',
-    fontSize: '1.8rem',
-    marginBottom: '20px',
-    textAlign: 'center',
-    borderBottom: '3px solid #fa0f8c',
-    paddingBottom: '8px',
-    fontWeight: '600',
-  },
-  loading: {
-    textAlign: 'center',
-    color: '#0f35df',
-    fontWeight: '500',
-  },
-  error: {
-    color: '#dc3545',
-    textAlign: 'center',
-    fontWeight: 'bold',
-  },
-  noData: {
-    textAlign: 'center',
-    color: '#fa0f8c',
-    fontWeight: '500',
-  },
-  tableWrapper: {
-    overflowX: 'auto',
-    borderRadius: '10px',
-    boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-  },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    fontSize: '0.95rem',
-  },
-  headerRow: {
-    backgroundColor: '#0f35df',
-    color: '#ffffff',
-  },
-  row: {
-    borderBottom: '1px solid #ddd',
-    transition: 'background 0.3s ease',
-  },
-  cell: {
-    padding: '12px 15px',
-    textAlign: 'left',
-    verticalAlign: 'top',
-  },
-  link: {
-    color: '#0f35df',
-    fontWeight: '500',
-    textDecoration: 'none',
-  },
-  buttonApprove: {
-    background: '#f4d40f',
-    color: '#000000',
-    border: 'none',
-    padding: '8px 12px',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    marginRight: '8px',
-    fontWeight: '600',
-    transition: 'all 0.3s ease',
-  },
-  buttonReject: {
-    background: '#fa0f8c',
-    color: '#ffffff',
-    border: 'none',
-    padding: '8px 12px',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontWeight: '600',
-    transition: 'all 0.3s ease',
-  },
-};
 
 export default PortfolioManagementPage;

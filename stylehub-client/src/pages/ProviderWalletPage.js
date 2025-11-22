@@ -1,6 +1,23 @@
 // src/pages/ProviderWalletPage.js
 import React, { useState, useEffect } from 'react';
 import { getWalletDetails, requestWithdrawal } from '../api/walletService';
+import {
+  Box,
+  Typography,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  CircularProgress,
+  Button,
+  TextField,
+  Grid,
+} from '@mui/material';
+import { pageSx, paperSx, COLOR_PRIMARY_BLUE, COLOR_TEXT_DARK } from '../styles/theme';
+import { formatCurrency } from '../utils/styleUtils'; // Import formatCurrency
 
 function ProviderWalletPage() {
   const [wallet, setWallet] = useState(null);
@@ -57,96 +74,109 @@ function ProviderWalletPage() {
     }
   };
 
-  if (loading) return <p className="admin-content">Loading...</p>;
-  if (error) return <p className="admin-content" style={{ color: 'red' }}>Error: {error}</p>;
+  if (loading) {
+    return (
+        <Box sx={{ ...pageSx, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <CircularProgress sx={{ color: COLOR_PRIMARY_BLUE }} />
+            <Typography variant="h6" sx={{ ml: 2, color: COLOR_PRIMARY_BLUE }}>Loading Wallet...</Typography>
+        </Box>
+    );
+  }
+  if (error) {
+      return (
+          <Box sx={{ ...pageSx, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <Typography color="error" variant="h6">Error: {error}</Typography>
+          </Box>
+      );
+  }
 
   return (
-    <div className="admin-content">
-      <h2>My Wallet</h2>
-      <div style={{ background: '#f8f9fa', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
-        <h3>Balance: Ksh {parseFloat(wallet.walletBalance).toFixed(2)}</h3>
-        <p style={{ color: '#666', fontSize: '0.9em' }}>
+    <Box sx={pageSx}>
+      <Typography variant="h4" sx={{color: COLOR_TEXT_DARK, fontWeight: '900', mb: 3}}>My Wallet</Typography>
+      <Paper sx={{ ...paperSx, p: 3, mb: 3 }}>
+        <Typography variant="h5" sx={{fontWeight: 'bold', color: COLOR_TEXT_DARK}}>Balance</Typography>
+        <Typography variant="h3" sx={{fontWeight: 'bold', color: COLOR_PRIMARY_BLUE, my: 1}}>
+          {formatCurrency(wallet.walletBalance)}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
           💡 You can request a withdrawal to your M-Pesa number.
-        </p>
-      </div>
+        </Typography>
+      </Paper>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px' }}>
+      <Grid container spacing={3}>
         {/* Withdrawal Form */}
-        <div style={{ background: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
-          <h3>Request Withdrawal</h3>
-          <form onSubmit={handleWithdrawal}>
-            <div style={{ marginBottom: '10px' }}>
-              <label style={{ display: 'block', marginBottom: '5px' }}>Amount (Ksh)</label>
-              <input
+        <Grid item xs={12} md={4}>
+          <Paper sx={{ ...paperSx, p: 3 }}>
+            <Typography variant="h5" sx={{fontWeight: 'bold', color: COLOR_TEXT_DARK, mb: 2}}>Request Withdrawal</Typography>
+            <Box component="form" onSubmit={handleWithdrawal}>
+              <TextField
+                fullWidth
+                label="Amount (Ksh)"
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="e.g., 500"
-                style={{ width: '100%', padding: '8px' }}
+                sx={{ mb: 2 }}
                 required
               />
-            </div>
-            <div style={{ marginBottom: '10px' }}>
-              <label style={{ display: 'block', marginBottom: '5px' }}>M-Pesa Number</label>
-              <input
+              <TextField
+                fullWidth
+                label="M-Pesa Number"
                 type="tel"
                 value={mpesaNumber}
                 onChange={(e) => setMpesaNumber(e.target.value)}
                 placeholder="e.g., 0712345678"
-                style={{ width: '100%', padding: '8px' }}
+                sx={{ mb: 2 }}
                 required
               />
-            </div>
-            {formError && <p style={{ color: 'red', fontSize: '0.9em' }}>{formError}</p>}
-            {formSuccess && <p style={{ color: '#28a745', fontSize: '0.9em' }}>{formSuccess}</p>}
-            <button
-              type="submit"
-              disabled={formLoading}
-              style={{
-                width: '100%',
-                padding: '10px',
-                background: '#0f35df',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                fontWeight: '600',
-              }}
-            >
-              {formLoading ? 'Processing...' : 'Request Withdrawal'}
-            </button>
-          </form>
-        </div>
+              {formError && <Typography color="error" sx={{ mb: 1 }}>{formError}</Typography>}
+              {formSuccess && <Typography color="success.main" sx={{ mb: 1 }}>{formSuccess}</Typography>}
+              <Button
+                type="submit"
+                disabled={formLoading}
+                fullWidth
+                variant="contained"
+                sx={{ backgroundColor: COLOR_PRIMARY_BLUE }}
+              >
+                {formLoading ? <CircularProgress size={24} color="inherit" /> : 'Request Withdrawal'}
+              </Button>
+            </Box>
+          </Paper>
+        </Grid>
 
         {/* Transaction History */}
-        <div style={{ background: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
-          <h3>Transaction History</h3>
-          {wallet.walletTransactions.length === 0 ? (
-            <p>No transactions yet.</p>
-          ) : (
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Description</th>
-                  <th>Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {wallet.walletTransactions.map(tx => (
-                  <tr key={tx.id}>
-                    <td>{new Date(tx.createdAt).toLocaleDateString()}</td>
-                    <td>{tx.description}</td>
-                    <td style={{ color: tx.type === 'credit' ? 'green' : 'red' }}>
-                      {parseFloat(tx.amount).toFixed(2)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
-    </div>
+        <Grid item xs={12} md={8}>
+          <Paper sx={{ ...paperSx, p: 3 }}>
+            <Typography variant="h5" sx={{fontWeight: 'bold', color: COLOR_TEXT_DARK, mb: 2}}>Transaction History</Typography>
+            {wallet.walletTransactions.length === 0 ? (
+              <Typography>No transactions yet.</Typography>
+            ) : (
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Date</TableCell>
+                      <TableCell>Description</TableCell>
+                      <TableCell align="right">Amount</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {wallet.walletTransactions.map(tx => (
+                      <TableRow key={tx.id}>
+                        <TableCell>{new Date(tx.createdAt).toLocaleDateString()}</TableCell>
+                        <TableCell>{tx.description}</TableCell>
+                                            <TableCell align="right" sx={{ color: tx.type === 'credit' ? 'green' : 'red', fontWeight: 'bold' }}>
+                                              {tx.type === 'credit' ? '+' : '-'} {formatCurrency(tx.amount)}
+                                            </TableCell>                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+          </Paper>
+        </Grid>
+      </Grid>
+    </Box>
   );
 }
 

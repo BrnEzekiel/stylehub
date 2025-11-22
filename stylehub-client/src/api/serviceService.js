@@ -113,3 +113,28 @@ export const cancelBooking = async (bookingId) => {
     throw new Error(error.response?.data?.message || 'Failed to cancel booking.');
   }
 };
+
+/**
+ * Download booking confirmation PDF
+ */
+export const downloadBookingConfirmation = async (bookingId) => {
+  try {
+    const response = await apiClient.get(`/bookings/${bookingId}/confirmation`, {
+      responseType: 'blob',
+    });
+
+    // Create a link and click it to trigger download
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    const filename = `BookingConfirmation-${bookingId.substring(0, 8)}.pdf`;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Download confirmation error:', error);
+    throw new Error(error.response?.data?.message || error.message || 'Failed to download confirmation.');
+  }
+};

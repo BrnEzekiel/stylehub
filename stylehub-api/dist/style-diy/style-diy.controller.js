@@ -116,7 +116,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], StyleDIYController.prototype, "deletePost", null);
 exports.StyleDIYController = StyleDIYController = __decorate([
-    (0, common_1.Controller)('api/style-diy'),
+    (0, common_1.Controller)('style-diy'),
     __metadata("design:paramtypes", [style_diy_service_1.StyleDIYService])
 ], StyleDIYController);
 //# sourceMappingURL=style-diy.controller.js.map

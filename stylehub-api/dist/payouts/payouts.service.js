@@ -168,7 +168,7 @@ let PayoutsService = class PayoutsService {
                     where: { id: payoutId },
                     data: {
                         status: 'paid',
-                        paidAt: new Date(),
+                        processedAt: new Date(),
                     },
                 });
                 await this.walletService.addPayoutToWallet(tx, payout.sellerId, payout.amount, payout.id);

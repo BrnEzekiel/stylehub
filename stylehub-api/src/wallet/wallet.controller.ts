@@ -15,7 +15,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/enums/role.enum';
 import { WithdrawalRequestDto } from './dto/withdrawal.dto';
 
-@Controller('api/wallet')
+@Controller('wallet')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.Seller, Role.Client, Role.ServiceProvider) // These routes are for sellers
 export class WalletController {

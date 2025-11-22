@@ -1,9 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faTimes, faCheck, faClock } from '@fortawesome/free-solid-svg-icons';
-import { getClientBookings, cancelBooking } from '../api/serviceService';
-import Card from '../components/Card';
+import { getClientBookings, cancelBooking, downloadBookingConfirmation } from '../api/serviceService';
+import {
+  Box,
+  Typography,
+  Button,
+  Paper,
+  Grid,
+  CircularProgress,
+} from '@mui/material';
+import {
+  ArrowBack,
+  Close,
+  Check,
+  AccessTime,
+  Download,
+} from '@mui/icons-material';
+import { pageSx, paperSx, COLOR_PRIMARY_BLUE, COLOR_TEXT_DARK } from '../styles/theme';
+import { formatCurrency } from '../utils/styleUtils'; // Import formatCurrency
 
 function BookingDetailPage() {
   const { id } = useParams();
@@ -49,21 +63,23 @@ function BookingDetailPage() {
     }
   };
 
-  const getStatusIcon = (status) => {
-    const s = (status || '').toLowerCase();
-    if (s === 'confirmed') return <FontAwesomeIcon icon={faCheck} className="text-green-600" />;
-    if (s === 'pending') return <FontAwesomeIcon icon={faClock} className="text-yellow-600" />;
-    if (s === 'cancelled') return <FontAwesomeIcon icon={faTimes} className="text-red-600" />;
-    return null;
+  const handleDownloadConfirmation = async () => {
+    setDownloading(true);
+    try {
+      await downloadBookingConfirmation(id);
+    } catch (err) {
+      alert(`Failed to download confirmation: ${err.message || err}`);
+    } finally {
+      setDownloading(false);
+    }
   };
 
-  const getStatusBadge = (status) => {
+  const getStatusIcon = (status) => {
     const s = (status || '').toLowerCase();
-    if (s === 'confirmed') return 'bg-green-100 text-green-800';
-    if (s === 'pending') return 'bg-yellow-100 text-yellow-800';
-    if (s === 'cancelled') return 'bg-red-100 text-red-800';
-    if (s === 'in_progress') return 'bg-blue-100 text-blue-800';
-    return 'bg-gray-100 text-gray-800';
+    if (s === 'confirmed') return <Check sx={{ color: 'green' }} />;
+    if (s === 'pending') return <AccessTime sx={{ color: 'orange' }} />;
+    if (s === 'cancelled') return <Close sx={{ color: 'red' }} />;
+    return null;
   };
 
   const canCancelBooking = (b) => {
@@ -72,158 +88,160 @@ function BookingDetailPage() {
 
   if (loading) {
     return (
-      <div className="page-section">
-        <div className="text-center py-20">
-          <p className="text-gray-600">Loading booking details...</p>
-        </div>
-      </div>
+      <Box sx={{ ...pageSx, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <CircularProgress sx={{ color: COLOR_PRIMARY_BLUE }} />
+        <Typography variant="h6" sx={{ ml: 2, color: COLOR_PRIMARY_BLUE }}>Loading booking details...</Typography>
+      </Box>
     );
   }
 
   if (error) {
     return (
-      <div className="page-section">
-        <button onClick={() => navigate(-1)} className="mb-4 inline-flex items-center gap-2 text-primary hover:underline">
-          <FontAwesomeIcon icon={faArrowLeft} /> Back
-        </button>
-        <div className="alert alert-error">{error}</div>
-      </div>
+      <Box sx={pageSx}>
+        <Button onClick={() => navigate(-1)} startIcon={<ArrowBack />} sx={{ mb: 2, color: COLOR_PRIMARY_BLUE }}>
+          Back
+        </Button>
+        <Paper sx={{...paperSx, p: 3, textAlign: 'center', backgroundColor: '#ffdddd'}}>
+          <Typography color="error" variant="h6">Error: {error}</Typography>
+        </Paper>
+      </Box>
     );
   }
 
   if (!booking) {
     return (
-      <div className="page-section">
-        <button onClick={() => navigate(-1)} className="mb-4 inline-flex items-center gap-2 text-primary hover:underline">
-          <FontAwesomeIcon icon={faArrowLeft} /> Back
-        </button>
-        <p className="text-gray-600">Booking not found</p>
-      </div>
+      <Box sx={pageSx}>
+        <Button onClick={() => navigate(-1)} startIcon={<ArrowBack />} sx={{ mb: 2, color: COLOR_PRIMARY_BLUE }}>
+          Back
+        </Button>
+        <Paper sx={{...paperSx, p: 3, textAlign: 'center'}}>
+          <Typography variant="h6">Booking not found</Typography>
+        </Paper>
+      </Box>
     );
   }
 
   return (
-    <div className="page-section">
-      <button onClick={() => navigate(-1)} className="mb-4 inline-flex items-center gap-2 text-primary hover:underline">
-        <FontAwesomeIcon icon={faArrowLeft} /> Back to Bookings
-      </button>
+    <Box sx={pageSx}>
+      <Button onClick={() => navigate(-1)} startIcon={<ArrowBack />} sx={{ mb: 4, color: COLOR_PRIMARY_BLUE }}>
+        Back to Bookings
+      </Button>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <Grid container spacing={3}>
         {/* Main Booking Info */}
-        <div className="md:col-span-2">
-          <Card className="p-6 mb-6">
-            <div className="flex justify-between items-start">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-800">{booking.service?.title || 'Service Booking'}</h1>
-                <p className="text-gray-500 font-mono text-sm mt-1">{booking.id}</p>
-              </div>
-              <div className="text-right">
-                <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-md ${getStatusBadge(booking.status)}`}>
-                  {getStatusIcon(booking.status)}
-                  <span className="font-semibold">{booking.status || 'N/A'}</span>
-                </div>
-              </div>
-            </div>
+        <Grid item xs={12} md={8}>
+          <Paper sx={{...paperSx, p: 3, mb: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <Box>
+                <Typography variant="h4" sx={{fontWeight: 'bold', color: COLOR_TEXT_DARK}}>{booking.service?.title || 'Service Booking'}</Typography>
+                <Typography variant="caption" color="textSecondary">{booking.id}</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {getStatusIcon(booking.status)}
+                <Typography variant="body1" sx={{ fontWeight: 'bold' }}>{booking.status || 'N/A'}</Typography>
+              </Box>
+            </Box>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6 pt-6 border-t">
-              <div>
-                <div className="text-xs text-gray-500 uppercase">Booking Date</div>
-                <div className="text-sm font-medium">{new Date(booking.createdAt).toLocaleDateString()}</div>
-              </div>
-              <div>
-                <div className="text-xs text-gray-500 uppercase">Service Date</div>
-                <div className="text-sm font-medium">{new Date(booking.startTime).toLocaleDateString()}</div>
-              </div>
-              <div>
-                <div className="text-xs text-gray-500 uppercase">Time</div>
-                <div className="text-sm font-medium">{new Date(booking.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-              </div>
-            </div>
-          </Card>
+            <Grid container spacing={2} sx={{ mt: 2, pt: 2, borderTop: '1px solid #ccc' }}>
+              <Grid item xs={4}>
+                <Typography variant="caption" color="textSecondary">Booking Date</Typography>
+                <Typography variant="body1" sx={{fontWeight: 'medium'}}>{new Date(booking.createdAt).toLocaleDateString()}</Typography>
+              </Grid>
+              <Grid item xs={4}>
+                <Typography variant="caption" color="textSecondary">Service Date</Typography>
+                <Typography variant="body1" sx={{fontWeight: 'medium'}}>{new Date(booking.startTime).toLocaleDateString()}</Typography>
+              </Grid>
+              <Grid item xs={4}>
+                <Typography variant="caption" color="textSecondary">Time</Typography>
+                <Typography variant="body1" sx={{fontWeight: 'medium'}}>{new Date(booking.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Typography>
+              </Grid>
+            </Grid>
+          </Paper>
 
           {/* Service Details */}
-          <Card className="p-6 mb-6">
-            <h2 className="text-lg font-bold text-gray-800 mb-4">Service Details</h2>
+          <Paper sx={{...paperSx, p: 3, mb: 3 }}>
+            <Typography variant="h5" sx={{fontWeight: 'bold', color: COLOR_TEXT_DARK, mb: 2}}>Service Details</Typography>
 
             {booking.service?.imageUrl && (
-              <img src={booking.service.imageUrl} alt={booking.service.title} className="w-full h-64 object-cover rounded-md mb-4" />
+              <Box component="img" src={booking.service.imageUrl} alt={booking.service.title} sx={{ width: '100%', height: 250, objectFit: 'cover', borderRadius: 2, mb: 2 }} />
             )}
 
-            <div className="space-y-3">
-              <div>
-                <div className="text-sm text-gray-500 uppercase">Description</div>
-                <div className="text-gray-700 mt-1">{booking.service?.description || 'No description'}</div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="text-sm text-gray-500 uppercase">Provider</div>
-                  <div className="text-gray-700 font-medium mt-1">{booking.provider?.name || 'N/A'}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-500 uppercase">Duration</div>
-                  <div className="text-gray-700 font-medium mt-1">{booking.duration || 'N/A'} hours</div>
-                </div>
-              </div>
-            </div>
-          </Card>
+            <Typography variant="body1" color="textSecondary" sx={{mb: 2}}>{booking.service?.description || 'No description'}</Typography>
+
+            <Grid container spacing={2}>
+                <Grid item xs={6}>
+                    <Typography variant="caption" color="textSecondary">Provider</Typography>
+                    <Typography variant="body1" sx={{fontWeight: 'medium'}}>{booking.provider?.name || 'N/A'}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                    <Typography variant="caption" color="textSecondary">Duration</Typography>
+                    <Typography variant="body1" sx={{fontWeight: 'medium'}}>{booking.duration || 'N/A'} hours</Typography>
+                </Grid>
+            </Grid>
+          </Paper>
 
           {/* Price Breakdown */}
-          <Card className="p-6">
-            <h2 className="text-lg font-bold text-gray-800 mb-4">Price Breakdown</h2>
-            <div className="space-y-2">
-              <div className="flex justify-between py-2 text-gray-600">
-                <span>Service Price</span>
-                <span>KSh {parseFloat(booking.price || 0).toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between py-2 border-t text-gray-900 font-semibold text-lg">
-                <span>Total</span>
-                <span>KSh {parseFloat(booking.price || 0).toFixed(2)}</span>
-              </div>
-            </div>
-          </Card>
-        </div>
+          <Paper sx={{...paperSx, p: 3, mb: 3 }}>
+            <Typography variant="h5" sx={{fontWeight: 'bold', color: COLOR_TEXT_DARK, mb: 2}}>Price Breakdown</Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                <Typography>Service Price</Typography>
+                <Typography>{formatCurrency(booking.price)}</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', pt: 2, borderTop: '1px solid #ccc' }}>
+                <Typography variant="h6" sx={{fontWeight: 'bold'}}>Total</Typography>
+                <Typography variant="h6" sx={{fontWeight: 'bold', color: COLOR_PRIMARY_BLUE}}>{formatCurrency(booking.price)}</Typography>
+            </Box>
+          </Paper>
+        </Grid>
 
         {/* Sidebar - Actions & Info */}
-        <div>
-          <Card className="p-6 sticky top-20">
-            <h2 className="text-lg font-bold text-gray-800 mb-4">Actions</h2>
+        <Grid item xs={12} md={4}>
+          <Paper sx={{...paperSx, p: 3, position: 'sticky', top: '20px' }}>
+            <Typography variant="h5" sx={{fontWeight: 'bold', color: COLOR_TEXT_DARK, mb: 2}}>Actions</Typography>
+
+            <Button
+              onClick={handleDownloadConfirmation}
+              disabled={downloading}
+              variant="contained"
+              startIcon={<Download />}
+              fullWidth
+              sx={{ mb: 2, backgroundColor: COLOR_PRIMARY_BLUE }}
+            >
+              {downloading ? 'Downloading...' : 'Download Confirmation'}
+            </Button>
 
             {canCancelBooking(booking) && (
-              <button
+              <Button
                 onClick={handleCancel}
                 disabled={cancelling}
-                className="w-full btn btn-outline mb-3 border-red-300 text-red-600"
+                variant="outlined"
+                color="error"
+                startIcon={<Close />}
+                fullWidth
+                sx={{ mb: 2 }}
               >
-                <FontAwesomeIcon icon={faTimes} className="mr-2" />
                 {cancelling ? 'Cancelling...' : 'Cancel Booking'}
-              </button>
+              </Button>
             )}
 
-            <button
-              onClick={() => navigate('/orders')}
-              className="w-full btn btn-primary"
-            >
-              Back to Bookings
-            </button>
-
-            {/* Additional Info */}
-            <div className="mt-6 pt-6 border-t space-y-4">
-              {booking.notes && (
-                <div>
-                  <div className="text-xs text-gray-500 uppercase mb-1">Notes</div>
-                  <div className="text-sm text-gray-700">{booking.notes}</div>
-                </div>
-              )}
-              <div>
-                <div className="text-xs text-gray-500 uppercase mb-1">Booked On</div>
-                <div className="text-sm text-gray-700">{new Date(booking.createdAt).toLocaleString()}</div>
-              </div>
-            </div>
-          </Card>
-        </div>
-      </div>
-    </div>
+            <Box sx={{ mt: 3, pt: 3, borderTop: '1px solid #ccc' }}>
+                {booking.notes && (
+                    <Box sx={{mb: 2}}>
+                        <Typography variant="caption" color="textSecondary">Notes</Typography>
+                        <Typography variant="body2">{booking.notes}</Typography>
+                    </Box>
+                )}
+                 <Box>
+                    <Typography variant="caption" color="textSecondary">Booked On</Typography>
+                    <Typography variant="body2">{new Date(booking.createdAt).toLocaleString()}</Typography>
+                </Box>
+            </Box>
+          </Paper>
+        </Grid>
+      </Grid>
+    </Box>
   );
 }
 
 export default BookingDetailPage;
+

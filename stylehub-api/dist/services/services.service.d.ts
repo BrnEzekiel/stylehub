@@ -13,12 +13,14 @@ export declare class ServicesService {
         description: string;
         category: string;
         imageUrl: string | null;
-        providerId: string;
+        isActive: boolean;
         title: string;
+        providerId: string;
         priceShopCents: Prisma.Decimal;
         priceHomeCents: Prisma.Decimal | null;
         offersHome: boolean;
         durationMinutes: number;
+        portfolioId: string | null;
     }>;
     findByProvider(providerId: string): Promise<{
         id: string;
@@ -27,12 +29,14 @@ export declare class ServicesService {
         description: string;
         category: string;
         imageUrl: string | null;
-        providerId: string;
+        isActive: boolean;
         title: string;
+        providerId: string;
         priceShopCents: Prisma.Decimal;
         priceHomeCents: Prisma.Decimal | null;
         offersHome: boolean;
         durationMinutes: number;
+        portfolioId: string | null;
     }[]>;
     findAll(category?: string): Promise<({
         provider: {
@@ -46,12 +50,14 @@ export declare class ServicesService {
         description: string;
         category: string;
         imageUrl: string | null;
-        providerId: string;
+        isActive: boolean;
         title: string;
+        providerId: string;
         priceShopCents: Prisma.Decimal;
         priceHomeCents: Prisma.Decimal | null;
         offersHome: boolean;
         durationMinutes: number;
+        portfolioId: string | null;
     })[]>;
     findOne(serviceId: string): Promise<{
         provider: {
@@ -59,10 +65,13 @@ export declare class ServicesService {
                 id: string;
                 createdAt: Date;
                 updatedAt: Date;
-                status: import(".prisma/client").$Enums.VerificationStatus;
                 userId: string;
-                bio: string;
-                portfolioUrl: string;
+                status: import(".prisma/client").$Enums.VerificationStatus;
+                remarks: string | null;
+                reviewedAt: Date | null;
+                reviewedBy: string | null;
+                bio: string | null;
+                portfolioUrl: string | null;
                 videoUrl: string | null;
             };
             name: string;
@@ -77,11 +86,13 @@ export declare class ServicesService {
         description: string;
         category: string;
         imageUrl: string | null;
-        providerId: string;
+        isActive: boolean;
         title: string;
+        providerId: string;
         priceShopCents: Prisma.Decimal;
         priceHomeCents: Prisma.Decimal | null;
         offersHome: boolean;
         durationMinutes: number;
+        portfolioId: string | null;
     }>;
 }

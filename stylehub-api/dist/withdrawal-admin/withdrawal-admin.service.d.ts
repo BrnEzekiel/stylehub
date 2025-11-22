@@ -12,23 +12,33 @@ export declare class WithdrawalAdminService {
     } & {
         id: string;
         createdAt: Date;
+        updatedAt: Date;
         status: import(".prisma/client").$Enums.WithdrawalStatus;
         sellerId: string;
         amount: Prisma.Decimal;
         mpesaNumber: string;
+        reference: string | null;
         walletTransactionId: string | null;
         processedAt: Date | null;
+        processedBy: string | null;
+        idNumber: string | null;
+        idDocumentUrl: string | null;
         adminRemarks: string | null;
     })[]>;
     updateWithdrawalStatus(requestId: string, newStatus: WithdrawalStatus, adminRemarks: string): Promise<{
         id: string;
         createdAt: Date;
+        updatedAt: Date;
         status: import(".prisma/client").$Enums.WithdrawalStatus;
         sellerId: string;
         amount: Prisma.Decimal;
         mpesaNumber: string;
+        reference: string | null;
         walletTransactionId: string | null;
         processedAt: Date | null;
+        processedBy: string | null;
+        idNumber: string | null;
+        idDocumentUrl: string | null;
         adminRemarks: string | null;
     }>;
 }

@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,28 +10,120 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Enums
+enum KycStatus {
+  pending
+  approved
+  rejected
+}
+
+enum VerificationStatus {
+  UNVERIFIED
+  pending
+  verified
+  rejected
+}
+
+enum ServiceBookingStatus {
+  pending
+  confirmed
+  completed
+  cancelled
+  rejected
+}
+
+enum PaymentMethod {
+  CARD
+  MPESA
+  BANK_TRANSFER
+  PAYPAL
+  CASH_ON_DELIVERY
+}
+
+enum PayoutStatus {
+  pending
+  paid
+  failed
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  PAYMENT
+  REFUND
+  EARNING
+  FEE
+}
+
+enum WithdrawalStatus {
+  pending
+  approved
+  rejected
+  processed
+}
+
+// Accommodation Enums
+enum AccommodationType {
+  HOSTEL
+  APARTMENT
+  HOUSE
+  ROOM
+  SHARED_ROOM
+}
+
+enum AccommodationBookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  REJECTED
+}
+
+enum AmenityType {
+  WIFI
+  LAUNDRY
+  MEALS
+  PARKING
+  AIR_CONDITIONING
+  KITCHEN
+  SECURITY
+  CLEANING
+  GYM
+  POOL
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+// Models
 model User {
   id                 String             @id @default(uuid()) @db.Uuid
   email              String             @unique
   name               String?
+  username           String?
   phone              String             @unique
   password_hash      String
   role               String             @default("client")
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
   
+  // Wallet
   walletBalance      Decimal            @default(0.00) @db.Decimal(10, 2)
   
+  // Relations
   cart               Cart?
   kyc                KYC?
-  verificationStatus VerificationStatus @default(unverified)
+  verificationStatus VerificationStatus @default(UNVERIFIED)
   verification       Verification?
   wishlist           Wishlist?
-
-  providerPortfolio ProviderPortfolio?
-  services          Service[]
-  providerBookings  Booking[]          @relation("ProviderBookings")
-
+  providerPortfolio  ProviderPortfolio?
+  services           Service[]
+  providerBookings   Booking[]          @relation("ProviderBookings")
   notifications      Notification[]
   orders             Order[]
   products           Product[]
@@ -37,14 +132,28 @@ model User {
   payouts            Payout[]
   walletTransactions WalletTransaction[]
   withdrawalRequests WithdrawalRequest[]
-  
   clientBookings     Booking[]          @relation("ClientBookings")
-  
   styleDIYPosts      StyleDIYPost[]
-  styleDIYComments    StyleDIYComment[]
+  styleDIYComments   StyleDIYComment[]
   styleDIYRecommendations StyleDIYRecommendation[]
   recommendedAsSeller StyleDIYRecommendation[] @relation("RecommendedSellers")
   recommendedAsProvider StyleDIYRecommendation[] @relation("RecommendedProviders")
+  communityPosts     CommunityPost[]
+  communityComments  CommunityComment[]
+  moderatedAccommodationReviews AccommodationReview[]    @relation("ModeratedAccommodationReviews")
+  styleDIYLikes      StyleDIYLike[]
+  styleDIYCommentLikes StyleDIYCommentLike[]
+  communityLikes     CommunityLike[]
+  communityCommentLikes CommunityCommentLike[]
+  
+  // New Relations for Follow
+  following    Follow[] @relation("Follower")
+  followers    Follow[] @relation("Following")
+  
+  // Accommodation Relations
+  accommodationsOwned         Accommodation[]            @relation("AccommodationOwner")
+  accommodationBookings       AccommodationBooking[]     @relation("AccommodationBookings")
+  accommodationReviews        AccommodationReview[]      @relation("AccommodationReviews")
 }
 
 model Address {
@@ -67,14 +176,17 @@ model Address {
 
 model KYC {
   id         String    @id @default(uuid()) @db.Uuid
-  user_id    String    @unique @db.Uuid
-  doc_type   String
-  doc_url    String
-  selfie_url String
+  userId     String    @unique @db.Uuid
+  docType    String
+  docUrl     String
+  selfieUrl  String
   status     KycStatus @default(pending)
+  remarks    String?
+  reviewedAt DateTime?
+  reviewedBy String?   @db.Uuid
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
-  user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Verification {
@@ -84,26 +196,34 @@ model Verification {
   businessLicenseUrl String
   socialMediaUrl     String?
   status             VerificationStatus @default(pending)
+  remarks            String?
+  reviewedAt         DateTime?
+  reviewedBy         String?            @db.Uuid
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
   user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model ProviderPortfolio {
-  id         String             @id @default(uuid()) @db.Uuid
-  userId     String             @unique @db.Uuid
-  bio        String
-  portfolioUrl String
-  videoUrl   String?
-  status     VerificationStatus @default(pending)
-  createdAt  DateTime           @default(now())
-  updatedAt  DateTime           @updatedAt
-  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String             @id @default(uuid()) @db.Uuid
+  userId      String             @unique @db.Uuid
+  bio         String?
+  portfolioUrl String?
+  videoUrl    String?
+  status      VerificationStatus @default(pending)
+  remarks     String?
+  reviewedAt  DateTime?
+  reviewedBy  String?            @db.Uuid
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  services    Service[]          @relation("PortfolioServices")
 }
 
 model Service {
   id              String   @id @default(uuid()) @db.Uuid
   providerId      String   @db.Uuid
+  portfolioId     String?  @db.Uuid  // Add this field
   title           String   @db.VarChar(255)
   description     String
   category        String   @db.VarChar(100)
@@ -112,38 +232,42 @@ model Service {
   offersHome      Boolean  @default(false)
   durationMinutes Int
   imageUrl        String?  @db.VarChar(255)
+  isActive        Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  provider User     @relation(fields: [providerId], references: [id], onDelete: Cascade) // 1. 🛑 ADDED onDelete
-  bookings Booking[]
-  styleDIYPosts StyleDIYPost[]
+  provider        User     @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  portfolio       ProviderPortfolio? @relation("PortfolioServices", fields: [portfolioId], references: [id], onDelete: SetNull)
+  bookings        Booking[]
   styleDIYRecommendations StyleDIYRecommendation[]
+  styleDIYPostServices StyleDIYPostService[]
   
   @@index([providerId])
+  @@index([portfolioId])
   @@index([category])
 }
 
 model Booking {
-  id                  String        @id @default(uuid()) @db.Uuid
-  serviceId           String        @db.Uuid
-  clientId            String        @db.Uuid
-  providerId          String        @db.Uuid
-  
-  startTime           DateTime
-  endTime             DateTime
-  status              BookingStatus @default(pending)
-  price               Decimal       @db.Decimal(10, 2)
-  isHomeService       Boolean       @default(false)
-  paymentMethod       PaymentMethod @default(cash_on_delivery)
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
+  id                  String             @id @default(uuid()) @db.Uuid
+  serviceId           String             @db.Uuid
+  clientId            String             @db.Uuid
+  providerId          String             @db.Uuid
+  status              ServiceBookingStatus @default(pending)
+  price               Decimal            @db.Decimal(10, 2)
+  isHomeService       Boolean            @default(false)
+  paymentMethod       PaymentMethod      @default(CASH_ON_DELIVERY)
+  notes               String?
+  scheduledAt         DateTime?
+  completedAt         DateTime?
+  cancellationReason  String?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
 
-  service             Service       @relation(fields: [serviceId], references: [id], onDelete: Cascade) // 2. 🛑 ADDED onDelete
-  client              User          @relation("ClientBookings", fields: [clientId], references: [id], onDelete: Cascade) // 3. 🛑 ADDED onDelete
-  provider            User          @relation("ProviderBookings", fields: [providerId], references: [id], onDelete: Cascade) // 4. 🛑 ADDED onDelete
+  service             Service            @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  client              User               @relation("ClientBookings", fields: [clientId], references: [id], onDelete: Cascade)
+  provider            User               @relation("ProviderBookings", fields: [providerId], references: [id], onDelete: Cascade)
   
-  walletTransactionId String?       @unique @db.Uuid
+  walletTransactionId String?            @unique @db.Uuid
   walletTransaction   WalletTransaction? @relation(fields: [walletTransactionId], references: [id], onDelete: SetNull)
   
   @@index([serviceId])
@@ -160,17 +284,21 @@ model Product {
   category      String?      @db.VarChar(100)
   imageUrl      String?      @db.VarChar(255)
   sellerId      String?      @db.Uuid
+  isActive      Boolean      @default(true)
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
   averageRating Decimal      @default(0.00) @db.Decimal(3, 2)
   reviewCount   Int          @default(0)
+  
+  // Relations
   cartItems     CartItem[]
   seller        User?        @relation(fields: [sellerId], references: [id], onDelete: SetNull)
   reviews       Review[]
   orderItems    OrderItem[]
   wishlistItems WishlistItem[]
-  styleDIYPosts StyleDIYPost[]
   styleDIYRecommendations StyleDIYRecommendation[]
+  styleDIYPostProducts StyleDIYPostProduct[]
+
 
   @@index([sellerId])
   @@index([category])
@@ -181,6 +309,8 @@ model Cart {
   userId    String     @unique @db.Uuid
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+  
+  // Relations
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   items     CartItem[]
 }
@@ -189,9 +319,11 @@ model CartItem {
   id        String   @id @default(uuid()) @db.Uuid
   cartId    String   @db.Uuid
   productId String   @db.Uuid
-  quantity  Int
+  quantity  Int      @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  // Relations
   cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
@@ -203,6 +335,8 @@ model Wishlist {
   userId    String         @unique @db.Uuid
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
+  
+  // Relations
   user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   items     WishlistItem[]
 }
@@ -212,6 +346,8 @@ model WishlistItem {
   wishlistId String   @db.Uuid
   productId  String   @db.Uuid
   createdAt  DateTime @default(now())
+  
+  // Relations
   wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
   product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
@@ -222,20 +358,37 @@ model Order {
   id                String    @id @default(uuid()) @db.Uuid
   userId            String    @db.Uuid
   
+  // Order details
   subtotal          Decimal   @default(0.00) @db.Decimal(10, 2)
   shippingFee       Decimal   @default(0.00) @db.Decimal(10, 2)
   totalAmount       Decimal   @db.Decimal(10, 2)
   
-  status            String    @default("pending")
+  // Status
+  status            String    @default("pending") // pending, processing, shipped, delivered, cancelled, refunded
+  paymentStatus     String    @default("pending") // pending, paid, failed, refunded
+  paymentMethod     String?   // card, mpesa, bank_transfer, etc.
+  paymentReference  String?   // Reference from payment gateway
+  
+  // Shipping info
+  shippingAddressId String?   @db.Uuid
+  trackingNumber    String?
+  shippedAt         DateTime?
+  deliveredAt       DateTime?
+  
+  // Timestamps
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
+  
+  // Relations
   user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   items             OrderItem[]
   notifications     Notification[]
-  shippingAddressId String?   @db.Uuid
   shippingAddress   Address?  @relation(fields: [shippingAddressId], references: [id], onDelete: SetNull)
 
   @@index([shippingAddressId])
+  @@index([userId])
+  @@index([status])
+  @@index([paymentStatus])
 }
 
 model OrderItem {
@@ -247,6 +400,8 @@ model OrderItem {
   quantity      Int
   platformFee   Decimal  @default(0.00) @db.Decimal(10, 2)
   sellerEarning Decimal  @default(0.00) @db.Decimal(10, 2)
+  
+  // Relations
   payoutId      String?  @db.Uuid
   payout        Payout?  @relation(fields: [payoutId], references: [id], onDelete: SetNull)
   createdAt     DateTime @default(now())
@@ -266,6 +421,8 @@ model Review {
   userId    String   @db.Uuid
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  // Relations
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -275,16 +432,22 @@ model Review {
 model Notification {
   id        String   @id @default(uuid()) @db.Uuid
   userId    String   @db.Uuid
-  type      String
+  type      String   // order, payment, system, etc.
+  title     String
   message   String
   isRead    Boolean  @default(false)
+  data      Json?    // Additional data as JSON
   createdAt DateTime @default(now())
+  readAt    DateTime?
+  
+  // Relations
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   orderId   String?  @db.Uuid
   order     Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([orderId])
+  @@index([isRead])
 }
 
 model Payout {
@@ -292,15 +455,22 @@ model Payout {
   sellerId            String       @db.Uuid
   amount              Decimal      @db.Decimal(10, 2)
   status              PayoutStatus @default(pending)
+  reference           String?      // Reference from payment processor
+  notes               String?      // Any admin notes
+  processedAt         DateTime?    // When the payout was processed
+  processedBy         String?      @db.Uuid // Admin who processed the payout
   createdAt           DateTime     @default(now())
-  paidAt              DateTime?
+  updatedAt           DateTime     @updatedAt
   
+  // Relations
   seller              User         @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   orderItems          OrderItem[]
   walletTransactionId String?      @unique @db.Uuid
   walletTransaction   WalletTransaction? @relation(fields: [walletTransactionId], references: [id], onDelete: SetNull)
   
   @@index([sellerId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model WalletTransaction {
@@ -308,15 +478,21 @@ model WalletTransaction {
   userId              String          @db.Uuid
   type                TransactionType
   amount              Decimal         @db.Decimal(10, 2)
+  balance             Decimal         @db.Decimal(10, 2) // Balance after this transaction
   description         String
+  reference           String?         // External reference ID
+  metadata            Json?           // Additional transaction data
   createdAt           DateTime        @default(now())
-  user                User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   
+  // Relations
+  user                User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   payout              Payout?
   withdrawalRequest   WithdrawalRequest?
   booking             Booking?
   
   @@index([userId])
+  @@index([type])
+  @@index([createdAt])
 }
 
 model WithdrawalRequest {
@@ -325,121 +501,488 @@ model WithdrawalRequest {
   amount              Decimal          @db.Decimal(10, 2)
   status              WithdrawalStatus @default(pending)
   mpesaNumber         String
-  createdAt           DateTime         @default(now())
+  idNumber            String?          // For M-Pesa verification
+  idDocumentUrl       String?          // URL to ID document
+  
+  // Processing info
   processedAt         DateTime?
+  processedBy         String?          @db.Uuid // Admin who processed the request
+  adminRemarks        String?          @db.Text // Any admin notes
+  reference           String?          // Reference from payment processor
   
-  adminRemarks        String?
+  // Timestamps
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
   
-  seller              User             @relation(fields: [sellerId], references: [id], onDelete: Cascade) // 5. 🛑 ADDED onDelete
-  
+  // Relations
+  seller              User             @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   walletTransactionId String?          @unique @db.Uuid
   walletTransaction   WalletTransaction? @relation(fields: [walletTransactionId], references: [id], onDelete: SetNull)
 
   @@index([sellerId])
+  @@index([status])
+  @@index([createdAt])
 }
 
-enum KycStatus {
-  pending
-  approved
-  rejected
-}
-
-enum PayoutStatus {
-  pending
-  paid
-}
-
-enum VerificationStatus {
-  unverified
-  pending
-  approved
-  rejected
-}
-
-enum TransactionType {
-  credit
-  debit
-}
-
-enum WithdrawalStatus {
-  pending
-  approved
-  rejected
-}
-
-enum BookingStatus {
-  pending
-  confirmed
-  in_progress
-  completed
-  cancelled
-  disputed
-}
-
-enum PaymentMethod {
-  mpesa
-  bank_transfer
-  cash_on_delivery
-}
-
+// Style DIY Models
 model StyleDIYPost {
   id          String   @id @default(uuid()) @db.Uuid
   userId      String   @db.Uuid
   title       String   @db.VarChar(500)
-  content     String?  @db.Text // Text content - unlimited length
-  videoUrl    String?  @db.Text // Can be long Cloudinary URLs
-  imageUrl    String?  @db.Text // Can be long Cloudinary URLs
-  productId   String?  @db.Uuid // Related product (optional)
-  serviceId   String?  @db.Uuid // Related service (optional)
-  likes       Int      @default(0)
+  content     String?  @db.Text
+  imageUrls   String[] // Array of image URLs
+  isPublic    Boolean  @default(true)
+  viewCount   Int      @default(0)
+  likeCount   Int      @default(0)
+  commentCount Int     @default(0)
+  status      String   @default("active") // active, archived, reported
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product     Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
-  service     Service?        @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  topic       String?  @db.VarChar(100) // New field for post topic
+  
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   comments    StyleDIYComment[]
+  likes       StyleDIYLike[]
+  tags        StyleDITYagPost[]
+  products    StyleDIYPostProduct[]
+  services    StyleDIYPostService[]
   recommendations StyleDIYRecommendation[]
-
+  
   @@index([userId])
-  @@index([productId])
-  @@index([serviceId])
+  @@index([status])
   @@index([createdAt])
+  @@index([topic]) // New index for topic
 }
 
 model StyleDIYComment {
   id        String   @id @default(uuid()) @db.Uuid
   postId    String   @db.Uuid
   userId    String   @db.Uuid
-  content   String
+  content   String   @db.Text
+  parentId  String?  @db.Uuid // For nested comments
+  likeCount Int      @default(0)
+  status    String   @default("active") // active, deleted, reported
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  // Relations
+  post      StyleDIYPost   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent    StyleDIYComment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   StyleDIYComment[] @relation("CommentReplies")
+  likes     StyleDIYCommentLike[]
+  
+  @@index([postId])
+  @@index([userId])
+  @@index([parentId])
+}
 
+model StyleDIYLike {
+  id        String   @id @default(uuid()) @db.Uuid
+  postId    String   @db.Uuid
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now())
+  
+  // Relations
   post      StyleDIYPost @relation(fields: [postId], references: [id], onDelete: Cascade)
   user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  
+  @@unique([postId, userId])
   @@index([postId])
   @@index([userId])
 }
 
-model StyleDIYRecommendation {
+model StyleDIYCommentLike {
+  id        String   @id @default(uuid()) @db.Uuid
+  commentId String   @db.Uuid
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now())
+  
+  // Relations
+  comment   StyleDIYComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([commentId, userId])
+  @@index([commentId])
+  @@index([userId])
+}
+
+model StyleDITYag {
   id          String   @id @default(uuid()) @db.Uuid
-  postId      String   @db.Uuid
-  userId      String   @db.Uuid
-  sellerId    String?  @db.Uuid // Recommended seller
-  providerId  String?  @db.Uuid // Recommended service provider
-  productId   String?  @db.Uuid // Recommended product
-  serviceId   String?  @db.Uuid // Recommended service
-  comment     String?  // Why they recommend
+  name        String   @unique
+  description String?
+  imageUrl    String?
+  postCount   Int      @default(0)
+  isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  posts      StyleDITYagPost[]
+  
+  @@index([name])
+  @@index([isActive])
+}
 
-  post        StyleDIYPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  seller      User?        @relation("RecommendedSellers", fields: [sellerId], references: [id], onDelete: SetNull)
-  provider    User?        @relation("RecommendedProviders", fields: [providerId], references: [id], onDelete: SetNull)
-  product     Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
-  service     Service?     @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+model StyleDITYagPost {
+  id        String   @id @default(uuid()) @db.Uuid
+  tagId     String   @db.Uuid
+  postId    String   @db.Uuid
+  createdAt DateTime @default(now())
+  
+  // Relations
+  tag       StyleDITYag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  post      StyleDIYPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  @@unique([tagId, postId])
+  @@index([tagId])
+  @@index([postId])
+}
 
+model StyleDIYPostProduct {
+  id        String   @id @default(uuid()) @db.Uuid
+  postId    String   @db.Uuid
+  productId String   @db.Uuid
+  createdAt DateTime @default(now())
+  
+  // Relations
+  post      StyleDIYPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  product   Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@unique([postId, productId])
+  @@index([postId])
+  @@index([productId])
+}
+
+model StyleDIYPostService {
+  id        String   @id @default(uuid()) @db.Uuid
+  postId    String   @db.Uuid
+  serviceId String   @db.Uuid
+  createdAt DateTime @default(now())
+  
+  // Relations
+  post      StyleDIYPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  service   Service      @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  
+  @@unique([postId, serviceId])
+  @@index([postId])
+  @@index([serviceId])
+}
+
+model StyleDIYRecommendation {
+  id           String   @id @default(uuid()) @db.Uuid
+  postId       String   @db.Uuid
+  productId    String?  @db.Uuid
+  serviceId    String?  @db.Uuid
+  sellerId     String?  @db.Uuid
+  providerId   String?  @db.Uuid
+  recommendedById String @db.Uuid
+  comment      String?
+  status       String   @default("pending") // pending, approved, rejected
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Relations
+  post         StyleDIYPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  product      Product?     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  service      Service?     @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  seller       User?        @relation("RecommendedSellers", fields: [sellerId], references: [id], onDelete: Cascade)
+  provider     User?        @relation("RecommendedProviders", fields: [providerId], references: [id], onDelete: Cascade)
+  recommendedBy User        @relation(fields: [recommendedById], references: [id], onDelete: Cascade)
+  
+  @@index([postId])
+  @@index([productId])
+  @@index([serviceId])
+  @@index([sellerId])
+  @@index([providerId])
+  @@index([recommendedById])
+  @@index([status])
+}
+
+// Follow Model
+model Follow {
+  id           String   @id @default(uuid()) @db.Uuid
+  followerId   String   @db.Uuid
+  followingId  String   @db.Uuid
+  createdAt    DateTime @default(now())
+
+  follower     User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following    User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId]) // A user can only follow another user once
+  @@index([followerId])
+  @@index([followingId])
+}
+
+// Community Models
+model CommunityPost {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @db.Uuid
+  title        String   @db.VarChar(500)
+  content      String?  @db.Text
+  imageUrls    String[] // Array of image URLs
+  likeCount    Int      @default(0)
+  commentCount Int      @default(0)
+  viewCount    Int      @default(0)
+  isPinned     Boolean  @default(false)
+  status       String   @default("active") // active, archived, reported
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Relations
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments     CommunityComment[]
+  likes        CommunityLike[]
+  
+  @@index([userId])
+  @@index([isPinned])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model CommunityComment {
+  id           String   @id @default(uuid()) @db.Uuid
+  postId       String   @db.Uuid
+  userId       String   @db.Uuid
+  content      String   @db.Text
+  parentId     String?  @db.Uuid // For nested comments
+  likeCount    Int      @default(0)
+  status       String   @default("active") // active, deleted, reported
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Relations
+  post         CommunityPost   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent       CommunityComment? @relation("CommunityCommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies      CommunityComment[] @relation("CommunityCommentReplies")
+  likes        CommunityCommentLike[]
+  
   @@index([postId])
   @@index([userId])
+  @@index([parentId])
+}
+
+model CommunityLike {
+  id        String   @id @default(uuid()) @db.Uuid
+  postId    String   @db.Uuid
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now())
+  
+  // Relations
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+}
+
+model CommunityCommentLike {
+  id        String   @id @default(uuid()) @db.Uuid
+  commentId String   @db.Uuid
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now())
+  
+  // Relations
+  comment   CommunityComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([commentId, userId])
+  @@index([commentId])
+  @@index([userId])
+}
+
+// Accommodation Models
+model Accommodation {
+  id                String          @id @default(uuid()) @db.Uuid
+  ownerId           String          @db.Uuid
+  title             String
+  description       String          @db.Text
+  type              AccommodationType
+  pricePerMonth     Decimal         @db.Decimal(10, 2)
+  address           String
+  city              String
+  state             String
+  country           String
+  latitude          Float?
+  longitude         Float?
+  maxOccupants      Int
+  availableFrom     DateTime
+  availableTo       DateTime?
+  houseRules        String?         @db.Text
+  cancellationPolicy String?        @db.Text
+  checkInTime       String?         @default("14:00")
+  checkOutTime      String?         @default("11:00")
+  isAvailable       Boolean         @default(true)
+  viewCount         Int             @default(0)
+  ratingAverage     Float?          @default(0.0)
+  reviewCount       Int             @default(0)
+  isVerified        Boolean         @default(false)
+  verificationNotes String?         @db.Text
+  status            String          @default("active") // active, pending, suspended, removed
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  // Relations
+  owner             User            @relation("AccommodationOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  images            AccommodationImage[]
+  amenities         AccommodationAmenity[]
+  reviews           AccommodationReview[]
+  bookings          AccommodationBooking[]
+  
+  @@index([ownerId])
+  @@index([city])
+  @@index([pricePerMonth])
+  @@index([type])
+  @@index([isAvailable])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model AccommodationImage {
+  id          String    @id @default(uuid()) @db.Uuid
+  accommodationId      String    @db.Uuid
+  url         String
+  isPrimary   Boolean   @default(false)
+  altText     String?
+  order       Int       @default(0)
+  width       Int?
+  height      Int?
+  size        Int?      // File size in bytes
+  mimeType    String?   // MIME type of the image
+  status      String    @default("active") // active, deleted
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  accommodation        Accommodation      @relation(fields: [accommodationId], references: [id], onDelete: Cascade)
+  
+  @@index([accommodationId])
+  @@index([isPrimary])
+  @@index([status])
+}
+
+model AccommodationAmenity {
+  id          String      @id @default(uuid()) @db.Uuid
+  accommodationId      String      @db.Uuid
+  type        AmenityType
+  isAvailable Boolean     @default(true)
+  description String?     @db.Text
+  icon        String?     // Optional icon class or URL
+  order       Int         @default(0)
+  status      String      @default("active") // active, inactive
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  // Relations
+  accommodation        Accommodation        @relation(fields: [accommodationId], references: [id], onDelete: Cascade)
+  
+  @@unique([accommodationId, type])
+  @@index([accommodationId])
+  @@index([type])
+  @@index([isAvailable])
+}
+
+model AccommodationReview {
+  id              String    @id @default(uuid()) @db.Uuid
+  accommodationId          String    @db.Uuid
+  userId          String    @db.Uuid
+  bookingId       String?   @unique @db.Uuid // Add @unique here
+  rating          Int       @default(5)
+  title           String?   @db.VarChar(200)
+  comment         String?   @db.Text
+  images          String[]
+  isAnonymous     Boolean   @default(false)
+  status          String    @default("pending")
+  adminComment    String?   @db.Text
+  adminId         String?   @db.Uuid
+  moderatedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  accommodation            Accommodation      @relation(fields: [accommodationId], references: [id], onDelete: Cascade)
+  user            User      @relation("AccommodationReviews", fields: [userId], references: [id], onDelete: Cascade)
+  booking         AccommodationBooking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  admin           User?     @relation("ModeratedAccommodationReviews", fields: [adminId], references: [id], onDelete: SetNull)
+  
+  @@index([accommodationId])
+  @@index([userId])
+  @@index([bookingId])
+  @@index([rating])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model AccommodationBooking {
+  id              String          @id @default(uuid()) @db.Uuid
+  accommodationId          String          @db.Uuid
+  userId          String          @db.Uuid
+  checkInDate     DateTime
+  checkOutDate    DateTime
+  totalPrice      Decimal         @db.Decimal(10, 2)
+  serviceFee      Decimal         @db.Decimal(10, 2)
+  cleaningFee     Decimal?        @db.Decimal(10, 2)
+  securityDeposit Decimal?        @db.Decimal(10, 2)
+  guestCount      Int             @default(1)
+  specialRequests String?         @db.Text
+  status          AccommodationBookingStatus @default(PENDING)
+  paymentStatus   PaymentStatus   @default(PENDING)
+  paymentMethod   PaymentMethod?
+  transactionId   String?
+  currency        String          @default("KES")
+  isRefundable    Boolean         @default(true)
+  cancellationPolicy String?      @db.Text
+  cancelledAt     DateTime?
+  cancellationReason String?      @db.Text
+  refundAmount    Decimal?        @db.Decimal(10, 2)
+  refundedAt      DateTime?
+  checkInAt       DateTime?
+  checkOutAt      DateTime?
+  hostNotes       String?         @db.Text
+  internalNotes   String?         @db.Text
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  // Relations
+  accommodation            Accommodation            @relation(fields: [accommodationId], references: [id], onDelete: Cascade)
+  user            User            @relation("AccommodationBookings", fields: [userId], references: [id], onDelete: Cascade)
+  review          AccommodationReview?     // Remove fields and references here - it's defined on the other side
+  
+  @@index([accommodationId])
+  @@index([userId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([checkInDate])
+  @@index([checkOutDate])
+  @@index([createdAt])
+}
+
+// Add any missing enums that might be needed
+enum CommunityPostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  REPORTED
+}
+
+enum CommunityCommentStatus {
+  ACTIVE
+  DELETED
+  REPORTED
+}
+
+enum StyleDIYPostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  REPORTED
+}
+
+enum StyleDIYRecommendationStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }

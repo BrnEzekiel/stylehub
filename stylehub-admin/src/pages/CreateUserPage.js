@@ -1,68 +1,13 @@
-// src/pages/CreateUserPage.js
+
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { adminCreateUser } from '../api/adminService';
-
-const styles = {
-  container: {
-    padding: '20px',
-    backgroundColor: '#ffffff',
-    fontFamily: '"Poppins", sans-serif',
-    color: '#000',
-  },
-  title: {
-    fontSize: '1.8rem',
-    color: '#0f35df',
-    marginBottom: '20px',
-    fontWeight: '600',
-  },
-  card: {
-    background: '#fff',
-    padding: '25px',
-    borderRadius: '10px',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-    maxWidth: '600px',
-  },
-  inputGroup: {
-    marginBottom: '15px',
-  },
-  label: {
-    display: 'block',
-    marginBottom: '5px',
-    fontWeight: '500',
-    color: '#333',
-  },
-  input: {
-    width: '100%',
-    padding: '10px 12px',
-    border: '1px solid #ccc',
-    borderRadius: '6px',
-    fontSize: '1rem',
-  },
-  button: {
-    padding: '12px 20px',
-    fontSize: '1em',
-    backgroundColor: '#28a745',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontWeight: '600',
-    marginTop: '10px'
-  },
-  error: {
-    color: '#dc3545',
-    marginBottom: '10px',
-  },
-  success: {
-    color: '#28a745',
-    marginBottom: '10px',
-  },
-};
+import Page from '../components/Page';
+import { FaArrowLeft } from 'react-icons/fa';
 
 function CreateUserPage() {
   const navigate = useNavigate();
-  
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -76,7 +21,7 @@ function CreateUserPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -102,87 +47,153 @@ function CreateUserPage() {
     }
   };
 
+  const COLORS = {
+    blue: '#0066FF',
+    skyBlue: '#00BFFF',
+    yellow: '#FFD700',
+    black: '#000000',
+    white: '#FFFFFF',
+    green: '#00FF00',
+    red: '#EF4444',
+    magenta: '#FF00FF'
+  };
+
   return (
-    <div style={styles.container}>
-      <Link to="/user-management" style={{ textDecoration: 'none' }}>
-        &larr; Back to User Management
+    <Page title="Create New User">
+      <Link to="/users" style={{
+          color: 'black',
+          textDecoration: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          marginBottom: '32px'
+      }}>
+        <FaArrowLeft /> Back to User Management
       </Link>
-      <h2 style={styles.title}>Create New User</h2>
-      <div style={styles.card}>
-        <form onSubmit={handleSubmit}>
-          <div style={styles.inputGroup}>
-            <label style={styles.label} htmlFor="name">Full Name</label>
-            <input
-              style={styles.input}
-              type="text"
-              name="name"
-              id="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div style={styles.inputGroup}>
-            <label style={styles.label} htmlFor="email">Email</label>
-            <input
-              style={styles.input}
-              type="email"
-              name="email"
-              id="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div style={styles.inputGroup}>
-            <label style={styles.label} htmlFor="phone">Phone</label>
-            <input
-              style={styles.input}
-              type="tel"
-              name="phone"
-              id="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div style={styles.inputGroup}>
-            <label style={styles.label} htmlFor="password">Password (min 8 chars)</label>
-            <input
-              style={styles.input}
-              type="password"
-              name="password"
-              id="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div style={styles.inputGroup}>
-            <label style={styles.label} htmlFor="role">Role</label>
-            <select
-              style={styles.input}
-              name="role"
-              id="role"
-              value={formData.role}
-              onChange={handleChange}
-              required
-            >
-              <option value="client">Client</option>
-              <option value="seller">Seller</option>
-              <option value="service_provider">Service Provider</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-          
-          {error && <p style={styles.error}>{error}</p>}
-          {success && <p style={styles.success}>{success}</p>}
-          <button type="submit" style={styles.button} disabled={loading}>
+      <div style={{
+        borderRadius: '32px',
+        padding: 'clamp(24px, 4vw, 40px)',
+        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+        border: '2px solid rgba(255, 255, 255, 0.12)',
+        maxWidth: '600px',
+        margin: '0 auto',
+      }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <input
+            placeholder="Full Name"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+            style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '2px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '12px',
+                color: 'black',
+                padding: '12px 16px',
+                fontSize: '16px',
+                outline: 'none',
+              }}
+          />
+          <input
+            placeholder="Email"
+            name="email"
+            type="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+            style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '2px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '12px',
+                color: 'black',
+                padding: '12px 16px',
+                fontSize: '16px',
+                outline: 'none',
+              }}
+          />
+          <input
+            placeholder="Phone"
+            name="phone"
+            type="tel"
+            value={formData.phone}
+            onChange={handleChange}
+            required
+            style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '2px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '12px',
+                color: 'black',
+                padding: '12px 16px',
+                fontSize: '16px',
+                outline: 'none',
+              }}
+          />
+          <input
+            placeholder="Password (min 8 chars)"
+            name="password"
+            type="password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+            style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '2px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '12px',
+                color: 'black',
+                padding: '12px 16px',
+                fontSize: '16px',
+                outline: 'none',
+              }}
+          />
+          <select
+            name="role"
+            value={formData.role}
+            onChange={handleChange}
+            required
+            style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '2px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '12px',
+                color: 'black',
+                padding: '12px 16px',
+                fontSize: '16px',
+                outline: 'none',
+            }}
+          >
+            <option value="client" style={{color: 'black'}}>Client</option>
+            <option value="seller" style={{color: 'black'}}>Seller</option>
+            <option value="service_provider" style={{color: 'black'}}>Service Provider</option>
+            <option value="admin" style={{color: 'black'}}>Admin</option>
+          </select>
+
+          {error && (
+            <p style={{ color: COLORS.red, marginTop: '8px' }}>
+              {error}
+            </p>
+          )}
+          {success && (
+            <p style={{ color: COLORS.green, marginTop: '8px' }}>
+              {success}
+            </p>
+          )}
+
+          <button type="submit" disabled={loading} style={{
+                marginTop: '16px',
+                background: `linear-gradient(135deg, ${COLORS.yellow} 0%, ${COLORS.skyBlue} 100%)`,
+                color: 'black',
+                padding: '12px 24px',
+                borderRadius: '12px',
+                textDecoration: 'none',
+                fontWeight: 'bold',
+                border: 'none',
+                cursor: 'pointer'
+            }}>
             {loading ? 'Creating...' : 'Create User'}
           </button>
         </form>
       </div>
-    </div>
+    </Page>
   );
 }
 

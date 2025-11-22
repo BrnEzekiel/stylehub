@@ -20,7 +20,7 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { CreateRecommendationDto } from './dto/create-recommendation.dto';
 
-@Controller('api/style-diy')
+@Controller('style-diy')
 export class StyleDIYController {
   constructor(private readonly styleDIYService: StyleDIYService) {}
 

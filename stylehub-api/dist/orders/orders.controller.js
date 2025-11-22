@@ -140,7 +140,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], OrdersController.prototype, "downloadReceipt", null);
 exports.OrdersController = OrdersController = __decorate([
-    (0, common_1.Controller)('api/orders'),
+    (0, common_1.Controller)('orders'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __metadata("design:paramtypes", [orders_service_1.OrdersService])
 ], OrdersController);

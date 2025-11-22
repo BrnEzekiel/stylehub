@@ -37,12 +37,13 @@ let AuthService = AuthService_1 = class AuthService {
         try {
             const user = await this.usersService.create({
                 name: dto.name,
+                username: dto.username,
                 email: dto.email,
                 phone: dto.phone,
                 password_hash: hashedPassword,
                 role: dto.role,
             });
-            const payload = { sub: user.id, email: user.email, role: user.role };
+            const payload = { sub: user.id, email: user.email, role: user.role, username: user.username };
             const [accessToken, refreshToken] = await Promise.all([
                 this.jwtService.signAsync(payload, {
                     secret: this.configService.get('JWT_SECRET'),
@@ -161,6 +162,7 @@ let AuthService = AuthService_1 = class AuthService {
             const user = await this.usersService.create({
                 name: dto.name,
                 email: dto.email,
+                username: dto.email.split('@')[0],
                 phone: dto.phone,
                 password_hash: hashedPassword,
                 role: dto.role,

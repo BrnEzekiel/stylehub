@@ -20,7 +20,7 @@ import { AdminUpdateUserDto } from './dto/admin-update-user.dto';
 import { AdminCreateUserDto } from './dto/admin-create-user.dto'; // 2. 🛑 Import new DTO
 import { AuthService } from '../auth/auth.service'; // 3. 🛑 Import AuthService
 
-@Controller('api/users')
+@Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
   constructor(

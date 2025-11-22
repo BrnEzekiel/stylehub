@@ -16,7 +16,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/enums/role.enum';
 
-@Controller('api/wishlist')
+@Controller('wishlist')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.Client) // All routes are for Clients only
 export class WishlistController {

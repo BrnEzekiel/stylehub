@@ -18,11 +18,11 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/enums/role.enum';
 import { CreateBookingDto } from './dto/create-booking.dto';
-import { BookingStatus } from '@prisma/client';
+import { ServiceBookingStatus } from '@prisma/client';
 // Add this import
 import { UnauthorizedException, StreamableFile } from '@nestjs/common';
 import { FastifyReply } from 'fastify';
-@Controller('api/bookings')
+@Controller('bookings')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
@@ -67,10 +67,10 @@ createBooking(@Request() req, @Body() dto: CreateBookingDto) {
    */
   @Patch(':id/status')
   @Roles(Role.ServiceProvider, Role.Admin)
-  updateBookingStatus(
+  updateServiceBookingStatus(
     @Request() req,
     @Param('id', ParseUUIDPipe) id: string,
-    @Body('status') status: BookingStatus,
+    @Body('status') status: ServiceBookingStatus,
   ) {
     if (!status) throw new BadRequestException('Status is required.');
     return this.bookingsService.updateBookingStatus(id, status, req.user.sub, req.user.role);

@@ -36,7 +36,7 @@ export class ServicesService {
     if (
       !provider ||
       provider.kyc?.status !== 'approved' ||
-      provider.providerPortfolio?.status !== 'approved'
+      provider.providerPortfolio?.status !== 'verified'
     ) {
       throw new ForbiddenException(
         'You must have approved KYC and an approved Portfolio to create a service.',
@@ -91,7 +91,7 @@ export class ServicesService {
     const where: Prisma.ServiceWhereInput = {
       provider: {
         kyc: { status: 'approved' },
-        providerPortfolio: { status: 'approved' },
+        providerPortfolio: { status: 'verified' },
       },
     };
     if (category) {

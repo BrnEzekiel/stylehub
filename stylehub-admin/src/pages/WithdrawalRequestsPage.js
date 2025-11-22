@@ -1,9 +1,9 @@
-// src/pages/WithdrawalRequestsPage.js
 
 import React, { useState, useEffect } from 'react';
 import { getWithdrawalRequests, updateWithdrawalStatus } from '../api/adminService';
+import Page from '../components/Page';
+import { FaCheck, FaTimes } from 'react-icons/fa';
 
-// --- Helper to format currency ---
 function formatCurrency(num) {
   const number = parseFloat(num);
   if (isNaN(number)) return 'Ksh 0.00';
@@ -39,82 +39,143 @@ function WithdrawalRequestsPage() {
     let remarks = '';
     if (newStatus === 'rejected') {
       remarks = prompt('Please provide a reason for rejection (this will be logged):');
-      if (remarks === null) return; // User cancelled prompt
+      if (remarks === null) return;
     }
-    
+
     const action = newStatus === 'approved' ? 'approve' : 'reject';
     if (!window.confirm(`Are you sure you want to ${action} this request? This action is permanent.`)) {
       return;
     }
-    
+
     try {
       await updateWithdrawalStatus(requestId, newStatus, remarks);
       alert(`Request ${action}ed successfully.`);
-      loadRequests(); // Refresh the list
+      loadRequests();
     } catch (err) {
       alert(`Error: ${err.message}`);
     }
   };
 
-  if (loading) return <p style={styles.loading}>Loading withdrawal requests...</p>;
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: 'white' }}>
+        <div style={{
+            width: '80px',
+            height: '80px',
+            border: '4px solid rgba(255, 255, 255, 0.2)',
+            borderTop: '4px solid #FFD700',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+        }} />
+        <h1 style={{ marginLeft: '20px' }}>Loading Withdrawal Requests...</h1>
+    </div>
+    );
+  }
+
+  if (error) {
+    return (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: 'red' }}>
+            <h1>Error: {error}</h1>
+        </div>
+    );
+  }
+
+  const COLORS = {
+    blue: '#0066FF',
+    skyBlue: '#00BFFF',
+    yellow: '#FFD700',
+    black: '#000000',
+    white: '#FFFFFF',
+    green: '#00FF00',
+    red: '#EF4444',
+    magenta: '#FF00FF'
+  };
 
   return (
-    <div style={styles.container}>
-      <h2 style={styles.title}>Withdrawal Requests</h2>
-      {error && <p style={styles.error}>Error: {error}</p>}
-      
-      <div style={styles.tableWrapper}>
-        <table style={styles.table}>
+    <Page title="Withdrawal Requests">
+      <div style={{
+        background: 'rgba(255, 255, 255, 0.08)',
+        backdropFilter: 'blur(40px)',
+        WebkitBackdropFilter: 'blur(40px)',
+        borderRadius: '32px',
+        padding: 'clamp(24px, 4vw, 40px)',
+        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+        border: '2px solid rgba(255, 255, 255, 0.12)',
+      }}>
+        <h2 style={{color: 'white', marginBottom: '24px'}}>Pending Withdrawal Requests</h2>
+        <table style={{
+          width: '100%',
+          borderCollapse: 'collapse',
+          color: 'white'
+        }}>
           <thead>
-            <tr style={styles.headerRow}>
-              <th style={styles.cell}>Date</th>
-              <th style={styles.cell}>Seller</th>
-              <th style={styles.cell}>Amount</th>
-              <th style={styles.cell}>M-Pesa Number</th>
-              <th style={styles.cell}>Status</th>
-              <th style={styles.cell}>Actions</th>
+            <tr>
+              <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid rgba(255, 255, 255, 0.2)' }}>Date</th>
+              <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid rgba(255, 255, 255, 0.2)' }}>Seller</th>
+              <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid rgba(255, 255, 255, 0.2)' }}>Amount</th>
+              <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid rgba(255, 255, 255, 0.2)' }}>M-Pesa Number</th>
+              <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid rgba(255, 255, 255, 0.2)' }}>Status</th>
+              <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid rgba(255, 255, 255, 0.2)' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {requests.length === 0 ? (
               <tr>
-                <td colSpan="6" style={{...styles.cell, textAlign: 'center'}}>
+                <td colSpan="6" style={{ textAlign: 'center', padding: '16px' }}>
                   No withdrawal requests found.
                 </td>
               </tr>
             ) : (
               requests.map((req) => (
-                <tr key={req.id} style={styles.row}>
-                  <td style={styles.cell}>{new Date(req.createdAt).toLocaleString()}</td>
-                  <td style={styles.cell}>
-                    {req.seller?.name || 'N/A'}<br/>
-                    <small style={{ color: '#555' }}>{req.seller?.email}</small>
+                <tr key={req.id} style={{
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+                }}>
+                  <td style={{ padding: '16px' }}>{new Date(req.createdAt).toLocaleString()}</td>
+                  <td style={{ padding: '16px' }}>
+                    <div>{req.seller?.name || 'N/A'}</div>
+                    <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.7)' }}>{req.seller?.email}</div>
                   </td>
-                  <td style={styles.cell}>{formatCurrency(req.amount)}</td>
-                  <td style={styles.cell}>{req.mpesaNumber}</td>
-                  <td style={styles.cell}>
-                    <span style={{...styles.badge, ...styles[req.status]}}>
-                      {req.status}
+                  <td style={{ padding: '16px' }}>{formatCurrency(req.amount)}</td>
+                  <td style={{ padding: '16px' }}>{req.mpesaNumber}</td>
+                  <td style={{ padding: '16px' }}>
+                    <span
+                      style={{
+                        backgroundColor:
+                          req.status === 'pending'
+                            ? COLORS.yellow
+                            : req.status === 'approved'
+                            ? COLORS.green
+                            : COLORS.red,
+                        color: COLORS.black,
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      {req.status || 'Unknown'}
                     </span>
                   </td>
-                  <td style={{ ...styles.cell, display: 'flex', gap: '5px' }}>
+                  <td style={{ padding: '16px' }}>
                     {req.status === 'pending' ? (
-                      <>
+                      <div style={{ display: 'flex', gap: '12px' }}>
                         <button
                           onClick={() => handleUpdate(req.id, 'approved')}
-                          style={styles.buttonApprove}
+                          style={{ background: COLORS.green, color: 'white', border: 'none', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
                         >
-                          Approve
+                          <FaCheck/> Approve
                         </button>
                         <button
                           onClick={() => handleUpdate(req.id, 'rejected')}
-                          style={styles.buttonReject}
+                          style={{ background: COLORS.red, color: 'white', border: 'none', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
                         >
-                          Reject
+                          <FaTimes/> Reject
                         </button>
-                      </>
+                      </div>
                     ) : (
-                      <small>{req.adminRemarks || `Processed on ${new Date(req.processedAt).toLocaleDateString()}`}</small>
+                      <div style={{color: 'white', fontSize: '12px'}}>
+                        {req.adminRemarks || `Processed on ${new Date(req.processedAt).toLocaleDateString()}`}
+                      </div>
                     )}
                   </td>
                 </tr>
@@ -123,98 +184,8 @@ function WithdrawalRequestsPage() {
           </tbody>
         </table>
       </div>
-    </div>
+    </Page>
   );
 }
-
-// Re-using styles from other admin pages
-const styles = {
-  container: {
-    padding: '20px',
-    backgroundColor: '#ffffff',
-    minHeight: '100vh',
-    fontFamily: '"Poppins", sans-serif',
-    color: '#000',
-  },
-  title: {
-    fontSize: '1.8rem',
-    color: '#0f35df',
-    marginBottom: '20px',
-    fontWeight: '600',
-    borderBottom: '3px solid #fa0f8c',
-    display: 'inline-block',
-    paddingBottom: '5px',
-  },
-  tableWrapper: {
-    overflowX: 'auto',
-    borderRadius: '10px',
-    boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-  },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    fontSize: '0.95rem',
-  },
-  headerRow: {
-    backgroundColor: '#0f35df',
-    color: '#fff',
-  },
-  cell: {
-    padding: '12px 15px',
-    border: '1px solid #ddd',
-    textAlign: 'left',
-    verticalAlign: 'middle',
-  },
-  row: {
-    transition: 'background 0.2s ease',
-  },
-  buttonApprove: {
-    background: '#28a745',
-    color: '#fff',
-    border: 'none',
-    padding: '8px 12px',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontWeight: '500',
-  },
-  buttonReject: {
-    background: '#dc3545',
-    color: '#fff',
-    border: 'none',
-    padding: '8px 12px',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontWeight: '500',
-  },
-  loading: {
-    textAlign: 'center',
-    color: '#0f35df',
-    fontWeight: '500',
-  },
-  error: {
-    textAlign: 'center',
-    color: '#fa0f8c',
-    fontWeight: '600',
-  },
-  badge: {
-    padding: '5px 10px',
-    borderRadius: '12px',
-    fontSize: '0.85rem',
-    fontWeight: '600',
-    textTransform: 'capitalize',
-    color: '#000',
-  },
-  pending: {
-    backgroundColor: '#f4d40f',
-  },
-  approved: {
-    backgroundColor: '#28a745',
-    color: '#fff',
-  },
-  rejected: {
-    backgroundColor: '#dc3545',
-    color: '#fff',
-  },
-};
 
 export default WithdrawalRequestsPage;

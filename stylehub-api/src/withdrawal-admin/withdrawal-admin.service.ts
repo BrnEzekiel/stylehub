@@ -1,4 +1,3 @@
-// src/withdrawal-admin/withdrawal-admin.service.ts
 import {
   Injectable,
   InternalServerErrorException,
@@ -6,7 +5,8 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma, WithdrawalStatus } from '@prisma/client';
+// FIX: Added TransactionType
+import { Prisma, WithdrawalStatus, TransactionType } from '@prisma/client';
 
 @Injectable()
 export class WithdrawalAdminService {
@@ -58,22 +58,26 @@ export class WithdrawalAdminService {
       // 2. If REJECTED, refund the money to the seller's wallet
       if (newStatus === WithdrawalStatus.rejected) {
         // 2a. Refund the user's wallet
-        await tx.user.update({
+        const updatedUser = await tx.user.update({
           where: { id: request.sellerId },
           data: {
             walletBalance: {
               increment: request.amount, // Give the money back
             },
           },
+          select: { walletBalance: true }, // FIX: Get the new balance
         });
 
         // 2b. Create a "credit" transaction for the refund
         await tx.walletTransaction.create({
           data: {
-            userId: request.sellerId,
-            type: 'credit',
+            user: { connect: { id: request.sellerId } }, // FIX: Use connect
+            type: TransactionType.REFUND, // FIX: Use correct enum value
             amount: request.amount,
-            description: `Refund for rejected withdrawal: ${adminRemarks || 'Rejected by admin'}`,
+            balance: updatedUser.walletBalance, // FIX: Add mandatory balance
+            description: `Refund for rejected withdrawal: ${
+              adminRemarks || 'Rejected by admin'
+            }`,
             withdrawalRequest: { connect: { id: request.id } },
           },
         });

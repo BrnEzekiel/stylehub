@@ -10,12 +10,14 @@ export declare class ServicesController {
         description: string;
         category: string;
         imageUrl: string | null;
-        providerId: string;
+        isActive: boolean;
         title: string;
+        providerId: string;
         priceShopCents: import("@prisma/client/runtime/library").Decimal;
         priceHomeCents: import("@prisma/client/runtime/library").Decimal | null;
         offersHome: boolean;
         durationMinutes: number;
+        portfolioId: string | null;
     }>;
     findMyServices(req: any): Promise<{
         id: string;
@@ -24,12 +26,14 @@ export declare class ServicesController {
         description: string;
         category: string;
         imageUrl: string | null;
-        providerId: string;
+        isActive: boolean;
         title: string;
+        providerId: string;
         priceShopCents: import("@prisma/client/runtime/library").Decimal;
         priceHomeCents: import("@prisma/client/runtime/library").Decimal | null;
         offersHome: boolean;
         durationMinutes: number;
+        portfolioId: string | null;
     }[]>;
     findAll(category?: string): Promise<({
         provider: {
@@ -43,12 +47,14 @@ export declare class ServicesController {
         description: string;
         category: string;
         imageUrl: string | null;
-        providerId: string;
+        isActive: boolean;
         title: string;
+        providerId: string;
         priceShopCents: import("@prisma/client/runtime/library").Decimal;
         priceHomeCents: import("@prisma/client/runtime/library").Decimal | null;
         offersHome: boolean;
         durationMinutes: number;
+        portfolioId: string | null;
     })[]>;
     findOne(id: string): Promise<{
         provider: {
@@ -56,10 +62,13 @@ export declare class ServicesController {
                 id: string;
                 createdAt: Date;
                 updatedAt: Date;
-                status: import(".prisma/client").$Enums.VerificationStatus;
                 userId: string;
-                bio: string;
-                portfolioUrl: string;
+                status: import(".prisma/client").$Enums.VerificationStatus;
+                remarks: string | null;
+                reviewedAt: Date | null;
+                reviewedBy: string | null;
+                bio: string | null;
+                portfolioUrl: string | null;
                 videoUrl: string | null;
             };
             name: string;
@@ -74,11 +83,13 @@ export declare class ServicesController {
         description: string;
         category: string;
         imageUrl: string | null;
-        providerId: string;
+        isActive: boolean;
         title: string;
+        providerId: string;
         priceShopCents: import("@prisma/client/runtime/library").Decimal;
         priceHomeCents: import("@prisma/client/runtime/library").Decimal | null;
         offersHome: boolean;
         durationMinutes: number;
+        portfolioId: string | null;
     }>;
 }

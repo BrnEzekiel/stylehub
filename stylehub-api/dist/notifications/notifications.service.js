@@ -19,6 +19,31 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
         this.prisma = prisma;
         this.logger = new common_1.Logger(NotificationsService_1.name);
     }
+    async findAllForUser(userId) {
+        return this.prisma.notification.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+    async getUnreadCountForUser(userId) {
+        return this.prisma.notification.count({});
+    }
+    async markAsRead(notificationId, userId) {
+        const notification = await this.prisma.notification.findUnique({ where: { id: notificationId } });
+        if (!notification || notification.userId !== userId) {
+            throw new Error('Notification not found or unauthorized.');
+        }
+        return this.prisma.notification.update({
+            where: { id: notificationId },
+            data: { isRead: true },
+        });
+    }
+    async markAllAsReadForUser(userId) {
+        return this.prisma.notification.updateMany({
+            where: { userId, isRead: false },
+            data: { isRead: true },
+        });
+    }
     async handleOrderPaid(order) {
         this.logger.log(`Received 'order.paid' event for Order ID: ${order.id}`);
         try {
@@ -48,10 +73,11 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
             const messageToSeller = `You have a new order (#${order.id.substring(0, 8)}) for $${order.totalAmount}.`;
             const notification = await this.prisma.notification.create({
                 data: {
-                    userId: sellerId,
-                    type: 'ORDER_PAID',
+                    type: 'order',
+                    title: 'New Order!',
                     message: messageToSeller,
-                    orderId: order.id,
+                    user: { connect: { id: sellerId } },
+                    order: { connect: { id: order.id } },
                 },
             });
             this.logger.log(`Notification ${notification.type} created for user ${sellerId}`);

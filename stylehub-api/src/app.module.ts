@@ -21,11 +21,12 @@ import { PayoutsModule } from './payouts/payouts.module';
 import { VerificationModule } from './verification/verification.module';
 import { WishlistModule } from './wishlist/wishlist.module';
 import { WalletModule } from './wallet/wallet.module';
-import { ProviderPortfolioModule } from './provider-portfolio/provider-portfolio.module'; // 1. 🛑 Import
-import { ServicesModule } from './services/services.module'; // 2. 🛑 Import
-import { BookingsModule } from './bookings/bookings.module'; // 3. 🛑 Import
-import { WithdrawalAdminModule } from './withdrawal-admin/withdrawal-admin.module'; // 4. 🛑 Import
+import { ProviderPortfolioModule } from './provider-portfolio/provider-portfolio.module'; // 1. Import
+import { ServicesModule } from './services/services.module'; // 2. Import
+import { BookingsModule } from './bookings/bookings.module'; // 3. Import
+import { WithdrawalAdminModule } from './withdrawal-admin/withdrawal-admin.module'; // 4. Import
 import { StyleDIYModule } from './style-diy/style-diy.module';
+import { StaysModule } from './stays/stays.module';
 
 @Module({
   imports: [
@@ -49,11 +50,12 @@ import { StyleDIYModule } from './style-diy/style-diy.module';
     VerificationModule,
     WishlistModule,
     WalletModule,
-    ProviderPortfolioModule, // 5. 🛑 Add
-    ServicesModule, // 6. 🛑 Add
-    BookingsModule, // 7. 🛑 Add
-    WithdrawalAdminModule, // 8. 🛑 Add
+    ProviderPortfolioModule, // 5. Add
+    ServicesModule, // 6. Add
+    BookingsModule, // 7. Add
+    WithdrawalAdminModule, // 8. Add
     StyleDIYModule,
+    StaysModule,
   ],
   providers: [],
 })

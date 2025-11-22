@@ -6,8 +6,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma, User } from '@prisma/client'; 
-import { Role } from '../auth/enums/role.enum'; 
+import { Prisma, User } from '@prisma/client';
+import { Role } from '../auth/enums/role.enum';
 import { AdminUpdateUserDto } from './dto/admin-update-user.dto';
 
 @Injectable()
@@ -29,28 +29,29 @@ export class UsersService {
       const user = await this.prisma.user.findUnique({ where: { phone } });
       return user;
     } catch (error) {
-       console.error(`[UsersService] Error finding user by phone ${phone}:`, error);
-       throw new InternalServerErrorException('Database error while finding user by phone.');
+      console.error(`[UsersService] Error finding user by phone ${phone}:`, error);
+      throw new InternalServerErrorException('Database error while finding user by phone.');
     }
   }
 
   async create(data: {
     name: string;
+    username: string;
     email: string;
     phone: string;
     password_hash: string;
-    role: Role; 
+    role: Role;
   }): Promise<User> {
-     try {
-        const user = await this.prisma.user.create({ data });
-        return user;
-     } catch (error) {
-        console.error('[UsersService] Error creating user:', data.email, error);
-        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-            throw new ConflictException('Email or phone number already exists.');
-        }
-        throw new InternalServerErrorException('Database error while creating user.');
-     }
+    try {
+      const user = await this.prisma.user.create({ data });
+      return user;
+    } catch (error) {
+      console.error('[UsersService] Error creating user:', data.email, error);
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        throw new ConflictException('Email or phone number already exists.');
+      }
+      throw new InternalServerErrorException('Database error while creating user.');
+    }
   }
 
   async findAll() {
@@ -59,6 +60,7 @@ export class UsersService {
         id: true,
         email: true,
         name: true,
+        username: true,
         phone: true,
         role: true,
         createdAt: true,
@@ -68,13 +70,14 @@ export class UsersService {
       },
     });
   }
-  
+
   async findPublicById(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
       select: {
         id: true,
         name: true,
+        username: true,
         role: true,
       },
     });
@@ -92,6 +95,7 @@ export class UsersService {
         id: true,
         email: true,
         name: true,
+        username: true,
         phone: true,
         role: true,
         createdAt: true,
@@ -115,6 +119,7 @@ export class UsersService {
           id: true,
           email: true,
           name: true,
+          username: true,
           phone: true,
           role: true,
         },
@@ -139,7 +144,7 @@ export class UsersService {
       if (!user) {
         throw new NotFoundException('User not found');
       }
-      
+
       // 🛑 This is now the only line needed.
       // The `onDelete` rules in the schema will handle all related data.
       await this.prisma.user.delete({ where: { id: id } });
@@ -149,7 +154,7 @@ export class UsersService {
       console.error('Admin delete user error:', error);
       // Catch foreign key constraint errors if any rules were missed
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
-         throw new InternalServerErrorException('Database error: Could not delete user due to a foreign key constraint. Please check schema relations.');
+        throw new InternalServerErrorException('Database error: Could not delete user due to a foreign key constraint. Please check schema relations.');
       }
       throw new InternalServerErrorException('Could not delete user.');
     }

@@ -13,6 +13,7 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import { Box, Typography, Button, Grid, Paper, CircularProgress, Container } from '@mui/material';
 import { pageSx, paperSx, COLOR_PRIMARY_BLUE, COLOR_TEXT_DARK, COLOR_ACCENT_MAGENTA, COLOR_BACKGROUND_LIGHT } from '../styles/theme';
+import { formatCurrency } from '../utils/styleUtils'; // Import formatCurrency
 import ProductCard from '../components/ProductCard';
 import ServiceCard from '../components/ServiceCard';
 import { Crown, Store, DesignServices, AccountBalanceWallet } from '@mui/icons-material';
@@ -68,8 +69,8 @@ function Home() {
     );
   }
 
-  const HeroSlide = ({ title, subtitle, buttonText, buttonLink, bgColor }) => (
-    <Paper sx={{ ...paperSx, p: 4, backgroundColor: bgColor, color: 'white', display: 'flex', alignItems: 'center', height: '100%'}}>
+  const HeroSlide = ({ title, subtitle, buttonText, buttonLink }) => (
+    <Paper sx={{ ...paperSx, p: 4, background: 'rgba(255, 255, 255, 0.08)', color: 'white', display: 'flex', alignItems: 'center', height: '100%'}}>
         <Box>
             <Typography variant="h3" sx={{fontWeight: 'bold', mb: 1}}>{title}</Typography>
             <Typography variant="h6" sx={{mb: 2, opacity: 0.9}}>{subtitle}</Typography>
@@ -85,21 +86,21 @@ function Home() {
             <Box sx={{mb: 4}}>
                 <Swiper modules={[Autoplay, Pagination]} loop={true} autoplay={{ delay: 5000 }} pagination={{ clickable: true }}>
                     <SwiperSlide>
-                        <HeroSlide title="Welcome to StyleHub" subtitle="Your all-in-one platform for beauty, fashion, and premium stays" buttonText={user ? "Explore Marketplace" : "Get Started"} buttonLink={user ? "/marketplace" : "/login"} bgColor={COLOR_PRIMARY_BLUE} />
+                        <HeroSlide title="Welcome to StyleHub" subtitle="Your all-in-one platform for beauty, fashion, and premium stays" buttonText={user ? "Explore Marketplace" : "Get Started"} buttonLink={user ? "/marketplace" : "/login"} />
                     </SwiperSlide>
                     {(!user || user.role === 'client') && availableCategories.services.length > 0 && (
                         <SwiperSlide>
-                            <HeroSlide title="Earn Loyalty Points" subtitle="Get rewards with every purchase and booking" buttonText="Browse Services" buttonLink="/services" bgColor={COLOR_ACCENT_MAGENTA} />
+                            <HeroSlide title="Earn Loyalty Points" subtitle="Get rewards with every purchase and booking" buttonText="Browse Services" buttonLink="/services" />
                         </SwiperSlide>
                     )}
                     {user && user.role === 'service_provider' && (
                         <SwiperSlide>
-                           <HeroSlide title="Manage Your Services" subtitle="Create and manage your service offerings" buttonText="My Services" buttonLink="/my-services" bgColor="#2E7D32" />
+                           <HeroSlide title="Manage Your Services" subtitle="Create and manage your service offerings" buttonText="My Services" buttonLink="/my-services" />
                         </SwiperSlide>
                     )}
                     {user && user.role === 'seller' && (
                        <SwiperSlide>
-                           <HeroSlide title="Sell Your Products" subtitle="Add products and reach more customers" buttonText="Add Product" buttonLink="/create-product" bgColor="#D84315" />
+                           <HeroSlide title="Sell Your Products" subtitle="Add products and reach more customers" buttonText="Add Product" buttonLink="/create-product" />
                         </SwiperSlide>
                     )}
                 </Swiper>
@@ -147,17 +148,17 @@ function Home() {
                 </Box>
             )}
 
-            <Paper sx={{...paperSx, p:3, mb: 4, backgroundColor: '#fffbe6'}}>
+            <Paper sx={{...paperSx, p:3, mb: 4}}>
                  <Typography variant="h5" sx={{fontWeight: 'bold', color: COLOR_TEXT_DARK, mb: 1}}>💡 Did You Know?</Typography>
                  <Typography color="text.secondary">StyleHub connects you with talented professionals and exclusive products. Whether you're looking for beauty services, fashion items, or premium stays, you're in the right place!</Typography>
             </Paper>
 
             {user && wallet && (
-                 <Paper sx={{...paperSx, p:3, backgroundColor: COLOR_PRIMARY_BLUE, color: 'white'}}>
+                 <Paper sx={{...paperSx, p:3, color: COLOR_TEXT_DARK}}>
                     <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                         <Box>
                             <Typography variant="h6">Available Balance</Typography>
-                            <Typography variant="h4" sx={{fontWeight: 'bold'}}>KSh {parseFloat(wallet.walletBalance || 0).toFixed(2)}</Typography>
+                            <Typography variant="h4" sx={{fontWeight: 'bold'}}>{formatCurrency(wallet.walletBalance)}</Typography>
                         </Box>
                          <AccountBalanceWallet sx={{fontSize: 40}}/>
 

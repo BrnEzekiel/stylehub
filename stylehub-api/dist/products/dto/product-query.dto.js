@@ -26,8 +26,28 @@ __decorate([
 ], ProductQueryDto.prototype, "category", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumberString)(),
+    __metadata("design:type", String)
+], ProductQueryDto.prototype, "minPrice", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumberString)(),
+    __metadata("design:type", String)
+], ProductQueryDto.prototype, "maxPrice", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumberString)(),
+    __metadata("design:type", String)
+], ProductQueryDto.prototype, "minRating", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBooleanString)(),
+    __metadata("design:type", String)
+], ProductQueryDto.prototype, "inStockOnly", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsIn)(['price', 'createdAt', 'name']),
+    (0, class_validator_1.IsIn)(['price-asc', 'price-desc', 'createdAt', 'name', 'rating']),
     __metadata("design:type", String)
 ], ProductQueryDto.prototype, "sortBy", void 0);
 __decorate([

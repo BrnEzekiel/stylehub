@@ -20,7 +20,7 @@ import { Role } from '../auth/enums/role.enum';
 import { FileInterceptor } from '@nest-lab/fastify-multer';
 import { CreateServiceDto } from './dto/create-service.dto';
 
-@Controller('api/services')
+@Controller('services')
 export class ServicesController {
   constructor(private readonly servicesService: ServicesService) {}
 

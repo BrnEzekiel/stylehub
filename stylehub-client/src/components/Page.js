@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 // Brand colors - must be consistent with other glassmorphism components

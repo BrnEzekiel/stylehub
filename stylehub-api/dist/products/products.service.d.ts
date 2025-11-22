@@ -22,6 +22,7 @@ export declare class ProductsService {
         category: string | null;
         imageUrl: string | null;
         sellerId: string | null;
+        isActive: boolean;
         averageRating: Prisma.Decimal;
         reviewCount: number;
     }>;
@@ -37,6 +38,7 @@ export declare class ProductsService {
             category: string | null;
             imageUrl: string | null;
             sellerId: string | null;
+            isActive: boolean;
             averageRating: Prisma.Decimal;
             reviewCount: number;
         }[];
@@ -65,6 +67,7 @@ export declare class ProductsService {
         category: string | null;
         imageUrl: string | null;
         sellerId: string | null;
+        isActive: boolean;
         averageRating: Prisma.Decimal;
         reviewCount: number;
     }>;
@@ -79,6 +82,7 @@ export declare class ProductsService {
         category: string | null;
         imageUrl: string | null;
         sellerId: string | null;
+        isActive: boolean;
         averageRating: Prisma.Decimal;
         reviewCount: number;
     }>;
@@ -96,6 +100,7 @@ export declare class ProductsService {
         category: string | null;
         imageUrl: string | null;
         sellerId: string | null;
+        isActive: boolean;
         averageRating: Prisma.Decimal;
         reviewCount: number;
     }>;
@@ -115,6 +120,7 @@ export declare class ProductsService {
         category: string | null;
         imageUrl: string | null;
         sellerId: string | null;
+        isActive: boolean;
         averageRating: Prisma.Decimal;
         reviewCount: number;
     })[]>;
@@ -132,6 +138,7 @@ export declare class ProductsService {
         category: string | null;
         imageUrl: string | null;
         sellerId: string | null;
+        isActive: boolean;
         averageRating: Prisma.Decimal;
         reviewCount: number;
     }>;

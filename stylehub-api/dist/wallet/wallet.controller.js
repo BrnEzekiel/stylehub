@@ -48,7 +48,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], WalletController.prototype, "requestWithdrawal", null);
 exports.WalletController = WalletController = __decorate([
-    (0, common_1.Controller)('api/wallet'),
+    (0, common_1.Controller)('wallet'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.Seller, role_enum_1.Role.Client, role_enum_1.Role.ServiceProvider),
     __metadata("design:paramtypes", [wallet_service_1.WalletService])

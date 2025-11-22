@@ -24,21 +24,23 @@ export class WalletService {
   ) {
     try {
       // 1. Update the user's wallet balance
-      await tx.user.update({
+      const updatedUser = await tx.user.update({
         where: { id: sellerId },
         data: {
           walletBalance: {
             increment: amount,
           },
         },
+        select: { walletBalance: true }, // Select the new balance
       });
 
       // 2. Create a "receipt" transaction
       const transaction = await tx.walletTransaction.create({
         data: {
-          userId: sellerId,
-          type: TransactionType.credit,
+          user: { connect: { id: sellerId } }, // FIX: Use connect
+          type: TransactionType.DEPOSIT,
           amount: amount,
+          balance: updatedUser.walletBalance, // FIX: Add new balance
           description: `Payout from Payout ID: ${payoutId.substring(0, 8)}`,
         },
       });
@@ -96,20 +98,22 @@ export class WalletService {
         throw new BadRequestException('Insufficient wallet balance.');
       }
 
-      await tx.user.update({
+      const updatedUser = await tx.user.update({
         where: { id: userId },
         data: {
           walletBalance: {
             decrement: amountToWithdraw,
           },
         },
+        select: { walletBalance: true }, // Select the new balance
       });
 
       const transaction = await tx.walletTransaction.create({
         data: {
-          userId: userId,
-          type: TransactionType.debit,
+          user: { connect: { id: userId } }, // FIX: Use connect
+          type: TransactionType.WITHDRAWAL,
           amount: amountToWithdraw.negated(),
+          balance: updatedUser.walletBalance, // FIX: Add new balance
           description: `Withdrawal request to ${dto.mpesaNumber}`,
         },
       });
@@ -127,7 +131,7 @@ export class WalletService {
       return withdrawalRequest;
     });
   }
-  
+
   // --- 🛑 NEW: BOOKING & ESCROW METHODS ---
 
   /**
@@ -149,26 +153,28 @@ export class WalletService {
     }
 
     // 2. Debit the client's wallet
-    await tx.user.update({
+    const updatedUser = await tx.user.update({
       where: { id: clientId },
       data: {
         walletBalance: {
           decrement: amount,
         },
       },
+      select: { walletBalance: true }, // Select the new balance
     });
 
     // 3. Create a "debit" transaction receipt (escrow hold)
     const transaction = await tx.walletTransaction.create({
       data: {
-        userId: clientId,
-        type: TransactionType.debit,
+        user: { connect: { id: clientId } }, // FIX: Use connect
+        type: TransactionType.PAYMENT,
         amount: amount.negated(),
+        balance: updatedUser.walletBalance, // FIX: Add new balance
         description: `Escrow hold for Booking ID: ${bookingId.substring(0, 8)}`,
         booking: { connect: { id: bookingId } },
       },
     });
-    
+
     // 4. Link the booking to this transaction
     await tx.booking.update({
       where: { id: bookingId },
@@ -186,21 +192,23 @@ export class WalletService {
     amount: Prisma.Decimal,
   ) {
     // 1. Credit the provider's wallet
-    await tx.user.update({
+    const updatedUser = await tx.user.update({
       where: { id: providerId },
       data: {
         walletBalance: {
           increment: amount,
         },
       },
+      select: { walletBalance: true }, // Select the new balance
     });
 
     // 2. Create a "credit" transaction receipt for the provider
     await tx.walletTransaction.create({
       data: {
-        userId: providerId,
-        type: TransactionType.credit,
+        user: { connect: { id: providerId } }, // FIX: Use connect
+        type: TransactionType.EARNING,
         amount: amount,
+        balance: updatedUser.walletBalance, // FIX: Add new balance
         description: `Payment for Booking ID: ${bookingId.substring(0, 8)}`,
         booking: { connect: { id: bookingId } },
       },

@@ -4,20 +4,19 @@ import React, { useState, useEffect } from 'react';
 import { fetchCart, createOrder, removeItemFromCart } from '../api/cartService';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
-import Container from '../components/Container';
-import Card from '../components/Card';
-
-// Helper to format currency
-function formatCurrency(num) {
-  const number = parseFloat(num);
-  if (isNaN(number)) return 'Ksh 0.00';
-  return new Intl.NumberFormat('en-KE', {
-    style: 'currency',
-    currency: 'KSH',
-  }).format(number);
-}
+import {
+  Box,
+  Typography,
+  Button,
+  Grid,
+  Paper,
+  TextField,
+  CircularProgress,
+  Container
+} from '@mui/material';
+import { ArrowBack } from '@mui/icons-material';
+import { pageSx, paperSx, COLOR_PRIMARY_BLUE, COLOR_TEXT_DARK } from '../styles/theme';
+import { formatCurrency } from '../utils/styleUtils';
 
 function CartPage() {
   const [cartData, setCartData] = useState({ items: [], subtotal: 0, shippingFee: 0, total: 0 });
@@ -96,13 +95,10 @@ function CartPage() {
 
   if (loading) {
     return (
-      <div className="page-transition" style={{ paddingBottom: '80px' }}>
-        <Container>
-        <div className="page-section">
-          <p className="text-gray-600">Loading your cart...</p>
-        </div>
-        </Container>
-      </div>
+        <Box sx={{ ...pageSx, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <CircularProgress sx={{ color: COLOR_PRIMARY_BLUE }} />
+            <Typography variant="h6" sx={{ ml: 2, color: COLOR_PRIMARY_BLUE }}>Loading your cart...</Typography>
+        </Box>
     );
   }
 
@@ -110,156 +106,111 @@ function CartPage() {
 
   if (checkoutMessage.includes('created!')) {
     return (
-      <div className="page-transition" style={{ paddingBottom: '80px' }}>
-        <Container>
-        <div className="page-section text-center">
-          <h2 className="text-2xl font-bold text-green-600 mb-4">🎉 Checkout Successful! 🎉</h2>
-          <p className="text-lg text-green-600 mb-6">{checkoutMessage}</p>
-          <button 
-            className="btn btn-primary" 
-            onClick={() => navigate('/')}
-          >
-            Continue Shopping
-          </button>
-        </div>
-        </Container>
-      </div>
+        <Box sx={{...pageSx, textAlign: 'center'}}>
+            <Paper sx={{...paperSx, p: 4, display: 'inline-block'}}>
+                <Typography variant="h4" sx={{ color: 'green', fontWeight: 'bold', mb: 2 }}>🎉 Checkout Successful! 🎉</Typography>
+                <Typography variant="h6" sx={{ color: 'green', mb: 4 }}>{checkoutMessage}</Typography>
+                <Button 
+                    variant="contained"
+                    sx={{backgroundColor: COLOR_PRIMARY_BLUE}}
+                    onClick={() => navigate('/')}
+                >
+                    Continue Shopping
+                </Button>
+            </Paper>
+        </Box>
     );
   }
 
   return (
-    <div className="page-transition" style={{ paddingBottom: '80px' }}>
-      <Container>
-      <div className="page-section">
-        <button onClick={() => navigate(-1)} className="text-primary mb-4 flex items-center gap-2">
-          <FontAwesomeIcon icon={faArrowLeft} /> Back
-        </button>
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Checkout</h1>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Left Side: Address Form */}
-          <div className="card">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Shipping Address</h2>
-            <form onSubmit={handleCheckout}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                <input 
-                  type="text" 
-                  name="fullName" 
-                  value={address.fullName} 
-                  onChange={handleAddressChange} 
-                  required 
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  style={{ 
-                    outline: 'none',
-                  }}
-                  onFocus={(e) => e.target.style.boxShadow = '0 0 0 2px var(--color-primary)'}
-                  onBlur={(e) => e.target.style.boxShadow = ''}
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                <input 
-                  type="tel" 
-                  name="phone" 
-                  value={address.phone} 
-                  onChange={handleAddressChange} 
-                  required 
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  onFocus={(e) => e.target.style.boxShadow = '0 0 0 2px var(--color-primary)'}
-                  onBlur={(e) => e.target.style.boxShadow = ''}
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
-                <input 
-                  type="text" 
-                  name="street" 
-                  value={address.street} 
-                  onChange={handleAddressChange} 
-                  required 
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  onFocus={(e) => e.target.style.boxShadow = '0 0 0 2px var(--color-primary)'}
-                  onBlur={(e) => e.target.style.boxShadow = ''}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                  <input 
-                    type="text" 
-                    name="city" 
-                    value={address.city} 
-                    onChange={handleAddressChange} 
-                    required 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    onFocus={(e) => e.target.style.boxShadow = '0 0 0 2px var(--color-primary)'}
-                    onBlur={(e) => e.target.style.boxShadow = ''}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">State / County</label>
-                  <input 
-                    type="text" 
-                    name="state" 
-                    value={address.state} 
-                    onChange={handleAddressChange} 
-                    required 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    onFocus={(e) => e.target.style.boxShadow = '0 0 0 2px var(--color-primary)'}
-                    onBlur={(e) => e.target.style.boxShadow = ''}
-                  />
-                </div>
-              </div>
-              
-              {checkoutMessage && !checkoutMessage.includes('created!') && (
-                <div className="alert alert-error mb-4">{checkoutMessage}</div>
-              )}
-              
-              <button 
-                type="submit"
-                disabled={checkoutLoading || items.length === 0} 
-                className="btn btn-primary w-full"
-              >
-                {checkoutLoading ? 'Processing...' : `Pay ${formatCurrency(total)}`}
-              </button>
-            </form>
-          </div>
-          
-          {/* Right Side: Order Summary */}
-          <div className="card" style={{ height: 'fit-content' }}>
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Order Summary</h2>
-            <div className="space-y-3 mb-4">
-              {items.map(item => (
-                <div key={item.id} className="flex items-center">
-                  <img src={item.product?.imageUrl} alt={item.product?.name} className="w-12 h-12 object-cover rounded-md mr-3" />
-                  <div className="flex-1">
-                    <h3 className="font-medium text-sm">{item.product?.name}</h3>
-                    <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
-                  </div>
-                  <span className="text-sm font-medium">{formatCurrency(item.product?.price * item.quantity)}</span>
-                </div>
-              ))}
-            </div>
-            <div className="border-t pt-4 space-y-2">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Subtotal</span>
-                <span className="font-medium">{formatCurrency(subtotal)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Shipping</span>
-                <span className="font-medium">{formatCurrency(shippingFee)}</span>
-              </div>
-              <div className="flex justify-between text-lg font-bold mt-2 pt-2 border-t">
-                <span>Total</span>
-                <span>{formatCurrency(total)}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      </Container>
-    </div>
+    <Box sx={pageSx}>
+        <Container maxWidth="lg">
+            <Button onClick={() => navigate(-1)} startIcon={<ArrowBack />} sx={{ mb: 2, color: COLOR_PRIMARY_BLUE }}>
+                Back
+            </Button>
+            <Typography variant="h4" gutterBottom sx={{color: COLOR_TEXT_DARK, fontWeight: '900', mb: 3}}>
+                Checkout
+            </Typography>
+            
+            <Grid container spacing={4}>
+                {/* Left Side: Address Form */}
+                <Grid item xs={12} md={7}>
+                    <Paper sx={{...paperSx, p: 4}}>
+                        <Typography variant="h5" sx={{fontWeight: 'bold', color: COLOR_TEXT_DARK, mb: 3}}>Shipping Address</Typography>
+                        <Box component="form" onSubmit={handleCheckout}>
+                            <Grid container spacing={2}>
+                                <Grid item xs={12}>
+                                    <TextField label="Full Name" name="fullName" value={address.fullName} onChange={handleAddressChange} required fullWidth />
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <TextField label="Phone Number" name="phone" value={address.phone} onChange={handleAddressChange} required fullWidth />
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <TextField label="Street Address" name="street" value={address.street} onChange={handleAddressChange} required fullWidth />
+                                </Grid>
+                                <Grid item xs={12} sm={4}>
+                                    <TextField label="City" name="city" value={address.city} onChange={handleAddressChange} required fullWidth />
+                                </Grid>
+                                <Grid item xs={12} sm={4}>
+                                    <TextField label="State / County" name="state" value={address.state} onChange={handleAddressChange} required fullWidth />
+                                </Grid>
+                                <Grid item xs={12} sm={4}>
+                                    <TextField label="ZIP Code" name="zipCode" value={address.zipCode} onChange={handleAddressChange} required fullWidth />
+                                </Grid>
+                            </Grid>
+                            
+                            {checkoutMessage && !checkoutMessage.includes('created!') && (
+                                <Typography color="error" sx={{mt: 2}}>{checkoutMessage}</Typography>
+                            )}
+                            
+                            <Button 
+                                type="submit"
+                                disabled={checkoutLoading || items.length === 0} 
+                                variant="contained"
+                                fullWidth
+                                sx={{ mt: 3, backgroundColor: COLOR_PRIMARY_BLUE, p: 1.5 }}
+                            >
+                                {checkoutLoading ? <CircularProgress size={24} color="inherit" /> : `Pay ${formatCurrency(total)}`}
+                            </Button>
+                        </Box>
+                    </Paper>
+                </Grid>
+                
+                {/* Right Side: Order Summary */}
+                <Grid item xs={12} md={5}>
+                    <Paper sx={{...paperSx, p: 4, position: 'sticky', top: '20px' }}>
+                        <Typography variant="h5" sx={{fontWeight: 'bold', color: COLOR_TEXT_DARK, mb: 3}}>Order Summary</Typography>
+                        <Box sx={{mb: 2}}>
+                            {items.map(item => (
+                                <Box key={item.id} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                    <Box component="img" src={item.product?.imageUrl} alt={item.product?.name} sx={{width: 50, height: 50, objectFit: 'cover', borderRadius: 1, mr: 2}} />
+                                    <Box sx={{flex: 1}}>
+                                        <Typography variant="body1" sx={{fontWeight: 'medium'}}>{item.product?.name}</Typography>
+                                        <Typography variant="body2" color="textSecondary">Qty: {item.quantity}</Typography>
+                                    </Box>
+                                    <Typography variant="body1" sx={{fontWeight: 'medium'}}>{formatCurrency(item.product?.price * item.quantity)}</Typography>
+                                </Box>
+                            ))}
+                        </Box>
+                        <Box sx={{ borderTop: '1px solid #ccc', pt: 2 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                                <Typography color="textSecondary">Subtotal</Typography>
+                                <Typography sx={{fontWeight: 'medium'}}>{formatCurrency(subtotal)}</Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                                <Typography color="textSecondary">Shipping</Typography>
+                                <Typography sx={{fontWeight: 'medium'}}>{formatCurrency(shippingFee)}</Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', pt: 2, borderTop: '1px solid #ccc' }}>
+                                <Typography variant="h6" sx={{fontWeight: 'bold'}}>Total</Typography>
+                                <Typography variant="h6" sx={{fontWeight: 'bold', color: COLOR_PRIMARY_BLUE}}>{formatCurrency(total)}</Typography>
+                            </Box>
+                        </Box>
+                    </Paper>
+                </Grid>
+            </Grid>
+        </Container>
+    </Box>
   );
 }
 

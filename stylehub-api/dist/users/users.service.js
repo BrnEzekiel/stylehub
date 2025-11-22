@@ -56,6 +56,7 @@ let UsersService = class UsersService {
                 id: true,
                 email: true,
                 name: true,
+                username: true,
                 phone: true,
                 role: true,
                 createdAt: true,
@@ -71,6 +72,7 @@ let UsersService = class UsersService {
             select: {
                 id: true,
                 name: true,
+                username: true,
                 role: true,
             },
         });
@@ -86,6 +88,7 @@ let UsersService = class UsersService {
                 id: true,
                 email: true,
                 name: true,
+                username: true,
                 phone: true,
                 role: true,
                 createdAt: true,
@@ -108,6 +111,7 @@ let UsersService = class UsersService {
                     id: true,
                     email: true,
                     name: true,
+                    username: true,
                     phone: true,
                     role: true,
                 },

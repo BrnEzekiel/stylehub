@@ -47,7 +47,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], WithdrawalAdminController.prototype, "updateWithdrawalStatus", null);
 exports.WithdrawalAdminController = WithdrawalAdminController = __decorate([
-    (0, common_1.Controller)('api/admin/withdrawals'),
+    (0, common_1.Controller)('admin/withdrawals'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin),
     __metadata("design:paramtypes", [withdrawal_admin_service_1.WithdrawalAdminService])

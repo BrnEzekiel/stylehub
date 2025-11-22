@@ -48,19 +48,21 @@ let WithdrawalAdminService = class WithdrawalAdminService {
                 throw new common_1.BadRequestException(`Request is already ${request.status}.`);
             }
             if (newStatus === client_1.WithdrawalStatus.rejected) {
-                await tx.user.update({
+                const updatedUser = await tx.user.update({
                     where: { id: request.sellerId },
                     data: {
                         walletBalance: {
                             increment: request.amount,
                         },
                     },
+                    select: { walletBalance: true },
                 });
                 await tx.walletTransaction.create({
                     data: {
-                        userId: request.sellerId,
-                        type: 'credit',
+                        user: { connect: { id: request.sellerId } },
+                        type: client_1.TransactionType.REFUND,
                         amount: request.amount,
+                        balance: updatedUser.walletBalance,
                         description: `Refund for rejected withdrawal: ${adminRemarks || 'Rejected by admin'}`,
                         withdrawalRequest: { connect: { id: request.id } },
                     },

@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE "OrderItem" ADD COLUMN     "platformFee" DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-ADD COLUMN     "sellerEarning" DECIMAL(10,2) NOT NULL DEFAULT 0.00;

@@ -19,7 +19,7 @@ import { Role } from '../auth/enums/role.enum';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { CheckoutDto } from './dto/checkout.dto';
 
-@Controller('api/cart')
+@Controller('cart')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class CartController {
   constructor(private readonly cartService: CartService) {}

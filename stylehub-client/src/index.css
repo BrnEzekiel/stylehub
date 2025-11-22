@@ -2,9 +2,3 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Set the base font for the whole app */
-body {
-  font-family: 'Poppins', sans-serif;
-  background-color: #f9fafb; /* bg-gray-50 */
-}

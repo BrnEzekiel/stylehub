@@ -11,10 +11,10 @@ export declare class ReviewsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        imageUrl: string | null;
-        productId: string;
         userId: string;
+        imageUrl: string | null;
         rating: number;
+        productId: string;
         comment: string | null;
     }>;
     getProductReviews(productId: string): Promise<({
@@ -25,10 +25,10 @@ export declare class ReviewsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        imageUrl: string | null;
-        productId: string;
         userId: string;
+        imageUrl: string | null;
         rating: number;
+        productId: string;
         comment: string | null;
     })[]>;
 }

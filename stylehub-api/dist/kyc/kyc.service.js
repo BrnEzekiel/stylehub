@@ -21,7 +21,7 @@ let KycService = class KycService {
     }
     async getStatus(userId) {
         const kyc = await this.prisma.kYC.findUnique({
-            where: { user_id: userId },
+            where: { userId: userId },
         });
         if (!kyc) {
             return { status: 'not_submitted' };
@@ -30,7 +30,7 @@ let KycService = class KycService {
     }
     async submitKyc(userId, doc_type, docFile, selfieFile) {
         const existingKyc = await this.prisma.kYC.findUnique({
-            where: { user_id: userId },
+            where: { userId: userId },
         });
         if (existingKyc && existingKyc.status === 'approved') {
             throw new common_1.ConflictException('KYC is already approved.');
@@ -43,7 +43,7 @@ let KycService = class KycService {
         try {
             const [docUpload, selfieUpload] = await Promise.all([
                 this.storageService.upload(docFile.buffer, 'kyc_documents'),
-                this.storageService.upload(selfieFile.buffer, 'kyc_selfies')
+                this.storageService.upload(selfieFile.buffer, 'kyc_selfies'),
             ]);
             if (!docUpload?.secure_url || !selfieUpload?.secure_url) {
                 throw new common_1.InternalServerErrorException('File upload failed to return a secure URL.');
@@ -55,18 +55,26 @@ let KycService = class KycService {
             console.error('KYC File Upload Error:', error);
             throw new common_1.InternalServerErrorException('Failed to upload KYC files.');
         }
-        const kycData = {
-            user_id: userId,
-            doc_type: doc_type,
-            doc_url: doc_url,
-            selfie_url: selfie_url,
+        const kycUpdateData = {
+            docType: doc_type,
+            docUrl: doc_url,
+            selfieUrl: selfie_url,
+            status: client_1.KycStatus.pending,
+            reviewedAt: null,
+            remarks: null,
+        };
+        const kycCreateData = {
+            userId: userId,
+            docType: doc_type,
+            docUrl: doc_url,
+            selfieUrl: selfie_url,
             status: client_1.KycStatus.pending,
         };
         try {
             const updatedKyc = await this.prisma.kYC.upsert({
-                where: { user_id: userId },
-                update: kycData,
-                create: kycData,
+                where: { userId: userId },
+                update: kycUpdateData,
+                create: kycCreateData,
             });
             return updatedKyc;
         }

@@ -9,11 +9,17 @@ export declare class OrdersController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        status: string;
         userId: string;
+        status: string;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
         subtotal: import("@prisma/client/runtime/library").Decimal;
         shippingFee: import("@prisma/client/runtime/library").Decimal;
+        paymentStatus: string;
+        paymentMethod: string | null;
+        paymentReference: string | null;
+        trackingNumber: string | null;
+        shippedAt: Date | null;
+        deliveredAt: Date | null;
         shippingAddressId: string | null;
     }[]>;
     findSellerOrders(req: any): Promise<{
@@ -23,32 +29,31 @@ export declare class OrdersController {
                 email: string;
                 id: string;
             };
-            items: ({
+            items: {
                 product: {
                     name: string;
                     imageUrl: string;
                 };
-            } & {
-                id: string;
-                createdAt: Date;
                 productName: string;
                 unitPrice: import("@prisma/client/runtime/library").Decimal;
                 quantity: number;
-                platformFee: import("@prisma/client/runtime/library").Decimal;
                 sellerEarning: import("@prisma/client/runtime/library").Decimal;
-                orderId: string;
-                productId: string | null;
-                payoutId: string | null;
-            })[];
+            }[];
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            status: string;
             userId: string;
+            status: string;
             totalAmount: import("@prisma/client/runtime/library").Decimal;
             subtotal: import("@prisma/client/runtime/library").Decimal;
             shippingFee: import("@prisma/client/runtime/library").Decimal;
+            paymentStatus: string;
+            paymentMethod: string | null;
+            paymentReference: string | null;
+            trackingNumber: string | null;
+            shippedAt: Date | null;
+            deliveredAt: Date | null;
             shippingAddressId: string | null;
         })[];
         summary: {
@@ -61,11 +66,17 @@ export declare class OrdersController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        status: string;
         userId: string;
+        status: string;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
         subtotal: import("@prisma/client/runtime/library").Decimal;
         shippingFee: import("@prisma/client/runtime/library").Decimal;
+        paymentStatus: string;
+        paymentMethod: string | null;
+        paymentReference: string | null;
+        trackingNumber: string | null;
+        shippedAt: Date | null;
+        deliveredAt: Date | null;
         shippingAddressId: string | null;
     }>;
     findAllAdmin(): Promise<({
@@ -93,11 +104,17 @@ export declare class OrdersController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        status: string;
         userId: string;
+        status: string;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
         subtotal: import("@prisma/client/runtime/library").Decimal;
         shippingFee: import("@prisma/client/runtime/library").Decimal;
+        paymentStatus: string;
+        paymentMethod: string | null;
+        paymentReference: string | null;
+        trackingNumber: string | null;
+        shippedAt: Date | null;
+        deliveredAt: Date | null;
         shippingAddressId: string | null;
     })[]>;
     findAdminOrderDetails(id: string): Promise<{
@@ -128,34 +145,46 @@ export declare class OrdersController {
             id: string;
             createdAt: Date;
             updatedAt: Date;
+            userId: string;
             fullName: string;
             street: string;
             city: string;
             state: string;
             zipCode: string;
             country: string;
-            userId: string;
         };
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        status: string;
         userId: string;
+        status: string;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
         subtotal: import("@prisma/client/runtime/library").Decimal;
         shippingFee: import("@prisma/client/runtime/library").Decimal;
+        paymentStatus: string;
+        paymentMethod: string | null;
+        paymentReference: string | null;
+        trackingNumber: string | null;
+        shippedAt: Date | null;
+        deliveredAt: Date | null;
         shippingAddressId: string | null;
     }>;
     updateOrderStatus(id: string, updateOrderStatusDto: UpdateOrderStatusDto): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        status: string;
         userId: string;
+        status: string;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
         subtotal: import("@prisma/client/runtime/library").Decimal;
         shippingFee: import("@prisma/client/runtime/library").Decimal;
+        paymentStatus: string;
+        paymentMethod: string | null;
+        paymentReference: string | null;
+        trackingNumber: string | null;
+        shippedAt: Date | null;
+        deliveredAt: Date | null;
         shippingAddressId: string | null;
     }>;
     adminDeleteOrder(id: string): Promise<{

@@ -29,7 +29,7 @@ export class ProductsService {
       throw new BadRequestException('Product image file is required.');
     }
     const kycStatus = await this.prisma.kYC.findUnique({
-      where: { user_id: sellerId },
+      where: { userId: sellerId },
       select: { status: true },
     });
     if (!kycStatus || kycStatus.status !== 'approved') {
@@ -59,70 +59,107 @@ export class ProductsService {
     return newProduct;
   }
   
-  async findAll(query: ProductQueryDto) {
-    const { 
-      search, 
-      category, 
-      sortBy = 'createdAt', 
-      sortOrder = 'desc',
-      page = '1',
-      limit = '10'
-    } = query;
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    const take = parseInt(limit);
+    async findAll(query: ProductQueryDto) {
+    try {
+      const {
+        search,
+        category,
+        minPrice,
+        maxPrice,
+        minRating,
+        inStockOnly,
+        sortBy: rawSortBy = 'createdAt', // Rename to avoid conflict
+        sortOrder: initialSortOrder = 'desc',
+        page = '1',
+        limit = '10',
+      } = query;
 
-    // 1. 🛑 Define the 'include' object to get seller verification status
-    const includeSeller = {
-      seller: {
-        select: {
-          id: true,
-          name: true,
-          verificationStatus: true,
-        },
-      },
-    };
-
-    if (search) {
+      if (search) {
         const searchResult = await this.searchService.searchProducts(search);
-        // We can't easily add the seller data to search, so we'll skip it for now.
-        // A more advanced solution would be to re-fetch by ID or add status to search index.
+        // Note: Advanced filtering (price, rating etc.) is not applied on top of search results yet.
+        // This would require either enhancing the search engine's capabilities or filtering in-memory.
         return {
           products: searchResult.results,
           meta: {
             total: searchResult.totalHits,
-            page: 1, 
+            page: 1,
             limit: searchResult.results.length,
-            totalPages: 1, 
-          }
+            totalPages: 1,
+          },
         };
-    }
-    
-    const where: any = {};
-    if (category) {
-      where.category = category;
-    }
-    const orderBy: any = { [sortBy]: sortOrder };
-
-    const products = await this.prisma.product.findMany({
-      where,
-      orderBy,
-      skip,
-      take,
-      include: includeSeller, // 2. 🛑 Add 'include' to the query
-    });
-    
-    const total = await this.prisma.product.count({ where });
-    return {
-      products,
-      meta: {
-        total,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        totalPages: Math.ceil(total / parseInt(limit)),
       }
-    };
-  }
 
+      const skip = (parseInt(page) - 1) * parseInt(limit);
+      const take = parseInt(limit);
+
+      const includeSeller = {
+        seller: {
+          select: {
+            id: true,
+            name: true,
+            verificationStatus: true,
+          },
+        },
+      };
+
+      // Build WHERE clause
+      const where: Prisma.ProductWhereInput = {};
+      if (category) {
+        where.category = category;
+      }
+      if (minPrice || maxPrice) {
+        where.price = {};
+        if (minPrice) {
+          where.price.gte = parseFloat(minPrice);
+        }
+        if (maxPrice) {
+          where.price.lte = parseFloat(maxPrice);
+        }
+      }
+      if (minRating) {
+        where.averageRating = { gte: parseFloat(minRating) };
+      }
+      if (inStockOnly === 'true') {
+        where.stock = { gt: 0 };
+      }
+
+      // Build ORDER BY clause
+      let orderBy: Prisma.ProductOrderByWithRelationInput;
+      if (rawSortBy === 'price-asc') {
+        orderBy = { price: 'asc' };
+      } else if (rawSortBy === 'price-desc') {
+        orderBy = { price: 'desc' };
+      } else if (rawSortBy === 'rating') {
+        orderBy = { averageRating: 'desc' };
+      } else {
+        orderBy = { [rawSortBy]: initialSortOrder };
+      }
+
+
+      const products = await this.prisma.product.findMany({
+        where,
+        orderBy,
+        skip,
+        take,
+        include: includeSeller,
+      });
+
+      const total = await this.prisma.product.count({ where });
+
+      return {
+        products,
+        meta: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          totalPages: Math.ceil(total / parseInt(limit)),
+        },
+      };
+    } catch (error) {
+      console.error('Error in ProductsService.findAll:', error);
+      throw new InternalServerErrorException('Failed to fetch products from the server.');
+    }
+  }
   async findOne(id: string) {
     const product = await this.prisma.product.findUnique({ 
       where: { id },

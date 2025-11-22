@@ -252,6 +252,20 @@ export const getAdminStats = async () => {
   }
 };
 
+/**
+ * Fetches time-series revenue data for the chart.
+ */
+export const getRevenueData = async () => {
+  try {
+    const response = await apiClient.get('/stats/revenue-over-time'); // Assuming this endpoint exists
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to fetch revenue data.';
+    console.error('Fetch Revenue Data error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
 // --- FINANCIALS & PAYOUTS METHODS ---
 export const getFinancialSummary = async () => {
   try {
@@ -315,5 +329,185 @@ export const updateWithdrawalStatus = async (requestId, status, adminRemarks = '
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.message || 'Failed to update withdrawal status.');
+  }
+};
+
+// --- SERVICE METHODS ---
+export const getAllServices = async () => {
+  try {
+    const response = await apiClient.get('/services/all-admin'); // Assuming this endpoint
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to fetch services.';
+    console.error('Fetch services error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
+export const adminCreateService = async (formData) => {
+  try {
+    const response = await apiClient.post('/services/admin/create', formData, { // Assuming this endpoint
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to create service.';
+    console.error('Create service error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
+export const getAdminServiceById = async (serviceId) => {
+  try {
+    const response = await apiClient.get(`/services/${serviceId}`); // Assuming this endpoint
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to fetch service details.';
+    console.error('Fetch service details error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
+export const adminUpdateService = async (serviceId, data) => {
+  try {
+    const response = await apiClient.patch(`/services/admin/${serviceId}`, data); // Assuming this endpoint
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to update service.';
+    console.error('Update service error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
+export const deleteService = async (serviceId) => {
+  try {
+    const response = await apiClient.delete(`/services/admin/${serviceId}`); // Assuming this endpoint
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to delete service.';
+    console.error('Delete service error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
+// --- STAY METHODS ---
+export const getAllStays = async () => {
+  try {
+    const response = await apiClient.get('/stays/all-admin');
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to fetch stays.';
+    console.error('Fetch stays error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
+export const adminCreateStay = async (formData) => {
+  try {
+    const response = await apiClient.post('/stays/admin/create', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to create stay.';
+    console.error('Create stay error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
+export const getAdminStayById = async (stayId) => {
+  try {
+    const response = await apiClient.get(`/stays/${stayId}`);
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to fetch stay details.';
+    console.error('Fetch stay details error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
+export const adminUpdateStay = async (stayId, data) => {
+  try {
+    const response = await apiClient.patch(`/stays/admin/${stayId}`, data);
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to update stay.';
+    console.error('Update stay error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
+export const deleteStay = async (stayId) => {
+  try {
+    const response = await apiClient.delete(`/stays/admin/${stayId}`);
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to delete stay.';
+    console.error('Delete stay error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
+// --- COMMUNITY METHODS ---
+export const getAllCommunityPosts = async () => {
+  try {
+    const response = await apiClient.get('/community/all-admin');
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to fetch community posts.';
+    console.error('Fetch community posts error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
+export const adminCreateCommunityPost = async (formData) => {
+  try {
+    const response = await apiClient.post('/community/admin/create', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to create community post.';
+    console.error('Create community post error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
+export const getAdminCommunityPostById = async (postId) => {
+  try {
+    const response = await apiClient.get(`/community/${postId}`);
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to fetch community post details.';
+    console.error('Fetch community post details error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
+export const adminUpdateCommunityPost = async (postId, data) => {
+  try {
+    const response = await apiClient.patch(`/community/admin/${postId}`, data);
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to update community post.';
+    console.error('Update community post error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
+export const deleteCommunityPost = async (postId) => {
+  try {
+    const response = await apiClient.delete(`/community/admin/${postId}`);
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to delete community post.';
+    console.error('Delete community post error:', errorMessage);
+    throw new Error(errorMessage);
   }
 };

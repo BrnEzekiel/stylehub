@@ -4,7 +4,7 @@ import {
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
-  NotFoundException, 
+  NotFoundException,
   Logger,
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
@@ -13,8 +13,8 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { LoginUserDto } from './dto/login-user.dto';
-import { AdminCreateUserDto } from '../users/dto/admin-create-user.dto'; // 1. 🛑 Import new DTO
-import { Role } from './enums/role.enum'; // 2. 🛑 Import Role
+import { AdminCreateUserDto } from '../users/dto/admin-create-user.dto';
+import { Role } from './enums/role.enum';
 
 @Injectable()
 export class AuthService {
@@ -26,7 +26,14 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  async register(dto: RegisterUserDto) {
+  async register(dto: {
+    name: string;
+    username: string;
+    email: string;
+    phone: string;
+    password: string;
+    role: Role;
+  }) {
     const existingEmail = await this.usersService.findByEmail(dto.email);
     if (existingEmail) {
       throw new ConflictException('Email already in use');
@@ -40,12 +47,13 @@ export class AuthService {
     try {
       const user = await this.usersService.create({
         name: dto.name,
+        username: dto.username,
         email: dto.email,
         phone: dto.phone,
         password_hash: hashedPassword,
         role: dto.role,
       });
-      const payload = { sub: user.id, email: user.email, role: user.role };
+      const payload = { sub: user.id, email: user.email, role: user.role, username: user.username };
       const [accessToken, refreshToken] = await Promise.all([
         this.jwtService.signAsync(payload, {
           secret: this.configService.get<string>('JWT_SECRET'),
@@ -165,7 +173,6 @@ export class AuthService {
       throw new ConflictException('Phone number already in use');
     }
 
-    // Hash the password
     const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(dto.password, saltRounds);
 
@@ -173,13 +180,14 @@ export class AuthService {
       const user = await this.usersService.create({
         name: dto.name,
         email: dto.email,
+        username: dto.email.split('@')[0],
         phone: dto.phone,
         password_hash: hashedPassword,
-        role: dto.role as Role, // Cast to Role enum
+        role: dto.role as Role,
       });
 
       const { password_hash, ...userResult } = user;
-      return userResult; // Return the new user
+      return userResult;
     } catch (error) {
       if (error instanceof ConflictException) {
         throw error;

@@ -26,7 +26,7 @@ let ProductsService = class ProductsService {
             throw new common_1.BadRequestException('Product image file is required.');
         }
         const kycStatus = await this.prisma.kYC.findUnique({
-            where: { user_id: sellerId },
+            where: { userId: sellerId },
             select: { status: true },
         });
         if (!kycStatus || kycStatus.status !== 'approved') {
@@ -57,52 +57,85 @@ let ProductsService = class ProductsService {
         return newProduct;
     }
     async findAll(query) {
-        const { search, category, sortBy = 'createdAt', sortOrder = 'desc', page = '1', limit = '10' } = query;
-        const skip = (parseInt(page) - 1) * parseInt(limit);
-        const take = parseInt(limit);
-        const includeSeller = {
-            seller: {
-                select: {
-                    id: true,
-                    name: true,
-                    verificationStatus: true,
+        try {
+            const { search, category, minPrice, maxPrice, minRating, inStockOnly, sortBy: rawSortBy = 'createdAt', sortOrder: initialSortOrder = 'desc', page = '1', limit = '10', } = query;
+            if (search) {
+                const searchResult = await this.searchService.searchProducts(search);
+                return {
+                    products: searchResult.results,
+                    meta: {
+                        total: searchResult.totalHits,
+                        page: 1,
+                        limit: searchResult.results.length,
+                        totalPages: 1,
+                    },
+                };
+            }
+            const skip = (parseInt(page) - 1) * parseInt(limit);
+            const take = parseInt(limit);
+            const includeSeller = {
+                seller: {
+                    select: {
+                        id: true,
+                        name: true,
+                        verificationStatus: true,
+                    },
                 },
-            },
-        };
-        if (search) {
-            const searchResult = await this.searchService.searchProducts(search);
-            return {
-                products: searchResult.results,
-                meta: {
-                    total: searchResult.totalHits,
-                    page: 1,
-                    limit: searchResult.results.length,
-                    totalPages: 1,
+            };
+            const where = {};
+            if (category) {
+                where.category = category;
+            }
+            if (minPrice || maxPrice) {
+                where.price = {};
+                if (minPrice) {
+                    where.price.gte = parseFloat(minPrice);
                 }
+                if (maxPrice) {
+                    where.price.lte = parseFloat(maxPrice);
+                }
+            }
+            if (minRating) {
+                where.averageRating = { gte: parseFloat(minRating) };
+            }
+            if (inStockOnly === 'true') {
+                where.stock = { gt: 0 };
+            }
+            let orderBy;
+            if (rawSortBy === 'price-asc') {
+                orderBy = { price: 'asc' };
+            }
+            else if (rawSortBy === 'price-desc') {
+                orderBy = { price: 'desc' };
+            }
+            else if (rawSortBy === 'rating') {
+                orderBy = { averageRating: 'desc' };
+            }
+            else {
+                orderBy = { [rawSortBy]: initialSortOrder };
+            }
+            const products = await this.prisma.product.findMany({
+                where,
+                orderBy,
+                skip,
+                take,
+                include: includeSeller,
+            });
+            const total = await this.prisma.product.count({ where });
+            return {
+                products,
+                meta: {
+                    total,
+                    page: parseInt(page),
+                    limit: parseInt(limit),
+                    totalPages: Math.ceil(total / parseInt(limit)),
+                },
             };
         }
-        const where = {};
-        if (category) {
-            where.category = category;
+        catch (error) {
+            console.error('Error in ProductsService.findAll:', error);
+            throw new common_1.InternalServerErrorException('Failed to fetch products from the server.');
         }
-        const orderBy = { [sortBy]: sortOrder };
-        const products = await this.prisma.product.findMany({
-            where,
-            orderBy,
-            skip,
-            take,
-            include: includeSeller,
-        });
-        const total = await this.prisma.product.count({ where });
-        return {
-            products,
-            meta: {
-                total,
-                page: parseInt(page),
-                limit: parseInt(limit),
-                totalPages: Math.ceil(total / parseInt(limit)),
-            }
-        };
     }
     async findOne(id) {
         const product = await this.prisma.product.findUnique({
